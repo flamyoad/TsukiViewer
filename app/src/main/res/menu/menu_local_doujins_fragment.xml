@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item android:id="@+id/progress_bar_sync"
+        android:title="Progress bar"
+        android:orderInCategory="100"
+        app:showAsAction="always"
+        app:actionLayout="@layout/view_progress_bar"/>
+
+
+    <item android:id="@+id/action_search_local"
+        android:title="Search"
+        android:icon="@drawable/ic_search_white_24dp"
+        android:orderInCategory="101"
+        app:showAsAction="always"/>
+
+    <item android:id="@+id/action_sort"
+        android:title="Sort"
+        android:orderInCategory="102" >
+
+        <menu>
+            <item android:id="@+id/action_sort_by_name"
+                android:title="By name" />
+
+            <item android:id="@+id/action_sort_by_date"
+                android:title="By date"/>
+
+            <item android:id="@+id/action_sort_by_path"
+                android:title="By path"/>
+        </menu>
+
+    </item>
+
+    <item android:id="@+id/action_sync"
+        android:title="Sync metadata"
+        app:showAsAction="never"
+        android:orderInCategory="103"/>
+
+</menu>
