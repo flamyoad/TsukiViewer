@@ -1,6 +1,7 @@
 package com.flamyoad.tsukiviewer.ui.home.local
 
 import android.content.DialogInterface
+import android.content.Intent
 import android.os.Bundle
 import android.view.*
 import android.widget.CheckBox
@@ -15,6 +16,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
+import com.flamyoad.tsukiviewer.ui.search.SearchActivity
 import com.flamyoad.tsukiviewer.utils.ItemOffsetDecoration
 import kotlinx.android.synthetic.main.fragment_local_doujins.*
 import kotlinx.android.synthetic.main.view_progress_bar.*
@@ -79,6 +81,9 @@ class LocalDoujinsFragment : Fragment() {
 
             R.id.action_sort_by_path -> {
                 adapter.sortByPath()
+            }
+            R.id.action_search_local -> {
+                openSearchActivity()
             }
 
             // TODO: SET PROGRESS INDICATOR
@@ -167,6 +172,11 @@ class LocalDoujinsFragment : Fragment() {
         viewmodel.doujinList.observe(viewLifecycleOwner, Observer {
             adapter.setList(it)
         })
+    }
+
+    private fun openSearchActivity() {
+        val intent = Intent(context, SearchActivity::class.java)
+        startActivity(intent)
     }
 
     companion object {

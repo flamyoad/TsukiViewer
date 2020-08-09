@@ -51,4 +51,9 @@
         <item name="colorAccent">@android:color/white</item>
     </style>
 
+    <style name="ChipEntryWithoutTicks" parent="@style/Widget.MaterialComponents.Chip.Entry">
+        <item name="checkedIconEnabled">false</item>
+        <item name="checkedIcon">@null</item>
+    </style>
+
 </resources>
