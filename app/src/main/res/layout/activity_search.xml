@@ -1,23 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".ui.search.SearchActivity">
 
-    <LinearLayout
+    <include layout="@layout/search_bar" />
+
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context=".ui.search.SearchActivity"
-        android:orientation="vertical">
-
-        <include layout="@layout/search_bar"/>
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        android:fitsSystemWindows="true"
+        android:layout_weight="1">
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_height="0dp">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -82,11 +84,9 @@
                 <androidx.cardview.widget.CardView
                     android:id="@+id/searchHistoryBorder"
                     android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="8dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
                     app:cardCornerRadius="8dp"
-                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="@+id/chipGroup"
                     app:layout_constraintStart_toStartOf="@+id/chipGroup"
                     app:layout_constraintTop_toBottomOf="@+id/lblHistory">
@@ -94,7 +94,8 @@
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/listSearchHistory"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"/>
+                        android:layout_height="match_parent"
+                        android:clipToPadding="false"/>
 
                 </androidx.cardview.widget.CardView>
 
@@ -102,14 +103,32 @@
 
         </FrameLayout>
 
-        <Button
-            style="@style/Widget.MaterialComponents.Button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:layout_margin="0dp"
-            android:text="Add Tags" />
+    </androidx.core.widget.NestedScrollView>
 
-    </LinearLayout>
+    <Button
+        style="@style/Widget.MaterialComponents.Button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_margin="0dp"
+        android:backgroundTint="@color/actionBlue"
+        android:insetLeft="0dp"
+        android:insetRight="0dp"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:text="Search" />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</LinearLayout>
+
+
+    <!--        <com.google.android.material.floatingactionbutton.FloatingActionButton-->
+    <!--            android:layout_width="wrap_content"-->
+    <!--            android:layout_height="wrap_content"-->
+    <!--            android:layout_gravity="bottom|end"-->
+    <!--            android:layout_marginTop="16dp"-->
+    <!--            android:layout_marginLeft="16dp"-->
+    <!--            android:layout_marginRight="16dp"-->
+    <!--            android:layout_marginBottom="48dp"-->
+    <!--            app:useCompatPadding="true"-->
+    <!--            app:fabSize="normal"-->
+    <!--            android:src="@drawable/ic_search_white_24dp"/>-->
