@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_sync"
+        android:icon="@drawable/ic_sync_white_24dp"
+        android:title="Sync"
+        app:showAsAction="always"
+        android:orderInCategory="100"/>
+    <item
+        android:id="@+id/action_edit"
+        android:icon="@drawable/ic_edit_white_24dp"
+        android:title="Edit"
+        app:showAsAction="always"
+        android:orderInCategory="101"/>
+
+    <item android:id="@+id/action_mode"
+        android:title="Mode"
+        app:showAsAction="never"
+        android:orderInCategory="102">
+
+        <menu>
+            <item android:id="@+id/action_mode_square"
+                android:title="Grid"/>
+
+            <item android:id="@+id/action_mode_original"
+                android:title="Scaled"/>
+        </menu>
+    </item>
+</menu>

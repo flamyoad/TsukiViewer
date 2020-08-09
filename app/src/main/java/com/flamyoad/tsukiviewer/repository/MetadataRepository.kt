@@ -21,6 +21,7 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
+import java.io.IOException
 
 class MetadataRepository(private val application: Application) {
 
@@ -75,16 +76,17 @@ class MetadataRepository(private val application: Application) {
             for (dir in dirList) {
 
                 if (doujinDetailsDao.existsByTitle(dir.name) ||
-                    doujinDetailsDao.existsByAbsolutePath(dir.toString()) ) {
+                    doujinDetailsDao.existsByAbsolutePath(dir.toString())
+                ) {
                     continue
                 }
 
-                val doujinDetail = getDataFromApi(dir.name)
+                val response = getDataFromApi(dir.name)
 
-                if (doujinDetail != null) {
-                    storeMetadata(doujinDetail, dir)
+                if (response != null && response.result.isNotEmpty()) {
+                    storeMetadata(response, dir)
                 } else {
-                    Log.d("retrofit", "doujinDetail is null at fetchMetaDataAll()")
+                    Log.d("retrofit", "Can't find this sauce in NH.net")
                 }
 
                 // Sleep 1 second
@@ -138,13 +140,19 @@ class MetadataRepository(private val application: Application) {
     }
 
     private fun getDataFromApi(fullTitle: String): Metadata? {
+        Log.d("retrofit", "title: $fullTitle")
+
         // Wraps query parameter with double quotes to perform exact search
-        val response = nhService.getMetadata("\"" + fullTitle + "\"")
-            .execute()
+        try {
+            val response = nhService.getMetadata("\"" + fullTitle + "\"")
+                .execute()
+            return response.body()
 
-        Log.d("retrofit", response.code().toString())
-
-        return response.body()
+        } catch (e: IOException) {
+            Log.d("retrofit", e.message)
+            e.printStackTrace()
+        }
+        return null
     }
 
 
