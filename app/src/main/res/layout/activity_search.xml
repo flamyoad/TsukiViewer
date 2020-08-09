@@ -106,12 +106,13 @@
     </androidx.core.widget.NestedScrollView>
 
     <Button
+        android:id="@+id/btnSearch"
         style="@style/Widget.MaterialComponents.Button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:layout_margin="0dp"
-        android:backgroundTint="@color/actionBlue"
+        android:backgroundTint="@color/colorAccent"
         android:insetLeft="0dp"
         android:insetRight="0dp"
         android:insetTop="0dp"

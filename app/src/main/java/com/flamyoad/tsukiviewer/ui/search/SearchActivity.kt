@@ -1,5 +1,6 @@
 package com.flamyoad.tsukiviewer.ui.search
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.TextUtils
@@ -14,20 +15,35 @@ import kotlinx.android.synthetic.main.search_bar.*
 
 class SearchActivity : AppCompatActivity() {
 
+    companion object {
+        const val SEARCH_TITLE = "search_title"
+        const val SEARCH_TAGS = "search_tags"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search)
 
         initSearchView()
         initSearchHistory()
+
+        btnSearch.setOnClickListener {
+            val query = searchView.query
+            if (query != null && query.isNotBlank()) {
+                val intent = Intent(this@SearchActivity , SearchResultActivity::class.java)
+                intent.putExtra(SEARCH_TITLE, query)
+                startActivity(intent)
+            }
+        }
     }
 
     private fun initSearchView() {
         searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 if (query != null && query.isNotBlank()) {
-//                    viewmodel.submitSearchQuery(query)
-                    finish()
+                    val intent = Intent(this@SearchActivity , SearchResultActivity::class.java)
+                    intent.putExtra(SEARCH_TITLE, query)
+                    startActivity(intent)
                 }
                 return true
             }
