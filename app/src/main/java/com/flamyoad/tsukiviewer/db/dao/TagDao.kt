@@ -1,5 +1,6 @@
 package com.flamyoad.tsukiviewer.db.dao
 
+import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
@@ -9,6 +10,9 @@ import com.flamyoad.tsukiviewer.model.Tag
 interface TagDao {
     @Insert
     suspend fun insert(tag: Tag): Long
+
+    @Query("SELECT * FROM tags")
+    fun getAll(): LiveData<List<Tag>>
 
     @Query("SELECT EXISTS(SELECT * FROM tags WHERE type = :type AND name = :name)")
     suspend fun exists(type: String, name: String): Boolean

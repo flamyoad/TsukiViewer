@@ -3,17 +3,18 @@ package com.flamyoad.tsukiviewer.ui.search
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.text.TextUtils
 import androidx.appcompat.widget.SearchView
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.SearchHistoryAdapter
-import com.flamyoad.tsukiviewer.model.SearchHistory
 import kotlinx.android.synthetic.main.activity_search.*
 import kotlinx.android.synthetic.main.search_bar.*
 
 class SearchActivity : AppCompatActivity() {
+
+    private lateinit var viewmodel: SearchViewModel
 
     companion object {
         const val SEARCH_TITLE = "SearchActivity.SEARCH_TITLE"
@@ -23,6 +24,8 @@ class SearchActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search)
+
+        viewmodel = ViewModelProvider(this).get(SearchViewModel::class.java)
 
         initSearchView()
         initSearchHistory()
@@ -34,6 +37,11 @@ class SearchActivity : AppCompatActivity() {
                 intent.putExtra(SEARCH_TITLE, query.toString())
                 startActivity(intent)
             }
+        }
+
+        chipAddItem.setOnClickListener {
+            val tagListFragment = TagPickerDialogFragment.newInstance()
+            tagListFragment.show(supportFragmentManager, "fragment_tag_list")
         }
     }
 

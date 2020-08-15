@@ -17,9 +17,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
-// TODO: TOTAL REFACTOR. CHANGE LIVEDATA TO OBSERVE FILE INSTEAD OF DOUJINDETAILS OR ANY OTHER POJOS
 class SearchResultViewModel(application: Application) : AndroidViewModel(application) {
+
     private val db: AppDatabase
+
     val folderDao: IncludedFolderDao
     val doujinDetailsDao: DoujinDetailsDao
     val tagDao: TagDao
