@@ -16,8 +16,8 @@ import kotlinx.android.synthetic.main.search_bar.*
 class SearchActivity : AppCompatActivity() {
 
     companion object {
-        const val SEARCH_TITLE = "search_title"
-        const val SEARCH_TAGS = "search_tags"
+        const val SEARCH_TITLE = "SearchActivity.SEARCH_TITLE"
+        const val SEARCH_TAGS = "SearchActivity.SEARCH_TAGS"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,7 +31,7 @@ class SearchActivity : AppCompatActivity() {
             val query = searchView.query
             if (query != null && query.isNotBlank()) {
                 val intent = Intent(this@SearchActivity , SearchResultActivity::class.java)
-                intent.putExtra(SEARCH_TITLE, query)
+                intent.putExtra(SEARCH_TITLE, query.toString())
                 startActivity(intent)
             }
         }
@@ -42,7 +42,10 @@ class SearchActivity : AppCompatActivity() {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 if (query != null && query.isNotBlank()) {
                     val intent = Intent(this@SearchActivity , SearchResultActivity::class.java)
-                    intent.putExtra(SEARCH_TITLE, query)
+
+                    // No idea why but when you pass CharSequence in, the data is null in next activity,
+                    // so I have to convert it to String before putting it in intent
+                    intent.putExtra(SEARCH_TITLE, query.toString())
                     startActivity(intent)
                 }
                 return true

@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.Transformations
+import androidx.lifecycle.MutableLiveData
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.DoujinDetailsDao
 import com.flamyoad.tsukiviewer.db.dao.DoujinTagsDao
@@ -13,8 +13,11 @@ import com.flamyoad.tsukiviewer.db.dao.TagDao
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.IncludedFolder
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 
+// TODO: TOTAL REFACTOR. CHANGE LIVEDATA TO OBSERVE FILE INSTEAD OF DOUJINDETAILS OR ANY OTHER POJOS
 class SearchResultViewModel(application: Application) : AndroidViewModel(application) {
     private val db: AppDatabase
     val folderDao: IncludedFolderDao
@@ -24,7 +27,10 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
 
     val includedFolderList: LiveData<List<IncludedFolder>>
 
-    val doujinList: LiveData<List<Doujin>>
+    private var searchQuery: String = ""
+
+    private val _searchResult = MutableLiveData<List<Doujin>>()
+    val searchResult: LiveData<List<Doujin>> = _searchResult
 
     init {
         db = AppDatabase.getInstance(application)
@@ -35,40 +41,78 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
         doujinTagDao = db.doujinTagDao()
 
         includedFolderList = folderDao.getAll()
-
-        doujinList =
-            Transformations.map(includedFolderList) { folders ->
-                return@map fetchDoujinsFromDir(folders)
-            }
     }
 
-    private fun fetchDoujinsFromDir(includedFolders: List<IncludedFolder>): List<Doujin> {
-        val doujinList = mutableListOf<Doujin>()
-        for (folder in includedFolders) {
-            walk(folder.dir, doujinList)
+    suspend fun submitQuery(query: String) {
+        if (searchQuery == query) {
+            return
         }
-        return doujinList
+
+        withContext(Dispatchers.IO) {
+            val folderFromDb = findFoldersFromDatabase(query)
+            val folderFromExplorer = findFoldersFromFileExplorer(query)
+
+            val uniqueFolders = mutableSetOf<String>()
+
+            with(uniqueFolders) {
+                addAll(folderFromDb)
+                addAll(folderFromExplorer)
+            }
+
+            val searchResult = uniqueFolders.mapNotNull { folder ->
+                convertFolderPathToDoujin(folder)
+            }
+
+            _searchResult.postValue(searchResult)
+        }
+    }
+
+    private suspend fun findFoldersFromDatabase(query: String): List<String> {
+        val doujinDetailItems = doujinDetailsDao.findByTitle(query)
+
+        val folderList = doujinDetailItems.map { item -> item.absolutePath.toString() }
+
+        return folderList
+    }
+
+    private suspend fun findFoldersFromFileExplorer(query: String): List<String> {
+        val includedFolders = folderDao.getAllBlocking()
+
+        val folderList = mutableListOf<File>()
+        for (folder in includedFolders) {
+            walk(folder.dir, folderList)
+        }
+
+        return folderList
+            .filter { x -> x.toString().contains(query, true) }
+            .map { x -> x.toString() }
+    }
+
+    private fun convertFolderPathToDoujin(path: String): Doujin? {
+        val dir = File(path)
+
+        val imageList = dir.listFiles(ImageFileFilter()).sorted()
+
+        if (imageList.isNotEmpty()) {
+            val coverImage = imageList.first().toUri()
+            val title = dir.name
+            val numberOfImages = imageList.size
+            val lastModified = dir.lastModified()
+
+            val doujin = Doujin(coverImage, title, numberOfImages, lastModified, dir)
+            return doujin
+        }
+
+        return null
     }
 
     // Recursive method to search for directories & sub-directories
     // todo: this method doesnt include the main directory itself, fix it
-    private fun walk(currentDir: File, doujinList: MutableList<Doujin>) {
+    private fun walk(currentDir: File, folderList: MutableList<File>) {
         for (f in currentDir.listFiles()) {
             if (f.isDirectory) {
-                val imageList = f.listFiles(ImageFileFilter()).sorted()
-
-                if (imageList.isNotEmpty()) {
-                    val coverImage = imageList.first().toUri()
-                    val title = f.name
-                    val numberOfImages = imageList.size
-                    val lastModified = f.lastModified()
-
-                    doujinList.add(
-                        Doujin(coverImage, title, numberOfImages, lastModified, f)
-                    )
-                }
-
-                walk(f, doujinList)
+                folderList.add(f)
+                walk(f, folderList)
             }
         }
     }

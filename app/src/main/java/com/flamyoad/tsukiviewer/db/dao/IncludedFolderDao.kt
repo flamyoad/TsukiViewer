@@ -13,6 +13,9 @@ interface IncludedFolderDao {
     @Query("SELECT * FROM included_folders")
     fun getAll(): LiveData<List<IncludedFolder>>
 
+    @Query("SELECT * FROM included_folders")
+    suspend fun getAllBlocking(): List<IncludedFolder>
+
     @Insert
     suspend fun insert(folder: IncludedFolder)
 

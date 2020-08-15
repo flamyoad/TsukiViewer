@@ -2,8 +2,12 @@ package com.flamyoad.tsukiviewer.db.dao
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
+import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.DoujinDetails
 import com.flamyoad.tsukiviewer.model.DoujinDetailsWithTags
+import java.io.File
+
+// TODO: Refactor this class to two - DoujinDetailsDao and DoujinLongDetailsDao
 
 @Dao
 interface DoujinDetailsDao {
@@ -22,8 +26,11 @@ interface DoujinDetailsDao {
     @Query("SELECT EXISTS(SELECT * FROM doujin_details WHERE absolutePath = :absolutePath)")
     suspend fun existsByAbsolutePath(absolutePath: String): Boolean
 
+    @Query("SELECT * FROM doujin_details WHERE fullTitleEnglish LIKE '%' || :query || '%' OR fullTitleJapanese LIKE '%' || :query || '%'")
+    suspend fun findByTitle(query: String): List<DoujinDetails>
+
     @Query("SELECT * FROM doujin_details")
-    suspend fun getShortDetails(): List<DoujinDetails>
+    suspend fun getAllShortDetails(): List<DoujinDetails>
 
     @Transaction
     @Query("SELECT * FROM doujin_details")
