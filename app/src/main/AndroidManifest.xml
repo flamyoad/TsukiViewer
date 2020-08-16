@@ -14,6 +14,17 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.flamyoad.tsukiviewer.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/paths" />
+        </provider>
+
         <activity android:name=".ui.search.SearchResultActivity"></activity>
         <activity android:name=".ui.search.SearchActivity" />
         <activity android:name=".ui.reader.ReaderActivity" />

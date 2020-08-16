@@ -16,12 +16,15 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.GalleryPickerAdapter
+import com.flamyoad.tsukiviewer.ui.settings.preferences.GalleryPickListener
 
-class GalleryPickerDialog: DialogFragment() {
+class GalleryPickerDialog(private val listener: GalleryPickListener)
+    : DialogFragment() {
 
     companion object {
         @JvmStatic
-        fun newInstance() = GalleryPickerDialog()
+        fun newInstance(listener: GalleryPickListener)
+                = GalleryPickerDialog(listener)
     }
 
     private lateinit var viewmodel: SettingsViewModel
@@ -66,7 +69,7 @@ class GalleryPickerDialog: DialogFragment() {
         super.onActivityCreated(savedInstanceState)
         viewmodel = ViewModelProvider(requireActivity()).get(SettingsViewModel::class.java)
 
-        val adapter = GalleryPickerAdapter()
+        val adapter = GalleryPickerAdapter(listener)
         val linearLayoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
 
         listGalleries.adapter = adapter
