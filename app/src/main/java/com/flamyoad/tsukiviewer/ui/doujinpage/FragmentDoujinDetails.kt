@@ -17,6 +17,8 @@ import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxItemDecoration
 import com.google.android.flexbox.FlexboxLayoutManager
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.android.synthetic.main.activity_doujin_details.*
 import kotlinx.android.synthetic.main.doujin_details_tags_group.*
 import java.io.File
 
@@ -50,10 +52,9 @@ class FragmentDoujinDetails : Fragment() {
 
         viewmodel.detailWithTags.observe(viewLifecycleOwner, Observer {
             if (it == null) {
-                Toast.makeText(context, "Can't find details and tags", Toast.LENGTH_LONG)
-                    .show()
+//                Toast.makeText(context, "Can't find details and tags", Toast.LENGTH_LONG)
+//                    .show()
                 setDefaultToolbarText()
-
             } else {
                 initDoujinDetails(it)
             }

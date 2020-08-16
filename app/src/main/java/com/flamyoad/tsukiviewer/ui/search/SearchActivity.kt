@@ -80,7 +80,6 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
         intent.putExtra(SEARCH_TITLE, title)
         intent.putExtra(SEARCH_TAGS, tags)
         startActivity(intent)
-
     }
 
     private fun initSearchView() {

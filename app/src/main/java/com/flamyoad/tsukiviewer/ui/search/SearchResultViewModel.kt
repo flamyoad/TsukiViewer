@@ -29,8 +29,6 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
 
     val includedFolderList: LiveData<List<IncludedFolder>>
 
-    private var searchQuery: String = ""
-
     private val _searchResult = MutableLiveData<List<Doujin>>()
     val searchResult: LiveData<List<Doujin>> = _searchResult
 
@@ -45,14 +43,18 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
         includedFolderList = folderDao.getAll()
     }
 
-    suspend fun submitQuery(query: String, tags: String) {
+    suspend fun submitQuery(title: String, tags: String) {
         withContext(Dispatchers.IO) {
-            val folderFromDb = findFoldersFromDatabase(query, tags)
+            val folderFromDb = findFoldersFromDatabase(title, tags)
 
-            val folderFromExplorer = if (query.isBlank() || tags.isNotBlank()) {
+            /* Do not search from directories if . . .
+                 1. The title query is blank
+                 2. The user has requested to search from genre tags
+            */
+            val folderFromExplorer = if (title.isBlank() || tags.isNotBlank()) {
                 emptyList()
             } else {
-                findFoldersFromFileExplorer(query)
+                findFoldersFromFileExplorer(title)
             }
 
             val uniqueFolders = mutableSetOf<String>()

@@ -1,5 +1,6 @@
 package com.flamyoad.tsukiviewer.adapter
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,6 +9,8 @@ import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.model.Tag
+import com.flamyoad.tsukiviewer.ui.search.SearchActivity
+import com.flamyoad.tsukiviewer.ui.search.SearchResultActivity
 import kotlinx.android.synthetic.main.doujin_tags_item.view.*
 
 class DoujinTagsAdapter: RecyclerView.Adapter<DoujinTagsAdapter.DoujinTagHolder>() {
@@ -21,8 +24,14 @@ class DoujinTagsAdapter: RecyclerView.Adapter<DoujinTagsAdapter.DoujinTagHolder>
         val holder = DoujinTagHolder(layout)
 
         layout.setOnClickListener {
-            Toast.makeText(it.context, "called", Toast.LENGTH_SHORT)
-                .show()
+            val tag = tagList[holder.adapterPosition]
+            
+            val context = parent.context
+            
+            val intent = Intent(context, SearchResultActivity::class.java)
+            intent.putExtra(SearchActivity.SEARCH_TAGS, tag.name)
+
+            context.startActivity(intent)
         }
 
         return holder

@@ -44,13 +44,13 @@ class SearchResultActivity : AppCompatActivity() {
             val tags = intent.getStringExtra(SearchActivity.SEARCH_TAGS)
 
             if (title.isNullOrBlank()) {
-                txtSearchTitle.text = "title: None"
+                txtSearchTitle.text = "title: {}"
             } else {
                 txtSearchTitle.text = getStringExtra(SearchActivity.SEARCH_TITLE)
             }
 
             if (tags.isNullOrBlank()) {
-                txtSearchTags.text = "tags: All"
+                txtSearchTags.text = "tags: {}"
             } else {
                 txtSearchTags.text = getStringExtra(SearchActivity.SEARCH_TAGS)
             }
