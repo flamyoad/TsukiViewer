@@ -1,24 +1,34 @@
 package com.flamyoad.tsukiviewer.ui.search
 
+import android.app.Dialog
+import android.content.Context
+import android.content.DialogInterface
+import android.graphics.Point
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.Display
+import android.view.Gravity
+import android.view.Window
+import android.widget.EditText
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.TagPickerAdapter
-import com.flamyoad.tsukiviewer.model.Tag
-import kotlinx.android.synthetic.main.tag_picker_dialog.*
+
 
 class TagPickerDialogFragment()
     : DialogFragment() {
 
     private lateinit var viewmodel: SearchViewModel
 
-    private val adapter = TagPickerAdapter()
+    private lateinit var listTags: RecyclerView
+
+    private lateinit var fieldTag: EditText
 
     companion object {
         fun newInstance(): TagPickerDialogFragment {
@@ -26,28 +36,51 @@ class TagPickerDialogFragment()
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.tag_picker_dialog, container)
-    }
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val builder = AlertDialog.Builder(requireContext())
+            .setNegativeButton("Cancel", DialogInterface.OnClickListener { dialogInterface, i ->
+                dismiss()
+            })
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+        val view = layoutInflater.inflate(R.layout.tag_picker_dialog, null)
 
-        val linearLayoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+        listTags = view.findViewById(R.id.listTags)
+        fieldTag = view.findViewById(R.id.fieldTag)
 
-        listTags.adapter = adapter
-        listTags.layoutManager = linearLayoutManager
+        builder.setView(view)
+
+        return builder.create()
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         viewmodel = ViewModelProvider(requireActivity()).get(SearchViewModel::class.java)
 
+        val tagSelectedListener = requireActivity() as TagSelectedListener
+
+        val adapter = TagPickerAdapter(tagSelectedListener)
+
+        val linearLayoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+
+        listTags.adapter = adapter
+        listTags.layoutManager = linearLayoutManager
+
+        fieldTag.addTextChangedListener(object: TextWatcher {
+            override fun afterTextChanged(p0: Editable?) {
+
+            }
+
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+            }
+
+            override fun onTextChanged(text: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                adapter.addFilter(text.toString())
+            }
+        })
+
         viewmodel.tagList.observe(this, Observer {
             adapter.setList(it)
         })
     }
-
-
-
 }

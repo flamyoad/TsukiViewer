@@ -16,6 +16,7 @@ import com.flamyoad.tsukiviewer.utils.ImageFileFilter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.*
 
 class SearchResultViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -44,14 +45,15 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
         includedFolderList = folderDao.getAll()
     }
 
-    suspend fun submitQuery(query: String) {
-        if (searchQuery == query) {
-            return
-        }
-
+    suspend fun submitQuery(query: String, tags: String) {
         withContext(Dispatchers.IO) {
-            val folderFromDb = findFoldersFromDatabase(query)
-            val folderFromExplorer = findFoldersFromFileExplorer(query)
+            val folderFromDb = findFoldersFromDatabase(query, tags)
+
+            val folderFromExplorer = if (query.isBlank() || tags.isNotBlank()) {
+                emptyList()
+            } else {
+                findFoldersFromFileExplorer(query)
+            }
 
             val uniqueFolders = mutableSetOf<String>()
 
@@ -68,11 +70,31 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
-    private suspend fun findFoldersFromDatabase(query: String): List<String> {
-        val doujinDetailItems = doujinDetailsDao.findByTitle(query)
+    private suspend fun findFoldersFromDatabase(title: String, tags: String): List<String> {
+        var folderList = emptyList<String>()
 
-        val folderList = doujinDetailItems.map { item -> item.absolutePath.toString() }
+        if (title.isNotBlank() && tags.isNotBlank()) {
+            val tagList = tags.split(",")
+                .map { tagName -> tagName }
 
+            val doujinDetailItems = doujinDetailsDao.findByTags(tagList, tagList.size)
+            folderList = doujinDetailItems
+                .filter { item -> item.fullTitleEnglish.toLowerCase(Locale.ROOT).contains(title) || item.fullTitleJapanese.contains(title)   }
+                .map { item -> item.absolutePath.toString() }
+
+        } else if (title.isNotBlank()) {
+//             search with title only
+            val doujinDetailItems = doujinDetailsDao.findByTitle(title)
+            folderList = doujinDetailItems.map { item -> item.absolutePath.toString() }
+
+        } else if (tags.isNotBlank()) {
+            // search with tags only
+            val tagList = tags.split(",")
+                .map { tagName -> tagName }
+
+            val doujinDetailItems = doujinDetailsDao.findByTags(tagList, tagList.size)
+            folderList = doujinDetailItems.map { item -> item.absolutePath.toString() }
+        }
         return folderList
     }
 
@@ -108,7 +130,7 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
     }
 
     // Recursive method to search for directories & sub-directories
-    // todo: this method doesnt include the main directory itself, fix it
+// todo: this method doesnt include the main directory itself, fix it
     private fun walk(currentDir: File, folderList: MutableList<File>) {
         for (f in currentDir.listFiles()) {
             if (f.isDirectory) {

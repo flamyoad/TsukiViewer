@@ -24,11 +24,11 @@ class SearchResultActivity : AppCompatActivity() {
 
         initToolbar()
 
-        // query is null here, but not in previous activity? why
-        val query = intent.getStringExtra(SearchActivity.SEARCH_TITLE)
+        val title = intent.getStringExtra(SearchActivity.SEARCH_TITLE) ?: ""
+        val tags = intent.getStringExtra(SearchActivity.SEARCH_TAGS) ?: ""
 
         lifecycleScope.launch {
-            viewmodel.submitQuery(query)
+            viewmodel.submitQuery(title, tags)
         }
 
         initRecyclerView()
@@ -40,8 +40,21 @@ class SearchResultActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         with(intent) {
-            txtSearchTitle.text = getStringExtra(SearchActivity.SEARCH_TITLE)
-            txtSearchTags.text = "sole female, netorate"
+            val title = intent.getStringExtra(SearchActivity.SEARCH_TITLE)
+            val tags = intent.getStringExtra(SearchActivity.SEARCH_TAGS)
+
+            if (title.isNullOrBlank()) {
+                txtSearchTitle.text = "title: None"
+            } else {
+                txtSearchTitle.text = getStringExtra(SearchActivity.SEARCH_TITLE)
+            }
+
+            if (tags.isNullOrBlank()) {
+                txtSearchTags.text = "tags: All"
+            } else {
+                txtSearchTags.text = getStringExtra(SearchActivity.SEARCH_TAGS)
+            }
+
         }
     }
 

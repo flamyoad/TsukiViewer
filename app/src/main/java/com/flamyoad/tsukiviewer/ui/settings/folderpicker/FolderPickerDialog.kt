@@ -2,9 +2,13 @@ package com.flamyoad.tsukiviewer.ui.settings.folderpicker
 
 import android.app.Dialog
 import android.content.DialogInterface
+import android.graphics.Point
 import android.os.Bundle
 import android.os.Environment
+import android.view.Display
+import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.Window
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -37,6 +41,22 @@ class FolderPickerDialog : DialogFragment(),
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString(CURRENT_PATH_STRING, currentDir.toString())
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val window: Window? = dialog!!.window
+        val size = Point()
+
+        // Store dimensions of the screen in `size`
+        // Store dimensions of the screen in `size`
+        val display: Display? = window?.getWindowManager()?.getDefaultDisplay()
+        display?.getSize(size)
+
+        // Set the width of the dialog proportional to ?? % of the screen width
+        // Set the height of the dialog proportional to ?? % of the screen height
+        window?.setLayout((size.x * 0.85).toInt(), (size.y * 0.85).toInt())
+        window?.setGravity(Gravity.CENTER)
     }
 
     fun setAddFolderListener(listener: AddFolderListener) {

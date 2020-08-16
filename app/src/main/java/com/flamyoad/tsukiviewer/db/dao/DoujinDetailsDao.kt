@@ -2,10 +2,8 @@ package com.flamyoad.tsukiviewer.db.dao
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
-import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.DoujinDetails
 import com.flamyoad.tsukiviewer.model.DoujinDetailsWithTags
-import java.io.File
 
 // TODO: Refactor this class to two - DoujinDetailsDao and DoujinLongDetailsDao
 
@@ -29,6 +27,22 @@ interface DoujinDetailsDao {
     @Query("SELECT * FROM doujin_details WHERE fullTitleEnglish LIKE '%' || :query || '%' OR fullTitleJapanese LIKE '%' || :query || '%'")
     suspend fun findByTitle(query: String): List<DoujinDetails>
 
+    //    SELECT * FROM doujin_tags as dt
+    //    INNER JOIN doujin_details ON doujin_details.id = dt.doujinId
+    //    INNER JOIN tags ON tags.tagId = dt.tagId
+    //    WHERE name IN ('chinese', 'translated', 'dilf')
+    //    GROUP BY doujinId
+    //    HAVING COUNT(doujinId) = 3
+    @Query("""
+        SELECT * FROM doujin_tags as dt
+        INNER JOIN doujin_details ON doujin_details.id = dt.doujinId
+        INNER JOIN tags ON tags.tagId = dt.tagId
+        WHERE name IN (:tags)
+        GROUP BY doujinId
+        HAVING COUNT(doujinId) = :tagCount
+    """)
+    suspend fun findByTags(tags: List<String>, tagCount: Int): List<DoujinDetails>
+
     @Query("SELECT * FROM doujin_details")
     suspend fun getAllShortDetails(): List<DoujinDetails>
 
@@ -43,4 +57,5 @@ interface DoujinDetailsDao {
     @Transaction
     @Query("SELECT * FROM doujin_details WHERE absolutePath = :absolutePath")
     fun getLongDetailsByPath(absolutePath: String): LiveData<DoujinDetailsWithTags>
+
 }

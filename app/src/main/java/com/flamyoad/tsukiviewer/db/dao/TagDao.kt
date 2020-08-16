@@ -11,7 +11,7 @@ interface TagDao {
     @Insert
     suspend fun insert(tag: Tag): Long
 
-    @Query("SELECT * FROM tags")
+    @Query("SELECT * FROM tags ORDER BY name")
     fun getAll(): LiveData<List<Tag>>
 
     @Query("SELECT EXISTS(SELECT * FROM tags WHERE type = :type AND name = :name)")

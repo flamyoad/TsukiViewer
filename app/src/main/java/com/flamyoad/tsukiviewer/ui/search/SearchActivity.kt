@@ -1,24 +1,27 @@
 package com.flamyoad.tsukiviewer.ui.search
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
+import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.SearchHistoryAdapter
+import com.google.android.material.chip.Chip
 import kotlinx.android.synthetic.main.activity_search.*
 import kotlinx.android.synthetic.main.search_bar.*
 
-class SearchActivity : AppCompatActivity() {
+class SearchActivity : AppCompatActivity(), TagSelectedListener {
 
     private lateinit var viewmodel: SearchViewModel
 
     companion object {
         const val SEARCH_TITLE = "SearchActivity.SEARCH_TITLE"
         const val SEARCH_TAGS = "SearchActivity.SEARCH_TAGS"
+        const val DIALOG_FRAGMENT_TAG = "fragment_tag_list"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,25 +34,60 @@ class SearchActivity : AppCompatActivity() {
         initSearchHistory()
 
         btnSearch.setOnClickListener {
-            val query = searchView.query
-            if (query != null && query.isNotBlank()) {
-                val intent = Intent(this@SearchActivity , SearchResultActivity::class.java)
-                intent.putExtra(SEARCH_TITLE, query.toString())
-                startActivity(intent)
-            }
+            submitSearch()
         }
 
         chipAddItem.setOnClickListener {
             val tagListFragment = TagPickerDialogFragment.newInstance()
-            tagListFragment.show(supportFragmentManager, "fragment_tag_list")
+            tagListFragment.show(supportFragmentManager, DIALOG_FRAGMENT_TAG)
         }
     }
 
+    override fun onTagSelected(tagName: String) {
+        addChip(tagName)
+
+        val dialog = supportFragmentManager.findFragmentByTag(DIALOG_FRAGMENT_TAG) as DialogFragment
+        dialog.dismiss()
+    }
+
+    private fun addChip(text: String) {
+        val chip = layoutInflater.inflate(R.layout.tag_list_chip, chipGroup, false) as Chip
+        chip.text = text
+
+        chip.setOnCloseIconClickListener {
+            chipGroup.removeView(it)
+        }
+
+        chipGroup.addView(chip)
+    }
+
+    private fun submitSearch() {
+        // Start from 1 because the first child is the "+" button
+        val selectedTags = mutableListOf<String>()
+        for (i in 1 until chipGroup.childCount) {
+            val chip = chipGroup.getChildAt(i) as Chip
+            selectedTags.add(chip.text.toString())
+        }
+
+        val title = searchView.query.toString()
+        val tags = selectedTags.joinToString(",")
+
+        if (title.isBlank() && tags.isBlank()) {
+            return
+        }
+
+        val intent = Intent(this@SearchActivity, SearchResultActivity::class.java)
+        intent.putExtra(SEARCH_TITLE, title)
+        intent.putExtra(SEARCH_TAGS, tags)
+        startActivity(intent)
+
+    }
+
     private fun initSearchView() {
-        searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 if (query != null && query.isNotBlank()) {
-                    val intent = Intent(this@SearchActivity , SearchResultActivity::class.java)
+                    val intent = Intent(this@SearchActivity, SearchResultActivity::class.java)
 
                     // No idea why but when you pass CharSequence in, the data is null in next activity,
                     // so I have to convert it to String before putting it in intent
