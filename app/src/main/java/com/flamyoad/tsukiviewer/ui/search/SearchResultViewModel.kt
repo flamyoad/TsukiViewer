@@ -73,13 +73,17 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
     private suspend fun findFoldersFromDatabase(title: String, tags: String): List<String> {
         var folderList = emptyList<String>()
 
+        // search with both title and tags
         if (title.isNotBlank() && tags.isNotBlank()) {
             val tagList = tags.split(",")
                 .map { tagName -> tagName }
 
             val doujinDetailItems = doujinDetailsDao.findByTags(tagList, tagList.size)
             folderList = doujinDetailItems
-                .filter { item -> item.fullTitleEnglish.toLowerCase(Locale.ROOT).contains(title) || item.fullTitleJapanese.contains(title)   }
+                .filter { item ->
+                    item.fullTitleEnglish.toLowerCase(Locale.ROOT).contains(title)
+                            || item.fullTitleJapanese.contains(title)
+                }
                 .map { item -> item.absolutePath.toString() }
 
         } else if (title.isNotBlank()) {
