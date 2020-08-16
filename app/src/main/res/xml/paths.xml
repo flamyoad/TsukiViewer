@@ -15,4 +15,7 @@
     <files-path
         name="files"
         path="." />
+
+    <!--Adding this line provides access to external microSD storage-->
+    <root-path name="external_files_root" path="/storage/" />
 </paths>

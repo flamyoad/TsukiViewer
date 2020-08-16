@@ -88,23 +88,20 @@ class DoujinImagesAdapter(private val itemType: ItemType,
         try {
             val intent = context.packageManager.getLaunchIntentForPackage(pkgName ?: "")
 
-            // Authority string can be found in manifest
-            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+//            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
 
             intent?.apply {
                 // set flag to give temporary permission to external app to use your FileProvider
                 flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
                 action = Intent.ACTION_VIEW
-                setDataAndType(uri,"image/*")
+                setDataAndType(file.toUri(), context.contentResolver.getType(file.toUri()))
             }
-
             context.startActivity(intent)
 
         } catch (e: Exception) {
             Toast.makeText(context, "Can't open the external application", Toast.LENGTH_SHORT)
                 .show()
-            Log.d("sucks", e.message)
-            e.printStackTrace()
+            Log.d("fileprovider", e.message)
         }
     }
 
