@@ -11,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.Window
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSnapHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -18,21 +19,24 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.FolderPickerAdapter
 import com.flamyoad.tsukiviewer.adapter.ParentDirectoriesAdapter
 import com.flamyoad.tsukiviewer.ui.settings.includedfolders.AddFolderListener
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 class FolderPickerDialog : DialogFragment(),
     FolderPickerListener,
     ParentDirectoryListener {
 
-    val CURRENT_PATH_STRING = "current_path_string"
+    private val CURRENT_PATH_STRING = "current_path_string"
 
-    private lateinit var listContainedFolders: RecyclerView
+    private lateinit var listFolders: RecyclerView
 
-    private lateinit var listParentDirectories: RecyclerView
+    private lateinit var listTopDirs: RecyclerView
 
-    private lateinit var folderListAdapter: FolderPickerAdapter
+    private lateinit var foldersAdapter: FolderPickerAdapter
 
-    private lateinit var parentDirectoryAdapter: ParentDirectoriesAdapter
+    private lateinit var topDirsAdapter: ParentDirectoriesAdapter
 
     private lateinit var currentDir: File
 
@@ -46,16 +50,6 @@ class FolderPickerDialog : DialogFragment(),
     override fun onResume() {
         super.onResume()
         val window: Window? = dialog!!.window
-        val size = Point()
-
-        // Store dimensions of the screen in `size`
-        // Store dimensions of the screen in `size`
-        val display: Display? = window?.getWindowManager()?.getDefaultDisplay()
-        display?.getSize(size)
-
-        // Set the width of the dialog proportional to ?? % of the screen width
-        // Set the height of the dialog proportional to ?? % of the screen height
-        window?.setLayout((size.x * 0.85).toInt(), (size.y * 0.85).toInt())
         window?.setGravity(Gravity.CENTER)
     }
 
@@ -84,9 +78,9 @@ class FolderPickerDialog : DialogFragment(),
         onViewCreated(view, null)
         dialogBuilder.setView(view)
 
-        listContainedFolders = view.findViewById(R.id.listContainedFolders)
+        listFolders = view.findViewById(R.id.listContainedFolders)
 
-        listParentDirectories = view.findViewById(R.id.listParentDirectories)
+        listTopDirs = view.findViewById(R.id.listParentDirectories)
 
         return dialogBuilder.create()
     }
@@ -98,6 +92,7 @@ class FolderPickerDialog : DialogFragment(),
 
     private fun initializeDialog() {
         initializeRecyclerViews()
+        setRecyclerviewSize()
 
         if (this::currentDir.isInitialized) {
             fetchFolders(currentDir)
@@ -105,9 +100,7 @@ class FolderPickerDialog : DialogFragment(),
 
         } else {
             val internalStorage = Environment.getExternalStorageDirectory()
-
             currentDir = internalStorage
-
             fetchFolders(internalStorage)
             fetchParentDirectories(internalStorage)
         }
@@ -115,69 +108,86 @@ class FolderPickerDialog : DialogFragment(),
 
     private fun initializeRecyclerViews() {
         // Initialization code for recyclerview for list of choosable folders
-        folderListAdapter = FolderPickerAdapter(this)
+        foldersAdapter = FolderPickerAdapter(this)
 
-        listContainedFolders.adapter = folderListAdapter
+        listFolders.adapter = foldersAdapter
 
-        listContainedFolders.layoutManager =
+        listFolders.layoutManager =
             LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
 
-        listContainedFolders.setHasFixedSize(true)
+        listFolders.setHasFixedSize(true)
 
         // Initialization code for recyclerview for list of parent directories
-        parentDirectoryAdapter = ParentDirectoriesAdapter(this)
+        topDirsAdapter = ParentDirectoriesAdapter(this)
 
-        listParentDirectories.layoutManager =
+        listTopDirs.layoutManager =
             LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
 
         val linearSnapHelper = LinearSnapHelper()
 
-        linearSnapHelper.attachToRecyclerView(listParentDirectories)
+        linearSnapHelper.attachToRecyclerView(listTopDirs)
 
-        listParentDirectories.adapter = parentDirectoryAdapter
+        listTopDirs.adapter = topDirsAdapter
     }
 
-    // TODO: make it run asynchronously
+    private fun setRecyclerviewSize() {
+        // Set height and width of recyclerview to fixed size
+        val window: Window? = dialog!!.window
+        val size = Point()
+
+        val display: Display? = window?.getWindowManager()?.getDefaultDisplay()
+        display?.getSize(size)
+
+        listFolders.apply {
+            layoutParams.height = (size.y * 0.85).toInt()
+            requestLayout()
+        }
+    }
+
     private fun fetchFolders(dir: File) {
+        foldersAdapter.clearList()
         val dirList = mutableListOf<File>()
 
-        val children = dir.listFiles()
+        lifecycleScope.launch(Dispatchers.IO) {
+            val children = dir.listFiles()
 
-        // Imagine the parent directories like below
+            // Imagine the parent directories like below
 
-        // storage > emulated > 0
+            // storage > emulated > 0
 
-        // The program crashes if the user clicks on "emulated". But it doesn't crash when click on storage or 0
+            // The program crashes if the user clicks on "emulated". But it doesn't crash when click on storage or 0
+            // The same situation can be observed in QuickPic
+            // Cause: java.lang.NullPointerException: Attempt to get length of null array
 
-        // The same situation can be observed in QuickPic
-
-        // Cause: java.lang.NullPointerException: Attempt to get length of null array
-
-        // As alternative, we just check for null here
-        if (children != null) {
-            for (file in children) {
-                if (file.isDirectory) {
-                    dirList.add(file)
+            // As alternative, we just check for null here
+            if (children != null) {
+                for (file in children) {
+                    if (file.isDirectory) {
+                        dirList.add(file)
+                    }
                 }
+            }
+
+            // Sorts the list alphabetically
+            //TODO: it sorts like this > (A, B, C... a, b, c...)
+            // fix it so it becomes like this (A, a, B, b, C, c...)
+            dirList.sortBy {
+                it.name
+            }
+
+            // Adds the back-to-previous-folder button in the beginning of list. Skip adding it if it's a root directory
+            val upFolder = dir.parentFile
+            if (upFolder.path != "/") {
+                dirList.add(0, upFolder)
+            }
+
+            // Update UI in main thread
+            withContext(Dispatchers.Main) {
+                foldersAdapter.setCurrentDirectory(dir)
+                foldersAdapter.setList(dirList)
             }
         }
 
-        // Sorts the list alphabetically
-        //TODO: it sorts like this > (A, B, C... a, b, c...)
-        // fix it so it becomes like this (A, a, B, b, C, c...)
-        dirList.sortBy {
-            it.name
-        }
-
-        // Adds the back-to-previous-folder button in the beginning of list. Skip adding it if it's a root directory
-        val upFolder = dir.parentFile
-        if (upFolder.path != "/") {
-            dirList.add(0, upFolder)
-        }
-
-        folderListAdapter.setCurrentDirectory(dir)
-
-        folderListAdapter.setList(dirList)
     }
 
     private fun fetchParentDirectories(dir: File) {
@@ -194,7 +204,7 @@ class FolderPickerDialog : DialogFragment(),
             path = path.parentFile
         }
 
-        parentDirectoryAdapter.setList(parentsOfCurrentPath)
+        topDirsAdapter.setList(parentsOfCurrentPath)
     }
 
     override fun onFolderPick(dir: File) {

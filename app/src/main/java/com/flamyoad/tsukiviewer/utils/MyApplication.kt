@@ -17,7 +17,7 @@ class MyApplication: Application() {
         This code is used to ignore the file checking so that we can pass uri with file:// in intent
 
         When passing file:// uri, the third party app is free to access every file inside the directory
-     
+
         */
         val builder = VmPolicy.Builder()
         StrictMode.setVmPolicy(builder.build())

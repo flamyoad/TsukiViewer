@@ -5,35 +5,72 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.flamyoad.tsukiviewer.ui.settings.folderpicker.FolderPickerListener
 import com.flamyoad.tsukiviewer.R
+import com.flamyoad.tsukiviewer.ui.settings.folderpicker.FolderPickerListener
 import java.io.File
 
-class FolderPickerAdapter(private val listener: FolderPickerListener)
-    : RecyclerView.Adapter<FolderPickerAdapter.FileHolder>() {
+class FolderPickerAdapter(private val listener: FolderPickerListener) :
+    RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+
+    private val FOLDER_ITEM = 0
+    private val EMPTY_INDICATOR = 1
 
     private var list: List<File> = emptyList()
 
     private var currentDir: File? = null
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FileHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.folder_list_item, parent, false)
-        val holder = FileHolder(view)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        when (viewType) {
+            FOLDER_ITEM -> {
+                val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.folder_list_item, parent, false)
 
-        view.setOnClickListener {
-            val dir = list[holder.adapterPosition]
-            listener.onFolderPick(dir)
+                val holder = FileViewHolder(view)
+
+                view.setOnClickListener {
+                    val dir = list[holder.adapterPosition]
+                    listener.onFolderPick(dir)
+                }
+
+                return holder
+            }
+
+            EMPTY_INDICATOR -> {
+                val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.loading_indicator, parent, false)
+
+                return EmptyViewHolder(view)
+            }
+
+            else -> {
+                throw IllegalArgumentException("Illegal view type")
+            }
         }
-        return holder
     }
 
     override fun getItemCount(): Int {
-        return list.size
+        return if (list.isNotEmpty()) {
+            list.size
+        } else {
+            1
+        }
     }
 
-    override fun onBindViewHolder(holder: FileHolder, position: Int) {
-        holder.bind(list[position])
+    override fun getItemViewType(position: Int): Int {
+        return if (list.isNullOrEmpty()) {
+            EMPTY_INDICATOR
+        } else {
+            FOLDER_ITEM
+        }
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        when (holder.itemViewType) {
+            FOLDER_ITEM -> {
+                val fileHolder = holder as FileViewHolder
+                fileHolder.bind(list[holder.adapterPosition])
+            }
+        }
     }
 
     fun setCurrentDirectory(dir: File) {
@@ -45,7 +82,12 @@ class FolderPickerAdapter(private val listener: FolderPickerListener)
         notifyDataSetChanged()
     }
 
-    inner class FileHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    fun clearList() {
+        this.list = emptyList()
+        notifyDataSetChanged()
+    }
+
+    inner class FileViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val txtFolderName = itemView.findViewById<TextView>(R.id.txtFolderName)
 
         fun bind(file: File) {

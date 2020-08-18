@@ -6,6 +6,7 @@ import androidx.fragment.app.FragmentStatePagerAdapter
 import com.flamyoad.tsukiviewer.ui.doujinpage.FragmentDoujinDetails
 import com.flamyoad.tsukiviewer.ui.doujinpage.FragmentGridImages
 import com.flamyoad.tsukiviewer.ui.doujinpage.FragmentListImages
+import java.lang.IllegalArgumentException
 import java.lang.RuntimeException
 
 class DoujinPagerAdapter(fm: FragmentManager)
@@ -17,7 +18,7 @@ class DoujinPagerAdapter(fm: FragmentManager)
         return when (position) {
             0 -> FragmentDoujinDetails.newInstance()
             1 -> FragmentGridImages.newInstance()
-            else -> throw RuntimeException()
+            else -> throw IllegalArgumentException("Invalid index in fragment pager")
         }
     }
 
