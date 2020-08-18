@@ -19,16 +19,17 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.FolderPickerAdapter
 import com.flamyoad.tsukiviewer.adapter.ParentDirectoriesAdapter
 import com.flamyoad.tsukiviewer.ui.settings.includedfolders.AddFolderListener
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.io.File
+import java.util.*
 
 class FolderPickerDialog : DialogFragment(),
     FolderPickerListener,
     ParentDirectoryListener {
 
     private val CURRENT_PATH_STRING = "current_path_string"
+
+    private var job: Job? = null
 
     private lateinit var listFolders: RecyclerView
 
@@ -148,7 +149,7 @@ class FolderPickerDialog : DialogFragment(),
         foldersAdapter.clearList()
         val dirList = mutableListOf<File>()
 
-        lifecycleScope.launch(Dispatchers.IO) {
+        job = lifecycleScope.launch(Dispatchers.IO) {
             val children = dir.listFiles()
 
             // Imagine the parent directories like below
@@ -172,7 +173,7 @@ class FolderPickerDialog : DialogFragment(),
             //TODO: it sorts like this > (A, B, C... a, b, c...)
             // fix it so it becomes like this (A, a, B, b, C, c...)
             dirList.sortBy {
-                it.name
+                it.name.toLowerCase(Locale.ROOT)
             }
 
             // Adds the back-to-previous-folder button in the beginning of list. Skip adding it if it's a root directory
@@ -214,6 +215,9 @@ class FolderPickerDialog : DialogFragment(),
     }
 
     override fun onParentDirectoryClick(dir: File) {
+        // Stop loading jobs from previous directory
+        job?.cancel()
+
         currentDir = dir
         fetchFolders(dir)
         fetchParentDirectories(dir)
