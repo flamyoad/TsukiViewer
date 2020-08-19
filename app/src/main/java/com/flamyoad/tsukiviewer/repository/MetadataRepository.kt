@@ -69,6 +69,24 @@ class MetadataRepository(private val application: Application) {
         nhService = retrofit.create(NHService::class.java)
     }
 
+    suspend fun fetchMetadata(dir: File) {
+        withContext(Dispatchers.IO) {
+            if (doujinDetailsDao.existsByTitle(dir.name) ||
+                doujinDetailsDao.existsByAbsolutePath(dir.toString())
+            ) {
+                return@withContext
+            }
+
+            val response = getDataFromApi(dir.name)
+
+            if (response != null && response.result.isNotEmpty()) {
+                storeMetadata(response, dir)
+            } else {
+                Log.d("retrofit", "Can't find this sauce in NH.net")
+            }
+        }
+    }
+
     suspend fun fetchMetadataAll(dirList: List<File>): Int {
         var itemsFetched = 0
 
@@ -94,7 +112,6 @@ class MetadataRepository(private val application: Application) {
                 delay(1000)
             }
         }
-
         return itemsFetched
     }
 

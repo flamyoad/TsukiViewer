@@ -16,6 +16,7 @@ import com.bumptech.glide.Glide
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.ui.reader.ReaderActivity
 import com.flamyoad.tsukiviewer.ui.settings.preferences.FolderPreferences
+import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
 import java.io.File
 
 class DoujinImagesAdapter(private val itemType: ItemType,
@@ -119,4 +120,5 @@ class DoujinImagesAdapter(private val itemType: ItemType,
     enum class ItemType {
         Grid, List
     }
+
 }

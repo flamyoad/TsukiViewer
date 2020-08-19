@@ -13,10 +13,14 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.SortDirection
 import com.flamyoad.tsukiviewer.ui.doujinpage.DoujinDetailsActivity
+import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
 import java.io.File
 import java.util.*
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 
-class LocalDoujinsAdapter : RecyclerView.Adapter<LocalDoujinsAdapter.DoujinViewHolder>() {
+
+class LocalDoujinsAdapter
+    : RecyclerView.Adapter<LocalDoujinsAdapter.DoujinViewHolder>(), RecyclerViewFastScroller.OnPopupTextUpdate {
 
     companion object {
         @JvmStatic
@@ -107,7 +111,6 @@ class LocalDoujinsAdapter : RecyclerView.Adapter<LocalDoujinsAdapter.DoujinViewH
             }
             currentSort = SortDirection.DATE_ASCENDING
         }
-
         notifyDataSetChanged()
     }
 
@@ -136,12 +139,49 @@ class LocalDoujinsAdapter : RecyclerView.Adapter<LocalDoujinsAdapter.DoujinViewH
         fun bind(doujin: Doujin) {
             Glide.with(itemView.context)
                 .load(doujin.pic)
-                .thumbnail(0.25f)
+                .transition(withCrossFade())
+//                .thumbnail(0.25f)
                 .sizeMultiplier(0.75f)
                 .into(coverImg)
 
             txtTitle.text = doujin.title
             txtPageNumber.text = doujin.numberOfItems.toString()
+        }
+    }
+
+    override fun onChange(position: Int): CharSequence {
+        val doujin = doujinList[position]
+
+        return when (currentSort) {
+            SortDirection.TITLE_ASCENDING -> {
+                doujin.title
+            }
+
+            SortDirection.TITLE_DESCENDING -> {
+                doujin.title
+            }
+
+            SortDirection.DATE_ASCENDING -> {
+                val datetime = Date(doujin.lastModified)
+                return datetime.toString()
+            }
+
+            SortDirection.DATE_DESCENDING -> {
+                val datetime = Date(doujin.lastModified)
+                return datetime.toString()
+            }
+
+            SortDirection.PATH_ASCENDING -> {
+                doujin.path.absolutePath
+            }
+
+            SortDirection.PATH_DESCENDING -> {
+                doujin.path.absolutePath
+            }
+
+            else -> {
+                doujin.title
+            }
         }
     }
 }

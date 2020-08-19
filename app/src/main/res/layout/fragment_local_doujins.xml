@@ -3,12 +3,21 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".ui.home.local.LocalDoujinsFragment">
 
-    <androidx.recyclerview.widget.RecyclerView
+    <com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
+        android:layout_width="match_parent"
+        android:id="@+id/fastscroller"
+        android:layout_height="match_parent"
+        app:handleHeight="32dp">
+
+        <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/listLocalDoujins"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:listitem="@layout/doujin_list_item"/>
+
+    </com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller>
 
 </FrameLayout>

@@ -33,11 +33,6 @@ class LocalDoujinViewModel(application: Application) : AndroidViewModel(applicat
 
     init {
         includedFolderList = repo.folderDao.getAll()
-
-//        doujinList =
-//            Transformations.map(includedFolderList) { folders ->
-//                return@map fetchDoujinsFromDir(folders)
-//            }
     }
 
     fun fetchDoujinsFromDir(includedFolders: List<IncludedFolder>) {

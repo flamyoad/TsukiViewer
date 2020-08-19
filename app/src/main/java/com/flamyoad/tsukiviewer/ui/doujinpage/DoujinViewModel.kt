@@ -41,7 +41,6 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
 
         val dir = File(dirPath)
 
-        Log.d("detail", dir.name)
         detailWithTags = doujinDetailsDao.getLongDetailsByPath(dir.toString())
 
         val fetchedImages = dir.listFiles(ImageFileFilter()).sorted()
