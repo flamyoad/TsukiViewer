@@ -17,6 +17,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
+        <service android:name=".network.FetchMetadataService">
+        </service>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.flamyoad.tsukiviewer.fileprovider"

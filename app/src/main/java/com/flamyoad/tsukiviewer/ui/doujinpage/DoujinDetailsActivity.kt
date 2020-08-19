@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinPagerAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
+import com.flamyoad.tsukiviewer.network.FetchMetadataService
 import kotlinx.android.synthetic.main.activity_doujin_details.*
 
 class DoujinDetailsActivity : AppCompatActivity() {
@@ -35,6 +36,10 @@ class DoujinDetailsActivity : AppCompatActivity() {
         when (item?.itemId) {
             android.R.id.home -> {
                 finish()
+            }
+            R.id.action_sync -> {
+                val dirPath = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
+                FetchMetadataService.startService(this, dirPath)
             }
         }
         return true

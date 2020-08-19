@@ -1,6 +1,7 @@
 package com.flamyoad.tsukiviewer.repository
 
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import android.webkit.WebSettings
 import com.flamyoad.tsukiviewer.db.AppDatabase
@@ -23,7 +24,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
 import java.io.IOException
 
-class MetadataRepository(private val application: Application) {
+class MetadataRepository(private val context: Context) {
 
     private lateinit var nhService: NHService
 
@@ -37,7 +38,7 @@ class MetadataRepository(private val application: Application) {
     init {
         initializeNetwork()
 
-        db = AppDatabase.getInstance(application)
+        db = AppDatabase.getInstance(context)
 
         folderDao = db.includedFolderDao()
         doujinDetailsDao = db.doujinDetailsDao()
@@ -53,7 +54,7 @@ class MetadataRepository(private val application: Application) {
                     val request = chain.request()
                         .newBuilder()
                         .removeHeader("User-Agent")
-                        .addHeader("User-Agent", WebSettings.getDefaultUserAgent(application))
+                        .addHeader("User-Agent", WebSettings.getDefaultUserAgent(context))
                         .build()
 
                     return chain.proceed(request)
