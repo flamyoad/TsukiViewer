@@ -113,6 +113,10 @@ class LocalDoujinsFragment : Fragment() {
                 toast.show()
             }
         })
+
+        viewmodel.includedFolderList.observe(viewLifecycleOwner, Observer {
+            viewmodel.fetchDoujinsFromDir(it)
+        })
     }
 
     private fun openSyncAlertDialog() {
@@ -163,11 +167,13 @@ class LocalDoujinsFragment : Fragment() {
 
     private fun initRecyclerView() {
         adapter = LocalDoujinsAdapter()
+        adapter.setHasStableIds(true)
         val gridLayoutManager = GridLayoutManager(context, 2)
 
         listLocalDoujins.adapter = adapter
         listLocalDoujins.layoutManager = gridLayoutManager
         listLocalDoujins.addItemDecoration(ItemOffsetDecoration(8))
+        listLocalDoujins.setHasFixedSize(true)
 
         viewmodel.doujinList.observe(viewLifecycleOwner, Observer {
             adapter.setList(it)

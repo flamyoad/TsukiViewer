@@ -1,6 +1,7 @@
 package com.flamyoad.tsukiviewer.adapter
 
 import android.content.Intent
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -40,7 +41,15 @@ class LocalDoujinsAdapter : RecyclerView.Adapter<LocalDoujinsAdapter.DoujinViewH
 
         layout.setOnClickListener {
             val context = parent.context
-            val doujin = doujinList[holder.adapterPosition]
+            val adapterPosition = holder.adapterPosition
+
+            // Sometiems return -1 after we include new directory and the recyclerview gets invalidated
+            if (adapterPosition == RecyclerView.NO_POSITION) {
+                Log.d("adapter", "Adapter Position is -1")
+                return@setOnClickListener
+            }
+
+            val doujin = doujinList[adapterPosition]
 
             val intent = Intent(context, DoujinDetailsActivity::class.java)
             intent.putExtra(DOUJIN_FILE_PATH, doujin.path.toString())
@@ -64,6 +73,10 @@ class LocalDoujinsAdapter : RecyclerView.Adapter<LocalDoujinsAdapter.DoujinViewH
         notifyDataSetChanged()
     }
 
+    override fun getItemId(position: Int): Long {
+        return doujinList[position].hashCode().toLong()
+    }
+
     fun sortByName() {
         if (currentSort == SortDirection.TITLE_ASCENDING) {
             doujinList = doujinList.sortedByDescending {
@@ -77,7 +90,6 @@ class LocalDoujinsAdapter : RecyclerView.Adapter<LocalDoujinsAdapter.DoujinViewH
             }
             currentSort = SortDirection.TITLE_ASCENDING
         }
-
         notifyDataSetChanged()
     }
 

@@ -5,11 +5,14 @@ import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
+import androidx.lifecycle.viewModelScope
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.IncludedFolder
 import com.flamyoad.tsukiviewer.repository.MetadataRepository
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 
@@ -19,7 +22,8 @@ class LocalDoujinViewModel(application: Application) : AndroidViewModel(applicat
 
     val includedFolderList: LiveData<List<IncludedFolder>>
 
-    val doujinList: LiveData<List<Doujin>>
+    private var _doujinList = MutableLiveData<MutableList<Doujin>>()
+    val doujinList: LiveData<MutableList<Doujin>> = _doujinList
 
     private val _isSyncing = MutableLiveData<Boolean>(false)
     val isSyncing: LiveData<Boolean> = _isSyncing
@@ -30,23 +34,26 @@ class LocalDoujinViewModel(application: Application) : AndroidViewModel(applicat
     init {
         includedFolderList = repo.folderDao.getAll()
 
-        doujinList =
-            Transformations.map(includedFolderList) { folders ->
-                return@map fetchDoujinsFromDir(folders)
-            }
+//        doujinList =
+//            Transformations.map(includedFolderList) { folders ->
+//                return@map fetchDoujinsFromDir(folders)
+//            }
     }
 
-    private fun fetchDoujinsFromDir(includedFolders: List<IncludedFolder>): List<Doujin> {
-        val doujinList = mutableListOf<Doujin>()
-        for (folder in includedFolders) {
-            walk(folder.dir, doujinList)
+    fun fetchDoujinsFromDir(includedFolders: List<IncludedFolder>) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                val doujinList = mutableListOf<Doujin>()
+                for (folder in includedFolders) {
+                    walk(folder.dir, doujinList)
+                }
+            }
         }
-        return doujinList
     }
 
     // Recursive method to search for directories & sub-directories
     // todo: this method doesnt include the main directory itself, fix it
-    private fun walk(currentDir: File, doujinList: MutableList<Doujin>) {
+    private suspend fun walk(currentDir: File, doujinList: MutableList<Doujin>) {
         for (f in currentDir.listFiles()) {
             if (f.isDirectory) {
                 val imageList = f.listFiles(ImageFileFilter()).sorted()
@@ -60,6 +67,7 @@ class LocalDoujinViewModel(application: Application) : AndroidViewModel(applicat
                     doujinList.add(
                         Doujin(coverImage, title, numberOfImages, lastModified, f)
                     )
+                    _doujinList.postValue(doujinList)
                 }
 
                 walk(f, doujinList)
