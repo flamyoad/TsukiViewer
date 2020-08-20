@@ -50,4 +50,7 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
         _coverImage.value = firstImage
     }
 
+    fun detailsNotExists(): Boolean {
+        return detailWithTags.value == null
+    }
 }

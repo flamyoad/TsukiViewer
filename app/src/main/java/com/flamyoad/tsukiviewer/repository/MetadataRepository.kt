@@ -78,6 +78,7 @@ class MetadataRepository(private val context: Context) {
             if (doujinDetailsDao.existsByTitle(dir.name) ||
                 doujinDetailsDao.existsByAbsolutePath(dir.toString())
             ) {
+                // Should be updating existing instead of just doing nothing
                 return@withContext
             }
 
@@ -137,7 +138,7 @@ class MetadataRepository(private val context: Context) {
         val doujinId = doujinDetailsDao.insert(doujinDetails)
 
         for (tag in item.tags) {
-            var tagId: Long? = null
+            var tagId: Long?
 
             if (tagDao.exists(tag.type, tag.name)) {
                 tagDao.incrementCount(tag.type, tag.name)

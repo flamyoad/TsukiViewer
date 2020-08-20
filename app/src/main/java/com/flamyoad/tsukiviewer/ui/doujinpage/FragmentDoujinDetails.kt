@@ -52,8 +52,6 @@ class FragmentDoujinDetails : Fragment() {
 
         viewmodel.detailWithTags.observe(viewLifecycleOwner, Observer {
             if (it == null) {
-//                Toast.makeText(context, "Can't find details and tags", Toast.LENGTH_LONG)
-//                    .show()
                 setDefaultToolbarText()
             } else {
                 initDoujinDetails(it)

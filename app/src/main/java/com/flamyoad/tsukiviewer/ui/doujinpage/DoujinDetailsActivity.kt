@@ -1,9 +1,11 @@
 package com.flamyoad.tsukiviewer.ui.doujinpage
 
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -41,8 +43,7 @@ class DoujinDetailsActivity : AppCompatActivity() {
             }
 
             R.id.action_sync -> {
-                val dirPath = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
-                FetchMetadataService.startService(this, dirPath)
+                syncMetadata()
             }
 
             R.id.action_edit -> {
@@ -82,5 +83,30 @@ class DoujinDetailsActivity : AppCompatActivity() {
                 supportActionBar?.title = "Doujin Details"
             }
         })
+    }
+
+    private fun syncMetadata() {
+        if (viewmodel.detailsNotExists()) {
+            val dirPath = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
+            FetchMetadataService.startService(this, dirPath)
+        } else {
+            showConfirmSyncDialog()
+        }
+    }
+
+    private fun showConfirmSyncDialog() {
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Reset tags")
+            .setMessage("Previous tags that have been added manually will be erased. Continue?")
+            .setPositiveButton("Yes", DialogInterface.OnClickListener { dialogInterface, i ->
+                //todo: Update tags in DB
+                dialogInterface.dismiss()
+            })
+            .setNegativeButton("Cancel", DialogInterface.OnClickListener { dialogInterface, i ->
+                dialogInterface.dismiss()
+            })
+            .create()
+
+        dialog.show()
     }
 }
