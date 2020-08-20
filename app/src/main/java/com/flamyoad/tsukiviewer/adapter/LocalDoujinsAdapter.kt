@@ -23,8 +23,8 @@ class LocalDoujinsAdapter
     : RecyclerView.Adapter<LocalDoujinsAdapter.DoujinViewHolder>(), RecyclerViewFastScroller.OnPopupTextUpdate {
 
     companion object {
-        @JvmStatic
-        val DOUJIN_FILE_PATH = "LocalDoujinsAdapter.DOUJIN_FILE_PATH"
+        const val DOUJIN_FILE_PATH = "LocalDoujinsAdapter.DOUJIN_FILE_PATH"
+        const val DOUJIN_NAME = "LocalDoujinsAdapter.DOUJIN_NAME"
     }
 
     private var doujinList: List<Doujin> = emptyList()
@@ -57,6 +57,7 @@ class LocalDoujinsAdapter
 
             val intent = Intent(context, DoujinDetailsActivity::class.java)
             intent.putExtra(DOUJIN_FILE_PATH, doujin.path.toString())
+            intent.putExtra(DOUJIN_NAME, doujin.title)
 
             context.startActivity(intent)
         }

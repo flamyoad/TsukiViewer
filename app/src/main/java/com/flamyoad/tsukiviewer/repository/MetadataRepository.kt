@@ -2,8 +2,11 @@ package com.flamyoad.tsukiviewer.repository
 
 import android.app.Application
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.webkit.WebSettings
+import android.widget.Toast
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.DoujinDetailsDao
 import com.flamyoad.tsukiviewer.db.dao.DoujinTagsDao
@@ -106,6 +109,7 @@ class MetadataRepository(private val context: Context) {
                     storeMetadata(response, dir)
                 } else {
                     Log.d("retrofit", "Can't find this sauce in NH.net")
+                    showToast("Can't find this sauce in NH.net")
                 }
 
                 // Sleep 1 second
@@ -168,10 +172,19 @@ class MetadataRepository(private val context: Context) {
 
         } catch (e: IOException) {
             Log.d("retrofit", e.message)
+            showToast("Failed to fetch metadata")
+
             e.printStackTrace()
         }
         return null
     }
 
-
+    // Need this because we are running in non-UI thread
+    private fun showToast(message: String) {
+        val handler = Handler(Looper.getMainLooper())
+        handler.post {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT)
+                .show()
+        }
+    }
 }

@@ -1,5 +1,6 @@
 package com.flamyoad.tsukiviewer.ui.doujinpage
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -10,6 +11,7 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinPagerAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.network.FetchMetadataService
+import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
 import kotlinx.android.synthetic.main.activity_doujin_details.*
 
 class DoujinDetailsActivity : AppCompatActivity() {
@@ -37,9 +39,21 @@ class DoujinDetailsActivity : AppCompatActivity() {
             android.R.id.home -> {
                 finish()
             }
+
             R.id.action_sync -> {
                 val dirPath = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
                 FetchMetadataService.startService(this, dirPath)
+            }
+
+            R.id.action_edit -> {
+                val dirPath = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
+                val doujinTitle = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_NAME)
+
+                val newIntent = Intent(this, EditorActivity::class.java)
+                newIntent.putExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH, dirPath)
+                newIntent.putExtra(LocalDoujinsAdapter.DOUJIN_NAME, doujinTitle)
+
+                startActivity(newIntent)
             }
         }
         return true

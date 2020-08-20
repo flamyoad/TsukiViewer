@@ -1,43 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:minHeight="@dimen/tag_group_min_height"
     android:orientation="horizontal">
 
-    <com.google.android.material.card.MaterialCardView
-        style="@style/tag_left_cardview"
+    <TextView
+        android:id="@+id/txtName"
         android:layout_width="wrap_content"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@drawable/doujin_tag_left_part"
+        android:gravity="center"
+        android:lines="1"
+        android:paddingHorizontal="4dp"
+        android:textColor="#C7C1BE"
+        android:textStyle="bold"
+        tools:text="sole female" />
 
-        <TextView
-            android:id="@+id/txtName"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="sole female"
-            android:textStyle="bold"
-            android:paddingHorizontal="5dp"
-            android:lines="1"
-            android:gravity="center"
-            android:textColor="#C7C1BE" />
-
-    </com.google.android.material.card.MaterialCardView>
-
-    <com.google.android.material.card.MaterialCardView
-        style="@style/tag_right_cardview"
+    <TextView
+        android:id="@+id/txtCount"
         android:layout_width="wrap_content"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:minWidth="24dp"
+        android:background="@drawable/doujin_tag_right_part"
+        android:gravity="center"
+        android:lines="1"
+        android:paddingHorizontal="4dp"
+        android:textColor="#808080"
+        android:textSize="12sp"
+        tools:text="30" />
 
-        <TextView
-            android:id="@+id/txtCount"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:paddingHorizontal="4dp"
-            android:text="30"
-            android:textSize="12sp"
-            android:lines="1"
-            android:gravity="center"
-            android:textColor="#808080" />
-
-    </com.google.android.material.card.MaterialCardView>
 
 </LinearLayout>

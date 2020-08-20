@@ -61,4 +61,19 @@
         <item name="android:windowNoTitle">false</item>
     </style>
 
+    <style name="editor_tag_group">
+        <item name="android:background">@drawable/editor_tag_group_drawable</item>
+
+        <item name="android:layout_marginRight">12dp</item>
+        <item name="android:layout_marginLeft">12dp</item>
+        <item name="android:layout_marginTop">6dp</item>
+        <item name="android:layout_marginBottom">6dp</item>
+
+        <item name="android:paddingTop">6dp</item>
+        <item name="android:paddingBottom">8dp</item>
+        <item name="android:paddingLeft">12dp</item>
+        <item name="android:paddingRight">12dp</item>
+
+    </style>
+
 </resources>
