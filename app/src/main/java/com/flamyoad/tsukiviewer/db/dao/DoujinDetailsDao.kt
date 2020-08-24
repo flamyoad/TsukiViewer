@@ -60,6 +60,6 @@ interface DoujinDetailsDao {
 
     @Transaction
     @Query("SELECT * FROM doujin_details WHERE absolutePath = :absolutePath")
-    suspend fun getLongDetailsByPathBlocking(absolutePath: String): DoujinDetailsWithTags
+    suspend fun getLongDetailsByPathBlocking(absolutePath: String): DoujinDetailsWithTags?
 
 }

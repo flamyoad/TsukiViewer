@@ -71,51 +71,51 @@ class EditorActivity : AppCompatActivity(), CreateTagListener {
         viewmodel.retrieveDoujinTags(dirPath)
 
         viewmodel.parody.observe(this, Observer {
-            setTagList("parody", it, listParodies)
+            listParodies.setTagList("parody", it)
         })
 
         viewmodel.character.observe(this, Observer {
-            setTagList("character", it, listCharacters)
+            listCharacters.setTagList("character", it)
         })
 
         viewmodel.tags.observe(this, Observer {
-            setTagList("tag", it, listTags)
+            listTags.setTagList("tag", it)
         })
 
         viewmodel.artist.observe(this, Observer {
-            setTagList("artist", it, listArtists)
+            listArtists.setTagList("artist", it)
         })
 
         viewmodel.group.observe(this, Observer {
-            setTagList("group", it, listGroups)
+            listGroups.setTagList("group", it)
         })
 
         viewmodel.language.observe(this, Observer {
-            setTagList("language", it, listLanguages)
+            listLanguages.setTagList("language", it)
         })
 
         viewmodel.category.observe(this, Observer {
-            setTagList("category", it, listCategories)
+            listCategories.setTagList("category", it)
         })
     }
 
-    private fun setTagList(category: String, tags: List<Tag>, chipGroup: ChipGroup?) {
-        chipGroup?.removeAllViews()
+    private fun ChipGroup.setTagList(category: String, tags: List<Tag>) {
+        this.removeAllViews()
 
         for (tag in tags) {
-            insertTag(tag, chipGroup, BACKMOST_POSITION)
+            this.insertTag(tag, BACKMOST_POSITION)
         }
 
-        val btnNewTag = insertAddTagButton(chipGroup)
+        val btnNewTag = this.insertAddTagButton()
 
         btnNewTag.setOnClickListener {
             showNewTagDialog(category)
         }
     }
 
-    private fun insertTag(tag: Tag, chipGroup: ChipGroup?, position: Int) {
+    private fun ChipGroup.insertTag(tag: Tag, position: Int) {
         // Check for duplicates. If found, then return
-        val chips = chipGroup?.children as Sequence<Chip>
+        val chips = this.children as Sequence<Chip>
 
         for (chip in chips) {
             if (tag.name == chip.text) {
@@ -123,43 +123,31 @@ class EditorActivity : AppCompatActivity(), CreateTagListener {
             }
         }
 
-        val chip = layoutInflater.inflate(R.layout.tag_list_chip, chipGroup, false) as Chip
+        val chip = layoutInflater.inflate(R.layout.tag_list_chip, this, false) as Chip
         chip.text = tag.name
 
         if (position == BACKMOST_POSITION) {
-            chipGroup.addView(chip)
+            this.addView(chip)
         } else {
-            chipGroup.addView(chip, position)
+            this.addView(chip, position)
         }
 
         chip.setOnCloseIconClickListener {
-            val indexOfChip = chipGroup.indexOfChild(chip)
-
             viewmodel.removeTag(tag.name, tag.type)
-
-            // Pushes tag item removed by user to undo stack
-            val removedItem = EditorHistoryItem(tag, indexOfChip)
-            viewmodel.pushUndo(removedItem)
         }
     }
 
-    private fun insertAddTagButton(chipGroup: ChipGroup?): Chip {
-        val chip = layoutInflater.inflate(R.layout.tag_list_add, chipGroup, false) as Chip
+    private fun ChipGroup.insertAddTagButton(): Chip {
+        val chip = layoutInflater.inflate(R.layout.tag_list_add, this, false) as Chip
         chip.text = "+"
 
-        chipGroup?.addView(chip)
+        this.addView(chip)
 
         return chip
     }
 
     private fun popUndoStack() {
-        val oldItem = viewmodel.popUndo()
-
-        if (oldItem != null) {
-            val categoryName = oldItem.tag.type
-            val chipGroup = findChipGroupByCategory(categoryName)
-            insertTag(oldItem.tag, chipGroup, oldItem.index)
-        }
+        viewmodel.popUndo()
     }
 
     override fun onTagCreated(name: String, category: String) {
@@ -179,17 +167,5 @@ class EditorActivity : AppCompatActivity(), CreateTagListener {
             supportFragmentManager.findFragmentByTag("tag_dialog") as BottomSheetDialogFragment
         dialog.dismiss()
     }
-
-    private fun findChipGroupByCategory(category: String): ChipGroup? {
-        return when (category) {
-            "parody" -> listParodies
-            "character" -> listCharacters
-            "tag" -> listTags
-            "artist" -> listArtists
-            "group" -> listGroups
-            "language" -> listLanguages
-            "category" -> listCategories
-            else -> null
-        }
-    }
 }
+

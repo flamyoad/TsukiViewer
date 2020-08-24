@@ -7,6 +7,7 @@ import com.flamyoad.tsukiviewer.db.dao.DoujinDetailsDao
 import com.flamyoad.tsukiviewer.db.dao.TagDao
 import com.flamyoad.tsukiviewer.model.DoujinDetails
 import com.flamyoad.tsukiviewer.model.EditorHistoryItem
+import com.flamyoad.tsukiviewer.model.Mode
 import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.repository.MetadataRepository
 import kotlinx.coroutines.Dispatchers
@@ -58,22 +59,23 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
         }
 
         viewModelScope.launch(Dispatchers.IO) {
+            // Dao returns null on empty result
             val details = doujinDetailsDao.getLongDetailsByPathBlocking(dirPath)
 
             withContext(Dispatchers.Main) {
-                parody.value = details.tags.filter { x -> x.type == "parody" } ?: mutableListOf()
+                parody.value = details?.tags?.filter { x -> x.type == "parody" } ?: mutableListOf()
 
-                character.value = details.tags.filter { x -> x.type == "character" } ?: mutableListOf()
+                character.value = details?.tags?.filter { x -> x.type == "character" } ?: mutableListOf()
 
-                tags.value = details.tags.filter { x -> x.type == "tag" } ?: mutableListOf()
+                tags.value = details?.tags?.filter { x -> x.type == "tag" } ?: mutableListOf()
 
-                artist.value = details.tags.filter { x -> x.type == "artist" } ?: mutableListOf()
+                artist.value = details?.tags?.filter { x -> x.type == "artist" } ?: mutableListOf()
 
-                group.value = details.tags.filter { x -> x.type == "group" } ?: mutableListOf()
+                group.value = details?.tags?.filter { x -> x.type == "group" } ?: mutableListOf()
 
-                language.value = details.tags.filter { x -> x.type == "language" } ?: mutableListOf()
+                language.value = details?.tags?.filter { x -> x.type == "language" } ?: mutableListOf()
 
-                category.value = details.tags.filter { x -> x.type == "category" } ?: mutableListOf()
+                category.value = details?.tags?.filter { x -> x.type == "category" } ?: mutableListOf()
             }
         }
     }
@@ -92,6 +94,13 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
         prevItems.add(newItem)
 
         tagList.value = prevItems
+
+        // Push changes made to undo stack
+        pushUndo(EditorHistoryItem(
+            tag = newItem,
+            index = prevItems.indexOf(newItem),
+            action = Mode.ADD
+        ))
     }
 
     fun removeTag(name: String, category: String) {
@@ -105,23 +114,53 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
             }
         }
 
+        val itemToBeRemoved = prevItems[index]
+
         prevItems.removeAt(index)
         tagList.value = prevItems
+
+        // Push changes made to undo stack
+        pushUndo(EditorHistoryItem(
+            tag = itemToBeRemoved,
+            index = index,
+            action = Mode.REMOVE
+        ))
     }
 
-    fun pushUndo(item: EditorHistoryItem) {
+    private fun pushUndo(item: EditorHistoryItem) {
         undoStack.add(item)
     }
 
-    fun popUndo(): EditorHistoryItem? {
+    fun popUndo() {
         if (undoStack.isEmpty()) {
-            return null
+            return
         }
 
         val item = undoStack.last()
         undoStack.remove(item)
+        undo(item)
+    }
 
-        return item
+    private fun undo(history: EditorHistoryItem) {
+        val tagsLiveData = findTagListByCategory(history.tag.type)
+        val tags = tagsLiveData.value?.toMutableList() ?: mutableListOf()
+
+        when (history.action) {
+            Mode.ADD -> {
+                var tagToBeRemoved: Tag? = null
+                for (tag in tags) {
+                    if (tag.name == history.tag.name) {
+                        tagToBeRemoved = tag
+                    }
+                }
+                tags.remove(tagToBeRemoved)
+            }
+
+            Mode.REMOVE -> {
+                tags.add(history.index, history.tag)
+            }
+        }
+        tagsLiveData.value = tags
     }
 
     fun save(doujinDetails: DoujinDetails, tags: List<Tag>) {
