@@ -14,6 +14,12 @@ interface TagDao {
     @Query("SELECT * FROM tags ORDER BY name")
     fun getAll(): LiveData<List<Tag>>
 
+    @Query("SELECT * FROM tags WHERE type = :category ORDER BY name")
+    fun getByCategory(category: String): LiveData<List<Tag>>
+
+    @Query("SELECT * FROM tags WHERE type = :type AND name = :name")
+    suspend fun get(type: String, name: String): Tag?
+
     @Query("SELECT EXISTS(SELECT * FROM tags WHERE type = :type AND name = :name)")
     suspend fun exists(type: String, name: String): Boolean
 

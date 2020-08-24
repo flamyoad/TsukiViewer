@@ -3,6 +3,7 @@ package com.flamyoad.tsukiviewer.ui.home.local
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.view.*
 import android.widget.CheckBox
 import android.widget.ProgressBar
@@ -162,6 +163,7 @@ class LocalDoujinsFragment : Fragment() {
 
     private fun shouldShowSyncDialog(): Boolean {
         val sharedPreferences = requireContext().getSharedPreferences("showSyncDialog", 0)
+//        PreferenceManager.getDefaultSharedPreferences(requireContext())
         return sharedPreferences.getBoolean("status", true)
     }
 
@@ -175,8 +177,8 @@ class LocalDoujinsFragment : Fragment() {
         listLocalDoujins.addItemDecoration(ItemOffsetDecoration(8))
         listLocalDoujins.setHasFixedSize(true)
 
-        viewmodel.doujinList.observe(viewLifecycleOwner, Observer {
-            adapter.setList(it)
+        viewmodel.doujinList.observe(viewLifecycleOwner, Observer { newList ->
+            adapter.setList(newList)
         })
     }
 

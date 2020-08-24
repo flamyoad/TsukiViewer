@@ -16,7 +16,7 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import kotlinx.android.synthetic.main.activity_editor.*
 
-class EditorActivity : AppCompatActivity() {
+class EditorActivity : AppCompatActivity(), CreateTagListener {
 
     private val BACKMOST_POSITION = -1
 
@@ -68,7 +68,7 @@ class EditorActivity : AppCompatActivity() {
     private fun initTagGroups() {
         val dirPath = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
 
-        viewmodel.retrieveTags(dirPath)
+        viewmodel.retrieveDoujinTags(dirPath)
 
         viewmodel.detailWithTags.observe(this, Observer { detail ->
             drawTags(detail)
@@ -107,8 +107,19 @@ class EditorActivity : AppCompatActivity() {
 
             val chipNewTag = insertAddTagButton(chipGroup)
 
+            val tagCategory = when (i) {
+                0 -> "parody"
+                1 -> "character"
+                2 -> "tag"
+                3 -> "artist"
+                4 ->  "group"
+                5 -> "language"
+                6 -> "category"
+                else -> ""
+            }
+
             chipNewTag.setOnClickListener {
-                showNewTagDialog()
+                showNewTagDialog(tagCategory)
             }
         }
     }
@@ -145,8 +156,9 @@ class EditorActivity : AppCompatActivity() {
         return chip
     }
 
-    private fun showNewTagDialog() {
-
+    private fun showNewTagDialog(category: String) {
+        val bottomSheetDialog = TagBottomSheetDialog(category)
+        bottomSheetDialog.show(supportFragmentManager, "tag_dialog")
     }
 
     private fun popUndoStack() {
@@ -167,4 +179,10 @@ class EditorActivity : AppCompatActivity() {
             insertTag(oldItem.tag, chipGroup, oldItem.index)
         }
     }
+
+    override fun onTagCreated(name: String, type: String) {
+
+    }
+
+
 }

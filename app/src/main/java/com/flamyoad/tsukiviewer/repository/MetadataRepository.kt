@@ -95,28 +95,12 @@ class MetadataRepository(private val context: Context) {
     suspend fun fetchMetadataAll(dirList: List<File>): Int {
         var itemsFetched = 0
 
-        withContext(Dispatchers.IO) {
-            for (dir in dirList) {
+        for (dir in dirList) {
+            fetchMetadata(dir)
 
-                if (doujinDetailsDao.existsByTitle(dir.name) ||
-                    doujinDetailsDao.existsByAbsolutePath(dir.toString())
-                ) {
-                    continue
-                }
+            itemsFetched++
 
-                val response = getDataFromApi(dir.name)
-
-                if (response != null && response.result.isNotEmpty()) {
-                    storeMetadata(response, dir)
-                } else {
-                    Log.d("retrofit", "Can't find this sauce in NH.net")
-                    showToast("Can't find this sauce in NH.net")
-                }
-
-                // Sleep 1 second
-                itemsFetched++
-                delay(1000)
-            }
+            delay(1000)
         }
         return itemsFetched
     }
@@ -138,7 +122,7 @@ class MetadataRepository(private val context: Context) {
         val doujinId = doujinDetailsDao.insert(doujinDetails)
 
         for (tag in item.tags) {
-            var tagId: Long?
+            var tagId: Long
 
             if (tagDao.exists(tag.type, tag.name)) {
                 tagDao.incrementCount(tag.type, tag.name)
@@ -160,6 +144,10 @@ class MetadataRepository(private val context: Context) {
                 DoujinTag(doujinId, tagId)
             )
         }
+    }
+
+    suspend fun storeMetadata(doujinDetails: DoujinDetails, tags: List<Tag>) {
+
     }
 
     private fun getDataFromApi(fullTitle: String): Metadata? {
