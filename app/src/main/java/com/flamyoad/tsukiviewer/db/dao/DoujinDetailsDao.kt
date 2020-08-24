@@ -58,4 +58,8 @@ interface DoujinDetailsDao {
     @Query("SELECT * FROM doujin_details WHERE absolutePath = :absolutePath")
     fun getLongDetailsByPath(absolutePath: String): LiveData<DoujinDetailsWithTags>
 
+    @Transaction
+    @Query("SELECT * FROM doujin_details WHERE absolutePath = :absolutePath")
+    suspend fun getLongDetailsByPathBlocking(absolutePath: String): DoujinDetailsWithTags
+
 }

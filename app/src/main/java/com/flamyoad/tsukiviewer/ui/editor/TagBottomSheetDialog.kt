@@ -15,7 +15,7 @@ import com.flamyoad.tsukiviewer.adapter.EditorNewTagAdapter
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.android.synthetic.main.editor_new_tag_bottomsheet.*
 
-class TagBottomSheetDialog(private val category: String)
+class TagBottomSheetDialog()
     : BottomSheetDialogFragment() {
 
     private lateinit var viewmodel: EditorViewModel
@@ -32,10 +32,10 @@ class TagBottomSheetDialog(private val category: String)
         super.onActivityCreated(savedInstanceState)
 
         viewmodel = ViewModelProvider(requireActivity()).get(EditorViewModel::class.java)
-        viewmodel.retrieveTagsByCategory(category)
 
-        lblCategory.text = category.capitalize()
-
+        viewmodel.selectedCategory.observe(viewLifecycleOwner, Observer { category ->
+            lblCategory.text = category.capitalize()
+        })
         initTagList()
     }
 
@@ -64,6 +64,7 @@ class TagBottomSheetDialog(private val category: String)
 
         btnInsertTag.setOnClickListener {
             val tagName = inputEditText.text.toString()
+            val category = viewmodel.selectedCategory.value!!
             listener.onTagCreated(tagName, category)
         }
     }
