@@ -7,15 +7,20 @@ import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.DoujinDetailsDao
 import com.flamyoad.tsukiviewer.model.DoujinDetailsWithTags
+import com.flamyoad.tsukiviewer.repository.MetadataRepository
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
+import kotlinx.coroutines.launch
 import java.io.File
 
 class DoujinViewModel(application: Application) : AndroidViewModel(application) {
 
     private val db: AppDatabase
+
+    private val metadataRepo = MetadataRepository(application)
 
     private val doujinDetailsDao: DoujinDetailsDao
 
@@ -37,6 +42,8 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
     fun scanForImages(dirPath: String) {
         if (dirPath == currentPath) {
             return
+        } else {
+            currentPath = dirPath
         }
 
         val dir = File(dirPath)
@@ -52,5 +59,12 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
 
     fun detailsNotExists(): Boolean {
         return detailWithTags.value == null
+    }
+
+    fun resetTags() {
+        val dir = File(currentPath)
+        viewModelScope.launch {
+            metadataRepo.resetTags(dir)
+        }
     }
 }

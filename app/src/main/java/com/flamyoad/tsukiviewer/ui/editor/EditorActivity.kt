@@ -3,6 +3,7 @@ package com.flamyoad.tsukiviewer.ui.editor
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.children
 import androidx.lifecycle.Observer
@@ -30,6 +31,16 @@ class EditorActivity : AppCompatActivity(), CreateTagListener {
 
         initToolbar()
         initTagGroups()
+
+        viewmodel.hasCompletedSaving.observe(this, Observer { hasCompleted ->
+            if (hasCompleted) {
+                Toast.makeText(this, "Data is saved", Toast.LENGTH_SHORT).show()
+                finish()
+            } else {
+                contentLayout.isEnabled = false
+                parentLayout.alpha = 0.5f
+            }
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -48,7 +59,7 @@ class EditorActivity : AppCompatActivity(), CreateTagListener {
             }
 
             R.id.action_save_edits -> {
-
+                viewmodel.save()
             }
         }
         return true
@@ -167,5 +178,6 @@ class EditorActivity : AppCompatActivity(), CreateTagListener {
             supportFragmentManager.findFragmentByTag("tag_dialog") as BottomSheetDialogFragment
         dialog.dismiss()
     }
+
 }
 

@@ -13,8 +13,8 @@ data class Tag (
 
     val name: String,
 
-    val url: String,
+    val url: String = "",
 
     @ColumnInfo(name = "count")
-    val count: Int
+    val count: Int = 1
 )

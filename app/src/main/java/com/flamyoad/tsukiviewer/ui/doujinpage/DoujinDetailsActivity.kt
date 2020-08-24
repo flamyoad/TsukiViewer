@@ -96,10 +96,11 @@ class DoujinDetailsActivity : AppCompatActivity() {
 
     private fun showConfirmSyncDialog() {
         val dialog = AlertDialog.Builder(this)
-            .setTitle("Reset tags")
+            .setTitle("Reset to original tags")
             .setMessage("Previous tags that have been added manually will be erased. Continue?")
             .setPositiveButton("Yes", DialogInterface.OnClickListener { dialogInterface, i ->
-                //todo: Update tags in DB
+                // Update tags in DB
+                viewmodel.resetTags()
                 dialogInterface.dismiss()
             })
             .setNegativeButton("Cancel", DialogInterface.OnClickListener { dialogInterface, i ->

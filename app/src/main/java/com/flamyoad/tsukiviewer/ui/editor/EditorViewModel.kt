@@ -2,7 +2,6 @@ package com.flamyoad.tsukiviewer.ui.editor
 
 import android.app.Application
 import androidx.lifecycle.*
-import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.DoujinDetailsDao
 import com.flamyoad.tsukiviewer.db.dao.TagDao
 import com.flamyoad.tsukiviewer.model.DoujinDetails
@@ -13,23 +12,24 @@ import com.flamyoad.tsukiviewer.repository.MetadataRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.lang.IllegalArgumentException
+import java.io.File
 
 class EditorViewModel(application: Application) : AndroidViewModel(application) {
-    private val db: AppDatabase
+    private val metadataRepo = MetadataRepository(application)
 
     private val doujinDetailsDao: DoujinDetailsDao
 
     private val tagDao: TagDao
 
-    private val metadataRepo = MetadataRepository(application)
-
     private val undoStack = mutableListOf<EditorHistoryItem>()
+
+    private val _hasCompletedSaving = MutableLiveData<Boolean>()
+    val hasCompletedSaving: LiveData<Boolean> = _hasCompletedSaving
 
     private val _selectedCategory = MutableLiveData<String>("None")
     val selectedCategory: LiveData<String> = _selectedCategory
 
-    var tagsByCategory: LiveData<List<Tag>> =  MutableLiveData()
+    var tagsByCategory: LiveData<List<Tag>> = MutableLiveData()
 
     val parody = MutableLiveData<List<Tag>>()
     val character = MutableLiveData<List<Tag>>()
@@ -42,9 +42,8 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
     private var currentPath: String = ""
 
     init {
-        db = AppDatabase.getInstance(application)
-        doujinDetailsDao = db.doujinDetailsDao()
-        tagDao = db.tagsDao()
+        doujinDetailsDao = metadataRepo.doujinDetailsDao
+        tagDao = metadataRepo.tagDao
 
         tagsByCategory = Transformations.switchMap(_selectedCategory) { category ->
             return@switchMap tagDao.getByCategory(category)
@@ -65,7 +64,8 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
             withContext(Dispatchers.Main) {
                 parody.value = details?.tags?.filter { x -> x.type == "parody" } ?: mutableListOf()
 
-                character.value = details?.tags?.filter { x -> x.type == "character" } ?: mutableListOf()
+                character.value =
+                    details?.tags?.filter { x -> x.type == "character" } ?: mutableListOf()
 
                 tags.value = details?.tags?.filter { x -> x.type == "tag" } ?: mutableListOf()
 
@@ -73,9 +73,11 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
 
                 group.value = details?.tags?.filter { x -> x.type == "group" } ?: mutableListOf()
 
-                language.value = details?.tags?.filter { x -> x.type == "language" } ?: mutableListOf()
+                language.value =
+                    details?.tags?.filter { x -> x.type == "language" } ?: mutableListOf()
 
-                category.value = details?.tags?.filter { x -> x.type == "category" } ?: mutableListOf()
+                category.value =
+                    details?.tags?.filter { x -> x.type == "category" } ?: mutableListOf()
             }
         }
     }
@@ -86,26 +88,28 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun addTag(name: String, category: String) {
-        val tagList = findTagListByCategory(category)
-        val prevItems = tagList.value?.toMutableList() ?: mutableListOf()
+        val tagsLiveData = findTagListByCategory(category)
+        val prevItems = tagsLiveData.value?.toMutableList() ?: mutableListOf()
 
-        val newItem = Tag(type = category, name = name, url = "",  count = 1)
+        val newItem = Tag(type = category, name = name, url = "", count = 1)
 
         prevItems.add(newItem)
 
-        tagList.value = prevItems
+        tagsLiveData.value = prevItems
 
         // Push changes made to undo stack
-        pushUndo(EditorHistoryItem(
-            tag = newItem,
-            index = prevItems.indexOf(newItem),
-            action = Mode.ADD
-        ))
+        pushUndo(
+            EditorHistoryItem(
+                tag = newItem,
+                index = prevItems.indexOf(newItem),
+                action = Mode.ADD
+            )
+        )
     }
 
     fun removeTag(name: String, category: String) {
-        val tagList = findTagListByCategory(category)
-        val prevItems = tagList.value?.toMutableList() ?: mutableListOf()
+        val tagsLiveData = findTagListByCategory(category)
+        val prevItems = tagsLiveData.value?.toMutableList() ?: mutableListOf()
 
         var index = -1
         for (i in prevItems.indices) {
@@ -117,14 +121,16 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
         val itemToBeRemoved = prevItems[index]
 
         prevItems.removeAt(index)
-        tagList.value = prevItems
+        tagsLiveData.value = prevItems
 
         // Push changes made to undo stack
-        pushUndo(EditorHistoryItem(
-            tag = itemToBeRemoved,
-            index = index,
-            action = Mode.REMOVE
-        ))
+        pushUndo(
+            EditorHistoryItem(
+                tag = itemToBeRemoved,
+                index = index,
+                action = Mode.REMOVE
+            )
+        )
     }
 
     private fun pushUndo(item: EditorHistoryItem) {
@@ -160,13 +166,39 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
                 tags.add(history.index, history.tag)
             }
         }
+
         tagsLiveData.value = tags
     }
 
-    fun save(doujinDetails: DoujinDetails, tags: List<Tag>) {
-        viewModelScope.launch(Dispatchers.IO) {
-            metadataRepo.storeMetadata(doujinDetails, tags)
+    fun save() {
+        _hasCompletedSaving.value = true
+
+        val currentDir = File(currentPath)
+        val doujinDetail = DoujinDetails(
+            id = null,
+            nukeCode = -1,
+            shortTitleEnglish = currentDir.name,
+            fullTitleEnglish = currentDir.name,
+            fullTitleJapanese = "",
+            absolutePath = currentDir,
+            folderName = currentDir.name
+        )
+
+        val tags = listOf(
+            parody.value ?: emptyList(),
+            character.value ?: emptyList(),
+            tags.value ?: emptyList(),
+            artist.value ?: emptyList(),
+            group.value ?: emptyList(),
+            language.value ?: emptyList(),
+            category.value ?: emptyList()
+        ).flatten()
+
+        viewModelScope.launch {
+            metadataRepo.storeMetadata(doujinDetail, tags)
         }
+
+        _hasCompletedSaving.value = false
     }
 
     private fun findTagListByCategory(categoryName: String): MutableLiveData<List<Tag>> {

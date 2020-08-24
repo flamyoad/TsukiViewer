@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
 import com.flamyoad.tsukiviewer.model.Tag
 
 @Dao
@@ -29,5 +30,7 @@ interface TagDao {
     @Query("UPDATE tags SET count = count + 1 WHERE type = :type AND name = :name")
     suspend fun incrementCount(type: String, name: String)
 
-    // suspend fun removeTag(doujin, tag)
+    @Query("UPDATE tags SET count = count - 1 WHERE type = :type AND name = :name")
+    suspend fun decrementCount(type: String, name: String)
+
 }

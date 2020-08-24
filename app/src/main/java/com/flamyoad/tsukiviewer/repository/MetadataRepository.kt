@@ -1,6 +1,5 @@
 package com.flamyoad.tsukiviewer.repository
 
-import android.app.Application
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
@@ -146,8 +145,73 @@ class MetadataRepository(private val context: Context) {
         }
     }
 
+    // Erases previous existing tags and adds new ones
     suspend fun storeMetadata(doujinDetails: DoujinDetails, tags: List<Tag>) {
+        withContext(Dispatchers.IO) {
+            // todo: Rename this garbage
+            val absolutePath = doujinDetails.absolutePath.absolutePath
 
+            var doujinId: Long
+
+            // Insert into db if a record identified by its absolute path does not exist yet
+            if (!doujinDetailsDao.existsByAbsolutePath(absolutePath)) {
+                doujinId = doujinDetailsDao.insert(doujinDetails)
+            } else {
+                val fetchedItems: List<DoujinDetails> = doujinDetailsDao.findByAbsolutePath(absolutePath)
+                doujinId = fetchedItems.first().id ?: -1
+            }
+
+            // Decrements book count for all tags in the previous data
+            doujinTagDao.decrementTagCount(doujinId)
+
+            // Removes all rows related to chosen id in the table
+            doujinTagDao.deleteAll(doujinId)
+
+            // Inserts new tag if has any, increments count for tags that already exist
+            tags.forEach { tag ->
+                val tagId: Long
+
+                if (tagDao.exists(tag.type, tag.name)) {
+                    tagDao.incrementCount(tag.type, tag.name)
+                    tagId = tagDao.getId(tag.type, tag.name)
+
+                } else {
+                    tagId = tagDao.insert(
+                        Tag(
+                            tagId = null,
+                            name = tag.name,
+                            type = tag.type,
+                            url = tag.url,
+                            count = 1
+                        )
+                    )
+                }
+                doujinTagDao.insert(
+                    DoujinTag(doujinId, tagId)
+                )
+            }
+        }
+    }
+
+    suspend fun resetTags(dir: File) {
+        withContext(Dispatchers.IO) {
+            val response = getDataFromApi(dir.name)
+
+            if (response != null && response.result.isNotEmpty()) {
+                val result = response.result.first()
+
+                val doujinDetails = doujinDetailsDao
+                    .findByAbsolutePath(dir.absolutePath)
+                    .first()
+
+                val tagList = result.tags
+                    .map { x -> Tag(type = x.type, name = x.name, url = x.url, count = 1) }
+
+                storeMetadata(doujinDetails, tagList)
+            } else {
+                Log.d("retrofit", "Can't find this sauce in NH.net")
+            }
+        }
     }
 
     private fun getDataFromApi(fullTitle: String): Metadata? {

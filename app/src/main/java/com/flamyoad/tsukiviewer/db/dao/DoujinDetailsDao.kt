@@ -24,6 +24,9 @@ interface DoujinDetailsDao {
     @Query("SELECT EXISTS(SELECT * FROM doujin_details WHERE absolutePath = :absolutePath)")
     suspend fun existsByAbsolutePath(absolutePath: String): Boolean
 
+    @Query("SELECT * FROM doujin_details WHERE absolutePath = :absolutePath")
+    suspend fun findByAbsolutePath(absolutePath: String): List<DoujinDetails>
+
     @Query("SELECT * FROM doujin_details WHERE fullTitleEnglish LIKE '%' || :query || '%' OR fullTitleJapanese LIKE '%' || :query || '%'")
     suspend fun findByTitle(query: String): List<DoujinDetails>
 
