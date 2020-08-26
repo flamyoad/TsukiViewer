@@ -29,8 +29,9 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
 
     val includedFolderList: LiveData<List<IncludedFolder>>
 
-    private val _searchResult = MutableLiveData<List<Doujin>>()
-    val searchResult: LiveData<List<Doujin>> = _searchResult
+    private val searchedResult = MutableLiveData<List<Doujin>>()
+
+    fun searchedResult(): LiveData<List<Doujin>> = searchedResult
 
     init {
         db = AppDatabase.getInstance(application)
@@ -68,7 +69,7 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
                 convertFolderPathToDoujin(folder)
             }
 
-            _searchResult.postValue(searchResult)
+            this@SearchResultViewModel.searchedResult.postValue(searchResult)
         }
     }
 

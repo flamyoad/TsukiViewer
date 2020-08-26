@@ -75,7 +75,7 @@ class GalleryPickerDialog(private val listener: GalleryPickListener)
         listGalleries.adapter = adapter
         listGalleries.layoutManager = linearLayoutManager
 
-        viewmodel.packageAppList.observe(requireActivity(), Observer {
+        viewmodel.packageAppList().observe(requireActivity(), Observer {
             adapter.setList(it)
         })
     }

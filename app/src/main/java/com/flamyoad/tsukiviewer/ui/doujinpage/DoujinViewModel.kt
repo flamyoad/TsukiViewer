@@ -18,26 +18,19 @@ import java.io.File
 
 class DoujinViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val db: AppDatabase
-
     private val metadataRepo = MetadataRepository(application)
-
-    private val doujinDetailsDao: DoujinDetailsDao
-
-    private val _imageList = MutableLiveData<List<File>>()
-    val imageList: LiveData<List<File>> = _imageList
-
-    private val _coverImage = MutableLiveData<Uri>()
-    val coverImage: LiveData<Uri> = _coverImage
 
     lateinit var detailWithTags: LiveData<DoujinDetailsWithTags>
 
+    private val imageList = MutableLiveData<List<File>>()
+
+    private val coverImage = MutableLiveData<Uri>()
+
     var currentPath: String = ""
 
-    init {
-        db = AppDatabase.getInstance(application)
-        doujinDetailsDao = db.doujinDetailsDao()
-    }
+    fun imageList(): LiveData<List<File>> = imageList
+
+    fun coverImage(): LiveData<Uri> = coverImage
 
     fun scanForImages(dirPath: String) {
         if (dirPath == currentPath) {
@@ -48,7 +41,9 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
 
         val dir = File(dirPath)
 
-        detailWithTags = doujinDetailsDao.getLongDetailsByPath(dir.toString())
+        detailWithTags = metadataRepo
+            .doujinDetailsDao
+            .getLongDetailsByPath(dir.toString())
 
         val fetchedImages = dir.listFiles(ImageFileFilter())
 
@@ -58,7 +53,7 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
             This is because sortedBy() is using ASCII order to sort.
             Workaround is to use Natural Sort
 
-            Article describing the details about language's in-built sort and natural sort
+            Article describing the differences about programming language's in-built sort and natural sort
             https://blog.codinghorror.com/sorting-for-humans-natural-sort-order/
 
             Sort filenames in directory in ascending order [duplicate]
@@ -67,10 +62,10 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
         val naturalSort = compareBy<File> { it.name.length } // If you don't first compare by length, it won't work
             .then(naturalOrder())
 
-        _imageList.value = fetchedImages.sortedWith(naturalSort)
+        imageList.value = fetchedImages.sortedWith(naturalSort)
 
         val firstImage = fetchedImages.first().toUri()
-        _coverImage.value = firstImage
+        coverImage.value = firstImage
     }
 
     fun detailsNotExists(): Boolean {

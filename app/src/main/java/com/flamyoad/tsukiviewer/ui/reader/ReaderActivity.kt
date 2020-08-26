@@ -72,7 +72,7 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
         listImages.layoutManager = linearLayoutManager
         snapHelper.attachToRecyclerView(listImages)
 
-        viewmodel.imageList.observe(this, Observer {
+        viewmodel.imageList().observe(this, Observer {
             readerAdapter.setList(it)
             linearLayoutManager.scrollToPosition(currentAdapterPosition)
         })
@@ -89,7 +89,7 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
         bottomListThumbnails.layoutManager = linearLayoutManager
         snapHelper.attachToRecyclerView(bottomListThumbnails)
 
-        viewmodel.imageList.observe(this, Observer {
+        viewmodel.imageList().observe(this, Observer {
             adapter.setList(it)
 
             linearLayoutManager.scrollToPosition(currentAdapterPosition)

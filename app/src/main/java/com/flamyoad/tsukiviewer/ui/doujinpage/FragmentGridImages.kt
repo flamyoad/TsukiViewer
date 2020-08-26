@@ -48,7 +48,7 @@ class FragmentGridImages : Fragment() {
         listImages.addItemDecoration(DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL))
         listImages.addItemDecoration(DividerItemDecoration(requireContext(), DividerItemDecoration.HORIZONTAL))
 
-        viewmodel.imageList.observe(viewLifecycleOwner, Observer {
+        viewmodel.imageList().observe(viewLifecycleOwner, Observer {
             adapter.setList(it)
         })
     }

@@ -23,11 +23,9 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
 
     private val undoStack = mutableListOf<EditorHistoryItem>()
 
-    private val _hasCompletedSaving = MutableLiveData<Boolean>()
-    val hasCompletedSaving: LiveData<Boolean> = _hasCompletedSaving
+    private val hasCompletedSaving = MutableLiveData<Boolean>()
 
-    private val _selectedCategory = MutableLiveData<String>("None")
-    val selectedCategory: LiveData<String> = _selectedCategory
+    private val selectedCategory = MutableLiveData<String>("None")
 
     var tagsByCategory: LiveData<List<Tag>> = MutableLiveData()
 
@@ -39,13 +37,17 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
     val language = MutableLiveData<List<Tag>>()
     val category = MutableLiveData<List<Tag>>()
 
+    fun hasCompletedSaving(): LiveData<Boolean> = hasCompletedSaving
+
+    fun selectedCategory(): LiveData<String> = selectedCategory
+
     private var currentPath: String = ""
 
     init {
         doujinDetailsDao = metadataRepo.doujinDetailsDao
         tagDao = metadataRepo.tagDao
 
-        tagsByCategory = Transformations.switchMap(_selectedCategory) { category ->
+        tagsByCategory = Transformations.switchMap(selectedCategory) { category ->
             return@switchMap tagDao.getByCategory(category)
         }
     }
@@ -84,7 +86,7 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
 
     fun retrieveTagsByCategory(category: String) {
         // Triggers transformation switchMap
-        _selectedCategory.value = category
+        selectedCategory.value = category
     }
 
     fun addTag(name: String, category: String) {
@@ -171,7 +173,7 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun save() {
-        _hasCompletedSaving.value = true
+        hasCompletedSaving.value = true
 
         val currentDir = File(currentPath)
         val doujinDetail = DoujinDetails(
@@ -198,7 +200,7 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
             metadataRepo.storeMetadata(doujinDetail, tags)
         }
 
-        _hasCompletedSaving.value = false
+        hasCompletedSaving.value = false
     }
 
     private fun findTagListByCategory(categoryName: String): MutableLiveData<List<Tag>> {

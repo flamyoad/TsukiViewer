@@ -10,8 +10,9 @@ import java.io.File
 
 class ReaderViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val _imageList = MutableLiveData<List<File>>()
-    val imageList: LiveData<List<File>> = _imageList
+    private val imageList = MutableLiveData<List<File>>()
+
+    fun imageList(): LiveData<List<File>> = imageList
 
     var totalImageCount: Int = -1
         private set
@@ -27,7 +28,7 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
         val dir = File(dirPath)
         val fetchedImages = dir.listFiles(ImageFileFilter()).sorted()
 
-        _imageList.value = fetchedImages
+        imageList.value = fetchedImages
 
         totalImageCount = fetchedImages.size
     }

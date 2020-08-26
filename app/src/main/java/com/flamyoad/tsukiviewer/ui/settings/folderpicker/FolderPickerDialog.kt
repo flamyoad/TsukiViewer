@@ -29,8 +29,6 @@ class FolderPickerDialog : DialogFragment(),
 
     private val CURRENT_PATH_STRING = "current_path_string"
 
-    private var job: Job? = null
-
     private lateinit var listFolders: RecyclerView
 
     private lateinit var listTopDirs: RecyclerView
@@ -42,6 +40,8 @@ class FolderPickerDialog : DialogFragment(),
     private lateinit var currentDir: File
 
     private lateinit var addFolderListener: AddFolderListener
+
+    private var job: Job? = null
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)

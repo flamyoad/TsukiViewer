@@ -39,7 +39,7 @@ class FragmentDoujinDetails : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        viewmodel.coverImage.observe(viewLifecycleOwner, Observer { image ->
+        viewmodel.coverImage().observe(viewLifecycleOwner, Observer { image ->
             Glide.with(this)
                 .load(image)
                 .sizeMultiplier(0.75f)

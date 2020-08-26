@@ -55,7 +55,7 @@ class LocalDoujinsFragment : Fragment() {
         syncProgressBar = view.findViewById(R.id.progressBarSync)
         syncProgressBar.visibility = View.GONE
 
-        viewmodel.isSyncing.observe(viewLifecycleOwner, Observer { stillSynchronizing ->
+        viewmodel.isSyncing().observe(viewLifecycleOwner, Observer { stillSynchronizing ->
             if (stillSynchronizing) {
                 syncProgressBar.visibility = View.VISIBLE
             } else {
@@ -108,7 +108,7 @@ class LocalDoujinsFragment : Fragment() {
         initRecyclerView()
         toast = Toast.makeText(context, "", Toast.LENGTH_LONG)
 
-        viewmodel.toastText.observe(viewLifecycleOwner, Observer {
+        viewmodel.toastText().observe(viewLifecycleOwner, Observer {
             if (it != null) {
                 toast.setText(it)
                 toast.show()
@@ -177,7 +177,7 @@ class LocalDoujinsFragment : Fragment() {
         listLocalDoujins.addItemDecoration(ItemOffsetDecoration(8))
         listLocalDoujins.setHasFixedSize(true)
 
-        viewmodel.doujinList.observe(viewLifecycleOwner, Observer { newList ->
+        viewmodel.doujinList().observe(viewLifecycleOwner, Observer { newList ->
             adapter.setList(newList)
         })
     }

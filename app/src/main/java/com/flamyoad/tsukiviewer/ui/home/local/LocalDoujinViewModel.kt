@@ -22,14 +22,17 @@ class LocalDoujinViewModel(application: Application) : AndroidViewModel(applicat
 
     val includedFolderList: LiveData<List<IncludedFolder>>
 
-    private var _doujinList = MutableLiveData<MutableList<Doujin>>()
-    val doujinList: LiveData<MutableList<Doujin>> = _doujinList
+    private var doujinList = MutableLiveData<MutableList<Doujin>>()
 
-    private val _isSyncing = MutableLiveData<Boolean>(false)
-    val isSyncing: LiveData<Boolean> = _isSyncing
+    private val isSyncing = MutableLiveData<Boolean>(false)
 
-    private val _toastText = MutableLiveData<String?>(null)
-    val toastText: LiveData<String?> = _toastText
+    private val toastText = MutableLiveData<String?>(null)
+
+    fun doujinList(): LiveData<MutableList<Doujin>> = doujinList
+
+    fun isSyncing(): LiveData<Boolean> = isSyncing
+
+    fun toastText(): LiveData<String?> = toastText
 
     init {
         includedFolderList = repo.folderDao.getAll()
@@ -62,7 +65,7 @@ class LocalDoujinViewModel(application: Application) : AndroidViewModel(applicat
                     doujinList.add(
                         Doujin(coverImage, title, numberOfImages, lastModified, f)
                     )
-                    _doujinList.postValue(doujinList)
+                    this.doujinList.postValue(doujinList)
                 }
 
                 walk(f, doujinList)
@@ -71,12 +74,12 @@ class LocalDoujinViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     suspend fun fetchMetadataAll(dirList: List<File>) {
-        _isSyncing.value = true
+        isSyncing.value = true
 
         val amountFetched = repo.fetchMetadataAll(dirList)
 
         if (amountFetched == 0) {
-            _toastText.value = "All items are already synced"
+            toastText.value = "All items are already synced"
 
         } else {
             val noun = if (amountFetched > 1)
@@ -84,10 +87,10 @@ class LocalDoujinViewModel(application: Application) : AndroidViewModel(applicat
             else
                 "item"
 
-            _toastText.value = "Sync done for $amountFetched $noun"
+            toastText.value = "Sync done for $amountFetched $noun"
         }
 
-        _isSyncing.value = false
+        isSyncing.value = false
     }
 
 }

@@ -66,7 +66,7 @@ class SearchResultActivity : AppCompatActivity() {
         listSearchedDoujins.layoutManager = gridLayoutManager
         listSearchedDoujins.addItemDecoration(ItemOffsetDecoration(8))
 
-        viewmodel.searchResult.observe(this, Observer {
+        viewmodel.searchedResult().observe(this, Observer {
             adapter.setList(it)
         })
     }

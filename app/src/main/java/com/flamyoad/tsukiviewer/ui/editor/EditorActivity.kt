@@ -32,7 +32,7 @@ class EditorActivity : AppCompatActivity(), CreateTagListener {
         initToolbar()
         initTagGroups()
 
-        viewmodel.hasCompletedSaving.observe(this, Observer { hasCompleted ->
+        viewmodel.hasCompletedSaving().observe(this, Observer { hasCompleted ->
             if (hasCompleted) {
                 Toast.makeText(this, "Data is saved", Toast.LENGTH_SHORT).show()
                 finish()
