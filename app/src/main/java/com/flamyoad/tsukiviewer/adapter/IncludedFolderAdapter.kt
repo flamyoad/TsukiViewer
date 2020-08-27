@@ -7,7 +7,7 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
-import com.flamyoad.tsukiviewer.model.IncludedFolder
+import com.flamyoad.tsukiviewer.model.IncludedPath
 import com.flamyoad.tsukiviewer.ui.settings.includedfolders.RemoveFolderListener
 import java.lang.IllegalArgumentException
 
@@ -17,7 +17,7 @@ class IncludedFolderAdapter(private val listener: RemoveFolderListener) :
     private val FOLDER_ITEM = 0
     private val EMPTY_INDICATOR = 1
 
-    private var folderList = emptyList<IncludedFolder>()
+    private var folderList = emptyList<IncludedPath>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         when (viewType) {
@@ -74,7 +74,7 @@ class IncludedFolderAdapter(private val listener: RemoveFolderListener) :
         }
     }
 
-    fun setList(list: List<IncludedFolder>) {
+    fun setList(list: List<IncludedPath>) {
         folderList = list
         notifyDataSetChanged()
     }
@@ -83,8 +83,8 @@ class IncludedFolderAdapter(private val listener: RemoveFolderListener) :
         private val txtDirectory: TextView = itemView.findViewById(R.id.txtDirectory)
         private val btnDelete: ImageButton = itemView.findViewById(R.id.btnDelete)
 
-        fun bind(folder: IncludedFolder) {
-            txtDirectory.text = folder.dir.canonicalPath
+        fun bind(path: IncludedPath) {
+            txtDirectory.text = path.dir.canonicalPath
         }
     }
 }

@@ -8,8 +8,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.IncludedFolder
+import com.flamyoad.tsukiviewer.model.IncludedPath
 import com.flamyoad.tsukiviewer.repository.MetadataRepository
-import com.flamyoad.tsukiviewer.utils.ImageFileFilter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -20,13 +20,15 @@ class LocalDoujinViewModel(application: Application) : AndroidViewModel(applicat
 
     val repo = MetadataRepository(application)
 
-    val includedFolderList: LiveData<List<IncludedFolder>>
+    val includedPathList: LiveData<List<IncludedPath>>
 
     private var doujinList = MutableLiveData<MutableList<Doujin>>()
 
     private val isSyncing = MutableLiveData<Boolean>(false)
 
     private val toastText = MutableLiveData<String?>(null)
+
+    private val imageExtensions = listOf("jpg", "png", "gif", "jpeg")
 
     fun doujinList(): LiveData<MutableList<Doujin>> = doujinList
 
@@ -35,40 +37,43 @@ class LocalDoujinViewModel(application: Application) : AndroidViewModel(applicat
     fun toastText(): LiveData<String?> = toastText
 
     init {
-        includedFolderList = repo.folderDao.getAll()
+        includedPathList = repo.pathDao.getAll()
     }
 
-    fun fetchDoujinsFromDir(includedFolders: List<IncludedFolder>) {
+    fun fetchDoujinsFromDir(includedPaths: List<IncludedPath>) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val doujinList = mutableListOf<Doujin>()
-                for (folder in includedFolders) {
-                    walk(folder.dir, doujinList)
+                for (folder in includedPaths) {
+                    walk(folder.dir, folder.dir, doujinList)
                 }
             }
         }
     }
 
     // Recursive method to search for directories & sub-directories
-    // todo: this method doesnt include the main directory itself, fix it
-    private suspend fun walk(currentDir: File, doujinList: MutableList<Doujin>) {
-        for (f in currentDir.listFiles()) {
-            if (f.isDirectory) {
-                val imageList = f.listFiles(ImageFileFilter()).sorted()
+    private suspend fun walk(currentDir: File, parentDir: File, doujinList: MutableList<Doujin>) {
+        if (currentDir.isDirectory) {
+            val fileList = currentDir.listFiles()
 
-                if (imageList.isNotEmpty()) {
-                    val coverImage = imageList.first().toUri()
-                    val title = f.name
-                    val numberOfImages = imageList.size
-                    val lastModified = f.lastModified()
+            val imageList = fileList.filter { f -> f.extension in imageExtensions }
 
-                    doujinList.add(
-                        Doujin(coverImage, title, numberOfImages, lastModified, f)
-                    )
-                    this.doujinList.postValue(doujinList)
-                }
+            if (imageList.isNotEmpty()) {
 
-                walk(f, doujinList)
+                val coverImage = imageList.first().toUri()
+                val title = currentDir.name
+                val numberOfImages = imageList.size
+                val lastModified = currentDir.lastModified()
+
+                doujinList.add(
+                    Doujin(coverImage, title, numberOfImages, lastModified, currentDir)
+                )
+
+                this.doujinList.postValue(doujinList)
+            }
+
+            for (f in fileList) {
+                walk(f, parentDir, doujinList)
             }
         }
     }

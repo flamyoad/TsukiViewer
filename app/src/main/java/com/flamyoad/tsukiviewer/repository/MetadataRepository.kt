@@ -7,10 +7,7 @@ import android.util.Log
 import android.webkit.WebSettings
 import android.widget.Toast
 import com.flamyoad.tsukiviewer.db.AppDatabase
-import com.flamyoad.tsukiviewer.db.dao.DoujinDetailsDao
-import com.flamyoad.tsukiviewer.db.dao.DoujinTagsDao
-import com.flamyoad.tsukiviewer.db.dao.IncludedFolderDao
-import com.flamyoad.tsukiviewer.db.dao.TagDao
+import com.flamyoad.tsukiviewer.db.dao.*
 import com.flamyoad.tsukiviewer.model.DoujinDetails
 import com.flamyoad.tsukiviewer.model.DoujinTag
 import com.flamyoad.tsukiviewer.model.Tag
@@ -32,20 +29,22 @@ class MetadataRepository(private val context: Context) {
 
     private val db: AppDatabase
 
-    val folderDao: IncludedFolderDao
+    val pathDao: IncludedPathDao
     val doujinDetailsDao: DoujinDetailsDao
     val tagDao: TagDao
     val doujinTagDao: DoujinTagsDao
+    val folderDao: IncludedFolderDao
 
     init {
         initializeNetwork()
 
         db = AppDatabase.getInstance(context)
 
-        folderDao = db.includedFolderDao()
+        pathDao = db.includedFolderDao()
         doujinDetailsDao = db.doujinDetailsDao()
         tagDao = db.tagsDao()
         doujinTagDao = db.doujinTagDao()
+        folderDao = db.folderDao()
     }
 
     private fun initializeNetwork() {

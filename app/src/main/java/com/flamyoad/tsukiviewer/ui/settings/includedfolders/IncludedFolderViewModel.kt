@@ -6,8 +6,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.viewModelScope
 import com.flamyoad.tsukiviewer.db.AppDatabase
-import com.flamyoad.tsukiviewer.db.dao.IncludedFolderDao
-import com.flamyoad.tsukiviewer.model.IncludedFolder
+import com.flamyoad.tsukiviewer.db.dao.IncludedPathDao
+import com.flamyoad.tsukiviewer.model.IncludedPath
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -15,27 +15,27 @@ class IncludedFolderViewModel(application: Application) : AndroidViewModel(appli
 
     private val db: AppDatabase
 
-    private val folderDao: IncludedFolderDao
+    private val pathDao: IncludedPathDao
 
-    val folderList: LiveData<List<IncludedFolder>>
+    val pathList: LiveData<List<IncludedPath>>
 
     init {
         db = AppDatabase.getInstance(application)
-        folderDao = db.includedFolderDao()
-        folderList = folderDao.getAll()
+        pathDao = db.includedFolderDao()
+        pathList = pathDao.getAll()
     }
 
     fun insert(dir: File) {
         Log.d("files", dir.canonicalFile.toString())
-        val folder = IncludedFolder(dir = dir.canonicalFile)
+        val folder = IncludedPath(dir = dir.canonicalFile)
         viewModelScope.launch {
-            folderDao.insert(folder)
+            pathDao.insert(folder)
         }
     }
 
-    fun delete(includedFolder: IncludedFolder) {
+    fun delete(includedPath: IncludedPath) {
         viewModelScope.launch {
-            folderDao.delete(includedFolder)
+            pathDao.delete(includedPath)
         }
     }
 }

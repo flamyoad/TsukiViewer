@@ -8,10 +8,10 @@ import androidx.lifecycle.MutableLiveData
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.DoujinDetailsDao
 import com.flamyoad.tsukiviewer.db.dao.DoujinTagsDao
-import com.flamyoad.tsukiviewer.db.dao.IncludedFolderDao
+import com.flamyoad.tsukiviewer.db.dao.IncludedPathDao
 import com.flamyoad.tsukiviewer.db.dao.TagDao
 import com.flamyoad.tsukiviewer.model.Doujin
-import com.flamyoad.tsukiviewer.model.IncludedFolder
+import com.flamyoad.tsukiviewer.model.IncludedPath
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -22,129 +22,150 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
 
     private val db: AppDatabase
 
-    val folderDao: IncludedFolderDao
+    val pathDao: IncludedPathDao
     val doujinDetailsDao: DoujinDetailsDao
     val tagDao: TagDao
     val doujinTagDao: DoujinTagsDao
 
-    val includedFolderList: LiveData<List<IncludedFolder>>
+    private val imageExtensions = listOf("jpg", "png", "gif", "jpeg")
+
+    private val includedPathList: LiveData<List<IncludedPath>>
 
     private val searchedResult = MutableLiveData<List<Doujin>>()
 
+    private val isLoading = MutableLiveData<Boolean>(false)
+
     fun searchedResult(): LiveData<List<Doujin>> = searchedResult
+
+    fun isLoading(): LiveData<Boolean> = isLoading
 
     init {
         db = AppDatabase.getInstance(application)
 
-        folderDao = db.includedFolderDao()
+        pathDao = db.includedFolderDao()
         doujinDetailsDao = db.doujinDetailsDao()
         tagDao = db.tagsDao()
         doujinTagDao = db.doujinTagDao()
 
-        includedFolderList = folderDao.getAll()
+        includedPathList = pathDao.getAll()
     }
 
-    suspend fun submitQuery(title: String, tags: String) {
+    suspend fun submitQuery(keyword: String, tags: String) {
+        isLoading.value = true
+
         withContext(Dispatchers.IO) {
-            val folderFromDb = findFoldersFromDatabase(title, tags)
+            val newList = mutableListOf<Doujin>()
 
-            /* Do not search from directories if . . .
-                 1. The title query is blank
-                 2. The user has requested to search from genre tags
-            */
-            val folderFromExplorer = if (title.isBlank() || tags.isNotBlank()) {
-                emptyList()
-            } else {
-                findFoldersFromFileExplorer(title)
+            val folderFromDb = findFoldersFromDatabase(keyword, tags, newList)
+
+            // Only search from directory instead of database
+            // when user queries using keyword and did not specify tags
+            if (tags.isBlank()) {
+                findFoldersFromFileExplorer(keyword, newList)
             }
-
-            val uniqueFolders = mutableSetOf<String>()
-
-            with(uniqueFolders) {
-                addAll(folderFromDb)
-                addAll(folderFromExplorer)
-            }
-
-            val searchResult = uniqueFolders.mapNotNull { folder ->
-                convertFolderPathToDoujin(folder)
-            }
-
-            this@SearchResultViewModel.searchedResult.postValue(searchResult)
         }
+
+        isLoading.value = false
     }
 
-    private suspend fun findFoldersFromDatabase(title: String, tags: String): List<String> {
-        var folderList = emptyList<String>()
-
+    private suspend fun findFoldersFromDatabase(keyword: String, tags: String, doujinList: MutableList<Doujin>) {
         // search with both title and tags
-        if (title.isNotBlank() && tags.isNotBlank()) {
+        if (keyword.isNotBlank() && tags.isNotBlank()) {
             val tagList = tags.split(",")
                 .map { tagName -> tagName }
 
             val doujinDetailItems = doujinDetailsDao.findByTags(tagList, tagList.size)
-            folderList = doujinDetailItems
-                .filter { item ->
-                    item.fullTitleEnglish.toLowerCase(Locale.ROOT).contains(title)
-                            || item.fullTitleJapanese.contains(title)
+
+            for (item in doujinDetailItems) {
+                val containsKeywordEnglish = item.fullTitleEnglish.toLowerCase(Locale.ROOT).contains(keyword)
+                val containsKeywordJap = item.fullTitleJapanese.contains(keyword)
+
+                if (containsKeywordEnglish || containsKeywordJap) {
+                    emitResult(item.absolutePath, doujinList)
                 }
-                .map { item -> item.absolutePath.toString() }
+            }
 
-        } else if (title.isNotBlank()) {
+        } else if (keyword.isNotBlank() && tags.isBlank()) {
 //             search with title only
-            val doujinDetailItems = doujinDetailsDao.findByTitle(title)
-            folderList = doujinDetailItems.map { item -> item.absolutePath.toString() }
+            val doujinDetailItems = doujinDetailsDao.findByTitle(keyword)
 
-        } else if (tags.isNotBlank()) {
+            for (item in doujinDetailItems) {
+                emitResult(item.absolutePath, doujinList)
+            }
+
+        } else if (tags.isNotBlank() && keyword.isBlank()) {
             // search with tags only
             val tagList = tags.split(",")
                 .map { tagName -> tagName }
 
             val doujinDetailItems = doujinDetailsDao.findByTags(tagList, tagList.size)
-            folderList = doujinDetailItems.map { item -> item.absolutePath.toString() }
+
+            for (item in doujinDetailItems) {
+                emitResult(item.absolutePath, doujinList)
+            }
         }
-        return folderList
     }
 
-    private suspend fun findFoldersFromFileExplorer(query: String): List<String> {
-        val includedFolders = folderDao.getAllBlocking()
+    private suspend fun findFoldersFromFileExplorer(keyword: String, doujinList: MutableList<Doujin>) {
+        val includedFolders = pathDao.getAllAsync()
 
-        val folderList = mutableListOf<File>()
         for (folder in includedFolders) {
-            walk(folder.dir, folderList)
+            walk(folder.dir, folder.dir, keyword, doujinList)
         }
-
-        return folderList
-            .filter { x -> x.toString().contains(query, true) }
-            .map { x -> x.toString() }
-    }
-
-    private fun convertFolderPathToDoujin(path: String): Doujin? {
-        val dir = File(path)
-
-        val imageList = dir.listFiles(ImageFileFilter()).sorted()
-
-        if (imageList.isNotEmpty()) {
-            val coverImage = imageList.first().toUri()
-            val title = dir.name
-            val numberOfImages = imageList.size
-            val lastModified = dir.lastModified()
-
-            val doujin = Doujin(coverImage, title, numberOfImages, lastModified, dir)
-            return doujin
-        }
-
-        return null
     }
 
     // Recursive method to search for directories & sub-directories
-// todo: this method doesnt include the main directory itself, fix it
-    private fun walk(currentDir: File, folderList: MutableList<File>) {
-        for (f in currentDir.listFiles()) {
-            if (f.isDirectory) {
-                folderList.add(f)
-                walk(f, folderList)
+    private suspend fun walk(current: File, parentDir: File, keyword: String, doujinList: MutableList<Doujin>) {
+        if (current.isDirectory) {
+            val fileList = current.listFiles()
+
+            if (current.name.contains(keyword)) {
+                val imageList = fileList.filter { f -> f.extension in imageExtensions }
+
+                if (imageList.isNotEmpty()) {
+
+                    val coverImage = imageList.first().toUri()
+                    val title = current.name
+                    val numberOfImages = imageList.size
+                    val lastModified = current.lastModified()
+
+                    val doujin = Doujin(coverImage, title, numberOfImages, lastModified, current)
+                    emitResult(doujin, doujinList)
+                }
+            }
+
+            for (f in fileList) {
+                walk(f, parentDir, keyword, doujinList)
             }
         }
+    }
+
+    private fun emitResult(dir: File, doujinList: MutableList<Doujin>) {
+        val isDuplicate = doujinList.any { doujin -> doujin.title == dir.name}
+        if (!isDuplicate) {
+            doujinList.add(dir.toDoujin())
+            searchedResult.postValue(doujinList)
+        }
+    }
+
+    private fun emitResult(doujin: Doujin, doujinList: MutableList<Doujin>) {
+        if (!doujinList.contains(doujin)) {
+            doujinList.add(doujin)
+            searchedResult.postValue(doujinList)
+        }
+    }
+    
+    fun File.toDoujin(): Doujin {
+        val imageList = this.listFiles(ImageFileFilter())
+
+        val doujin = Doujin(
+            pic = imageList.first().toUri(),
+            title = this.name,
+            path = this,
+            lastModified = this.lastModified(),
+            numberOfItems = imageList.size
+        )
+        return doujin
     }
 
 }

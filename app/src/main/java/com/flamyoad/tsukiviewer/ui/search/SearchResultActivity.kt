@@ -2,6 +2,9 @@ package com.flamyoad.tsukiviewer.ui.search
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.Menu
+import android.view.View
+import android.widget.ProgressBar
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -32,6 +35,29 @@ class SearchResultActivity : AppCompatActivity() {
         }
 
         initRecyclerView()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_search_result, menu)
+        return true
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+        val menuItem = menu.findItem(R.id.progress_bar_loading)
+        val view = menuItem.actionView
+
+        val progressBar: ProgressBar = view.findViewById(R.id.progressBarSync)
+        progressBar.visibility = View.GONE
+
+        viewmodel.isLoading().observe(this, Observer { isLoading ->
+            if (isLoading) {
+                progressBar.visibility = View.VISIBLE
+            } else {
+                progressBar.visibility = View.GONE
+            }
+        })
+
+        return true
     }
 
     private fun initToolbar() {

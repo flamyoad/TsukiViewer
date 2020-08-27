@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.flamyoad.tsukiviewer.ui.settings.folderpicker.FolderPickerDialog
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.IncludedFolderAdapter
-import com.flamyoad.tsukiviewer.model.IncludedFolder
+import com.flamyoad.tsukiviewer.model.IncludedPath
 import com.gun0912.tedpermission.PermissionListener
 import com.gun0912.tedpermission.TedPermission
 import kotlinx.android.synthetic.main.activity_included_folder.*
@@ -69,7 +69,7 @@ class IncludedFolderActivity : AppCompatActivity(),
         )
         listDirectoryChosen.addItemDecoration(dividerItemDecoration)
 
-        viewModel.folderList.observe(this, Observer {
+        viewModel.pathList.observe(this, Observer {
             adapter.setList(it)
         })
     }
@@ -103,8 +103,8 @@ class IncludedFolderActivity : AppCompatActivity(),
         viewModel.insert(dir)
     }
 
-    override fun deleteFolder(includedFolder: IncludedFolder) {
-        viewModel.delete(includedFolder)
+    override fun deleteFolder(includedPath: IncludedPath) {
+        viewModel.delete(includedPath)
     }
 
 }
@@ -114,5 +114,5 @@ interface AddFolderListener {
 }
 
 interface RemoveFolderListener {
-    fun deleteFolder(includedFolder: IncludedFolder)
+    fun deleteFolder(includedPath: IncludedPath)
 }

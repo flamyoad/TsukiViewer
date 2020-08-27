@@ -1,17 +1,23 @@
 package com.flamyoad.tsukiviewer.model
 
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-import androidx.room.TypeConverters
+import androidx.room.*
 import com.flamyoad.tsukiviewer.db.typeconverter.FolderConverter
 import java.io.File
 
-@Entity(tableName = "included_folders")
+@Entity(tableName = "included_folders",
+    foreignKeys = [
+        ForeignKey(entity = IncludedPath::class,
+            parentColumns = ["dir"],
+            childColumns = ["parentDir"],
+            deferred = true,
+            onDelete = ForeignKey.CASCADE)])
+
 @TypeConverters(FolderConverter::class)
-
 data class IncludedFolder(
-    @PrimaryKey(autoGenerate = true) val id: Long? = null,
+    @PrimaryKey(OnConflictStrategy = OnConflictStrategy.IGNORE)
+    val dir: File,
 
-    val dir: File
+    val parentDir: File,
+
+    val lastName: String
 )

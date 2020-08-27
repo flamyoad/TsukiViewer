@@ -33,7 +33,7 @@ class TagBottomSheetDialog()
 
         viewmodel = ViewModelProvider(requireActivity()).get(EditorViewModel::class.java)
 
-        viewmodel.selectedCategory.observe(viewLifecycleOwner, Observer { category ->
+        viewmodel.selectedCategory().observe(viewLifecycleOwner, Observer { category ->
             lblCategory.text = category.capitalize()
         })
         initTagList()
@@ -64,7 +64,7 @@ class TagBottomSheetDialog()
 
         btnInsertTag.setOnClickListener {
             val tagName = inputEditText.text.toString()
-            val category = viewmodel.selectedCategory.value!!
+            val category = viewmodel.selectedCategory().value!!
             listener.onTagCreated(tagName, category)
         }
     }

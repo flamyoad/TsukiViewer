@@ -52,7 +52,7 @@ class FragmentListImages : Fragment() {
         listImages.adapter = adapter
         listImages.layoutManager = linearLayoutManager
 
-        viewmodel.imageList.observe(viewLifecycleOwner, Observer {
+        viewmodel.imageList().observe(viewLifecycleOwner, Observer {
             adapter.setList(it)
         })
     }
