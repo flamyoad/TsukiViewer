@@ -56,7 +56,7 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
         withContext(Dispatchers.IO) {
             val newList = mutableListOf<Doujin>()
 
-            val folderFromDb = findFoldersFromDatabase(keyword, tags, newList)
+            findFoldersFromDatabase(keyword, tags, newList)
 
             // Only search from directory instead of database
             // when user queries using keyword and did not specify tags
@@ -119,7 +119,12 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
         if (current.isDirectory) {
             val fileList = current.listFiles()
 
-            if (current.name.contains(keyword)) {
+            val containsKeyword = current
+                .name
+                .toLowerCase(Locale.ROOT)
+                .contains(keyword)
+
+            if (containsKeyword) {
                 val imageList = fileList.filter { f -> f.extension in imageExtensions }
 
                 if (imageList.isNotEmpty()) {
@@ -154,7 +159,7 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
             searchedResult.postValue(doujinList)
         }
     }
-    
+
     fun File.toDoujin(): Doujin {
         val imageList = this.listFiles(ImageFileFilter())
 
