@@ -152,7 +152,7 @@ class FolderPickerDialog : DialogFragment(),
         job = lifecycleScope.launch(Dispatchers.IO) {
             val children = dir.listFiles()
 
-            // Imagine the parent directories like below
+            // Assume the parent directories like below
 
             // storage > emulated > 0
 
@@ -172,11 +172,12 @@ class FolderPickerDialog : DialogFragment(),
             // Sorts the list alphabetically
             //TODO: it sorts like this > (A, B, C... a, b, c...)
             // fix it so it becomes like this (A, a, B, b, C, c...)
+            // maybe try natural sort
             dirList.sortBy {
                 it.name.toLowerCase(Locale.ROOT)
             }
 
-            // Adds the back-to-previous-folder button in the beginning of list. Skip adding it if it's a root directory
+            // Adds the "back-to-previous-folder" button in the beginning of list. Skip adding it if it's a root directory
             val upFolder = dir.parentFile
             if (upFolder.path != "/") {
                 dirList.add(0, upFolder)

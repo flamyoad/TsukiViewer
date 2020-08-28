@@ -7,7 +7,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.flamyoad.tsukiviewer.model.Doujin
-import com.flamyoad.tsukiviewer.model.IncludedFolder
 import com.flamyoad.tsukiviewer.model.IncludedPath
 import com.flamyoad.tsukiviewer.repository.MetadataRepository
 import kotlinx.coroutines.Dispatchers
@@ -42,17 +41,21 @@ class LocalDoujinViewModel(application: Application) : AndroidViewModel(applicat
 
     fun fetchDoujinsFromDir(includedPaths: List<IncludedPath>) {
         viewModelScope.launch {
+            isSyncing.value = true
+
             withContext(Dispatchers.IO) {
                 val doujinList = mutableListOf<Doujin>()
                 for (folder in includedPaths) {
                     walk(folder.dir, folder.dir, doujinList)
                 }
             }
+
+            isSyncing.value = false
         }
     }
 
     // Recursive method to search for directories & sub-directories
-    private suspend fun walk(currentDir: File, parentDir: File, doujinList: MutableList<Doujin>) {
+    private suspend fun walk(currentDir: File, parentDir: File, tempList: MutableList<Doujin>) {
         if (currentDir.isDirectory) {
             val fileList = currentDir.listFiles()
 
@@ -65,22 +68,20 @@ class LocalDoujinViewModel(application: Application) : AndroidViewModel(applicat
                 val numberOfImages = imageList.size
                 val lastModified = currentDir.lastModified()
 
-                doujinList.add(
+                tempList.add(
                     Doujin(coverImage, title, numberOfImages, lastModified, currentDir)
                 )
 
-                this.doujinList.postValue(doujinList)
+                this.doujinList.postValue(tempList)
             }
 
             for (f in fileList) {
-                walk(f, parentDir, doujinList)
+                walk(f, parentDir, tempList)
             }
         }
     }
 
     suspend fun fetchMetadataAll(dirList: List<File>) {
-        isSyncing.value = true
-
         val amountFetched = repo.fetchMetadataAll(dirList)
 
         if (amountFetched == 0) {
@@ -94,8 +95,6 @@ class LocalDoujinViewModel(application: Application) : AndroidViewModel(applicat
 
             toastText.value = "Sync done for $amountFetched $noun"
         }
-
-        isSyncing.value = false
     }
 
 }
