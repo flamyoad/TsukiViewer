@@ -45,6 +45,7 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
 
     private val isLoading = MutableLiveData<Boolean>(false)
 
+    // DO not modify this list in any other places than the Dispatchers.IO
     private val doujinList = mutableListOf<Doujin>()
 
     fun searchedResult(): LiveData<List<Doujin>> = searchedResult
@@ -64,16 +65,13 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
         doujinTagDao = db.doujinTagDao()
 
         includedPathList = pathDao.getAll()
-
     }
 
     suspend fun submitQuery(keyword: String, tags: String) {
         isLoading.value = true
 
         withContext(Dispatchers.IO) {
-            val newList = mutableListOf<Doujin>()
-
-            findFoldersFromDatabase(keyword, tags, newList)
+            findFoldersFromDatabase(keyword, tags)
 
             // Only search from directory instead of database
             // when user queries using keyword and did not specify tags
@@ -86,7 +84,7 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
         isLoading.value = false
     }
 
-    private suspend fun findFoldersFromDatabase(keyword: String, tags: String, doujinList: MutableList<Doujin>) {
+    private suspend fun findFoldersFromDatabase(keyword: String, tags: String) {
         // search with both title and tags
         if (keyword.isNotBlank() && tags.isNotBlank()) {
             val tagList = tags.split(",")
@@ -99,7 +97,7 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
                 val containsKeywordJap = item.fullTitleJapanese.contains(keyword)
 
                 if (containsKeywordEnglish || containsKeywordJap) {
-                    emitResult(item.absolutePath, doujinList)
+                    emitResult(item.absolutePath)
                 }
             }
 
@@ -108,7 +106,7 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
             val doujinDetailItems = doujinDetailsDao.findByTitle(keyword)
 
             for (item in doujinDetailItems) {
-                emitResult(item.absolutePath, doujinList)
+                emitResult(item.absolutePath)
             }
 
         } else if (tags.isNotBlank() && keyword.isBlank()) {
@@ -119,7 +117,7 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
             val doujinDetailItems = doujinDetailsDao.findByTags(tagList, tagList.size)
 
             for (item in doujinDetailItems) {
-                emitResult(item.absolutePath, doujinList)
+                emitResult(item.absolutePath)
             }
         }
     }
@@ -234,39 +232,7 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
                 null,
                 null
             )
-
         return cur.count
-    }
-
-    // Recursive method to search for directories & sub-directories
-    private suspend fun walk(current: File, parentDir: File, keyword: String, doujinList: MutableList<Doujin>) {
-        if (current.isDirectory) {
-            val fileList = current.listFiles()
-
-            val containsKeyword = current
-                .name
-                .toLowerCase(Locale.ROOT)
-                .contains(keyword)
-
-            if (containsKeyword) {
-                val imageList = fileList.filter { f -> f.extension in imageExtensions }
-
-                if (imageList.isNotEmpty()) {
-
-                    val coverImage = imageList.first().toUri()
-                    val title = current.name
-                    val numberOfImages = imageList.size
-                    val lastModified = current.lastModified()
-
-                    val doujin = Doujin(coverImage, title, numberOfImages, lastModified, current)
-                    emitResult(doujin, doujinList)
-                }
-            }
-
-            for (f in fileList) {
-                walk(f, parentDir, keyword, doujinList)
-            }
-        }
     }
 
     private fun emitResult(doujin: Doujin) {
@@ -276,17 +242,10 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
-    private fun emitResult(dir: File, doujinList: MutableList<Doujin>) {
+    private fun emitResult(dir: File) {
         val isDuplicate = doujinList.any { doujin -> doujin.title == dir.name}
         if (!isDuplicate) {
             doujinList.add(dir.toDoujin())
-            searchedResult.postValue(doujinList)
-        }
-    }
-
-    private fun emitResult(doujin: Doujin, doujinList: MutableList<Doujin>) {
-        if (!doujinList.contains(doujin)) {
-            doujinList.add(doujin)
             searchedResult.postValue(doujinList)
         }
     }

@@ -54,6 +54,21 @@ class LocalDoujinViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
+//    fun fetchDoujinsFromDir(includedPaths: List<IncludedPath>) {
+//        viewModelScope.launch {
+//            isSyncing.value = true
+//
+//            withContext(Dispatchers.IO) {
+//                val doujinList = mutableListOf<Doujin>()
+//                for (folder in includedPaths) {
+//                    walk(folder.dir, folder.dir, doujinList)
+//                }
+//            }
+//
+//            isSyncing.value = false
+//        }
+//    }
+
     // Recursive method to search for directories & sub-directories
     private suspend fun walk(currentDir: File, parentDir: File, tempList: MutableList<Doujin>) {
         if (currentDir.isDirectory) {

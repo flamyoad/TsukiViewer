@@ -79,7 +79,8 @@ class LocalDoujinsAdapter
     }
 
     override fun getItemId(position: Int): Long {
-        return doujinList[position].hashCode().toLong()
+        val pathName = doujinList[position].path.toString()
+        return pathName.hashCode().toLong()
     }
 
     fun sortByName() {
