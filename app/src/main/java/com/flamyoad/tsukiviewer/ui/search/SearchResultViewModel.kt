@@ -26,19 +26,16 @@ import java.util.*
 
 
 class SearchResultViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val db: AppDatabase
-
     private val context: Context
 
     private val contentResolver: ContentResolver
+
+    private val db: AppDatabase
 
     val pathDao: IncludedPathDao
     val doujinDetailsDao: DoujinDetailsDao
     val tagDao: TagDao
     val doujinTagDao: DoujinTagsDao
-
-    private val imageExtensions = arrayOf("jpg", "png", "gif", "jpeg", "webp", "jpe", "bmp")
 
     private val includedPathList: LiveData<List<IncludedPath>>
 
@@ -72,17 +69,17 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
         isLoading.value = true
 
         withContext(Dispatchers.IO) {
-            findFoldersFromDatabase(keyword, tags)
+            searchFromDatabase(keyword, tags)
 
-            // Only search from directory instead of database
-            // when user queries using keyword and did not specify tags
+            /* Only search from directory instead of database
+               when user queries using keyword and did not specify tags
+            */
             if (tags.isBlank()) {
                 val existingList = MyApplication.fullDoujinList
-
                 if (existingList != null) {
-                    findFromExistingList(existingList, keyword)
+                    searchFromExistingList(existingList, keyword)
                 } else {
-                    findFoldersFromFileExplorer(keyword)
+                    searchFromFileExplorer(keyword)
                 }
             }
         }
@@ -90,9 +87,9 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
         isLoading.value = false
     }
 
-    private suspend fun findFoldersFromDatabase(keyword: String, tags: String) {
-        // search with both title and tags
+    private suspend fun searchFromDatabase(keyword: String, tags: String) {
         if (keyword.isNotBlank() && tags.isNotBlank()) {
+            // Search using both title and tags
             val tagList = tags.split(",")
                 .map { tagName -> tagName }
 
@@ -103,32 +100,32 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
                 val containsKeywordJap = item.fullTitleJapanese.contains(keyword)
 
                 if (containsKeywordEnglish || containsKeywordJap) {
-                    emitResult(item.absolutePath)
+                    postResult(item.absolutePath)
                 }
             }
 
         } else if (keyword.isNotBlank() && tags.isBlank()) {
-//             search with title only
+            // Search using title only
             val doujinDetailItems = doujinDetailsDao.findByTitle(keyword)
 
             for (item in doujinDetailItems) {
-                emitResult(item.absolutePath)
+                postResult(item.absolutePath)
             }
 
         } else if (tags.isNotBlank() && keyword.isBlank()) {
-            // search with tags only
+            // Search using tags only
             val tagList = tags.split(",")
                 .map { tagName -> tagName }
 
             val doujinDetailItems = doujinDetailsDao.findByTags(tagList, tagList.size)
 
             for (item in doujinDetailItems) {
-                emitResult(item.absolutePath)
+                postResult(item.absolutePath)
             }
         }
     }
 
-    private suspend fun findFoldersFromFileExplorer(keyword: String) {
+    private suspend fun searchFromFileExplorer(keyword: String) {
         val includedPaths = pathDao.getAllBlocking()
         for (path in includedPaths) {
             val pathName = path.dir.toString()
@@ -176,7 +173,7 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
                             lastModified = dir.lastModified(),
                             numberOfItems = imageList.size
                         )
-                        emitResult(doujin)
+                        postResult(doujin)
                     }
                 }
 
@@ -185,10 +182,10 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
-    fun findFromExistingList(doujinList: List<Doujin>, keyword: String) {
+    fun searchFromExistingList(doujinList: List<Doujin>, keyword: String) {
         for (doujin in doujinList) {
             if (doujin.title.toLowerCase(Locale.ROOT).contains(keyword)) {
-                emitResult(doujin)
+                postResult(doujin)
             }
         }
     }
@@ -248,14 +245,14 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
         return cur.count
     }
 
-    private fun emitResult(doujin: Doujin) {
+    private fun postResult(doujin: Doujin) {
         if (!doujinList.contains(doujin)) {
             doujinList.add(doujin)
             searchedResult.postValue(doujinList)
         }
     }
 
-    private fun emitResult(dir: File) {
+    private fun postResult(dir: File) {
         val isDuplicate = doujinList.any { doujin -> doujin.title == dir.name}
         if (!isDuplicate) {
             doujinList.add(dir.toDoujin())
