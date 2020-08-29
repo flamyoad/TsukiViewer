@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
+import com.flamyoad.tsukiviewer.utils.GridSpacingItemDecoration
 import com.flamyoad.tsukiviewer.utils.ItemOffsetDecoration
 import kotlinx.android.synthetic.main.fragment_grid_images.*
 import java.io.File
@@ -45,8 +46,10 @@ class FragmentGridImages : Fragment() {
 
         listImages.adapter = adapter
         listImages.layoutManager = gridLayoutManager
-        listImages.addItemDecoration(DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL))
-        listImages.addItemDecoration(DividerItemDecoration(requireContext(), DividerItemDecoration.HORIZONTAL))
+
+        val itemDecoration = GridSpacingItemDecoration(3, 4, includeEdge = false)
+
+        listImages.addItemDecoration(itemDecoration)
 
         viewmodel.imageList().observe(viewLifecycleOwner, Observer {
             adapter.setList(it)

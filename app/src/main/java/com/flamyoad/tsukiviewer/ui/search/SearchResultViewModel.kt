@@ -10,6 +10,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.DoujinDetailsDao
 import com.flamyoad.tsukiviewer.db.dao.DoujinTagsDao
@@ -37,7 +38,7 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
     val tagDao: TagDao
     val doujinTagDao: DoujinTagsDao
 
-    private val imageExtensions = listOf("jpg", "png", "gif", "jpeg")
+    private val imageExtensions = arrayOf("jpg", "png", "gif", "jpeg", "webp", "jpe", "bmp")
 
     private val includedPathList: LiveData<List<IncludedPath>>
 
@@ -76,8 +77,13 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
             // Only search from directory instead of database
             // when user queries using keyword and did not specify tags
             if (tags.isBlank()) {
-//                findFoldersFromFileExplorer(keyword, newList)
-                findFoldersFromFileExplorer(keyword)
+                val existingList = MyApplication.fullDoujinList
+
+                if (existingList != null) {
+                    findFromExistingList(existingList, keyword)
+                } else {
+                    findFoldersFromFileExplorer(keyword)
+                }
             }
         }
 
@@ -123,7 +129,7 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
     }
 
     private suspend fun findFoldersFromFileExplorer(keyword: String) {
-        val includedPaths = pathDao.getAllAsync()
+        val includedPaths = pathDao.getAllBlocking()
         for (path in includedPaths) {
             val pathName = path.dir.toString()
 
@@ -179,6 +185,14 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
+    fun findFromExistingList(doujinList: List<Doujin>, keyword: String) {
+        for (doujin in doujinList) {
+            if (doujin.title.toLowerCase(Locale.ROOT).contains(keyword)) {
+                emitResult(doujin)
+            }
+        }
+    }
+
     fun getImages(id: String): List<File> {
         val uri = MediaStore.Files.getContentUri("external")
 
@@ -207,7 +221,6 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
             val imagePath = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA))
             imageList.add(File(imagePath))
         }
-
         return imageList
     }
 

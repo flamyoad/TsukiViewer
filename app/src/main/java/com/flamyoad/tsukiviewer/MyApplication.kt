@@ -1,8 +1,9 @@
-package com.flamyoad.tsukiviewer.utils
+package com.flamyoad.tsukiviewer
 
 import android.app.Application
 import android.os.StrictMode
 import android.os.StrictMode.VmPolicy
+import com.flamyoad.tsukiviewer.model.Doujin
 
 
 class MyApplication: Application() {
@@ -17,9 +18,12 @@ class MyApplication: Application() {
         This code is used to ignore the file checking so that we can pass uri with file:// in intent
 
         When passing file:// uri, the third party app is free to access every file inside the directory
-
         */
         val builder = VmPolicy.Builder()
         StrictMode.setVmPolicy(builder.build())
+    }
+
+    companion object {
+        var fullDoujinList: MutableList<Doujin>? = null
     }
 }

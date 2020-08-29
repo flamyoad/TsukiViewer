@@ -1,6 +1,5 @@
 package com.flamyoad.tsukiviewer.adapter
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.util.Log
@@ -9,23 +8,27 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.Toast
-import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.ui.reader.ReaderActivity
 import com.flamyoad.tsukiviewer.ui.settings.preferences.FolderPreferences
-import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
 import java.io.File
 
-class DoujinImagesAdapter(private val itemType: ItemType,
-                          private val currentDir: String) :
+
+class DoujinImagesAdapter(
+    private val itemType: ItemType,
+    private val currentDir: String
+) :
     RecyclerView.Adapter<DoujinImagesAdapter.ImageViewHolder>() {
 
     companion object {
-        @JvmStatic val ADAPTER_POSITION = "DoujinImagesAdapter.ADAPTER_POSITION"
-        @JvmStatic val DIRECTORY_PATH = "DoujinImagesAdapter.DIRECTORY_PATH"
+        @JvmStatic
+        val ADAPTER_POSITION = "DoujinImagesAdapter.ADAPTER_POSITION"
+        @JvmStatic
+        val DIRECTORY_PATH = "DoujinImagesAdapter.DIRECTORY_PATH"
     }
 
     private var imageList: List<File> = emptyList()
@@ -51,7 +54,8 @@ class DoujinImagesAdapter(private val itemType: ItemType,
 
             val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
 
-            val shouldUseExternalApps = prefs.getBoolean(FolderPreferences.USE_EXTERNAL_GALLERY, false)
+            val shouldUseExternalApps =
+                prefs.getBoolean(FolderPreferences.USE_EXTERNAL_GALLERY, false)
 
             if (shouldUseExternalApps) {
                 launchExternalGallery(context, image)
@@ -112,6 +116,7 @@ class DoujinImagesAdapter(private val itemType: ItemType,
         fun bind(file: File) {
             Glide.with(itemView.context)
                 .load(file.toUri())
+                .transition(withCrossFade())
                 .thumbnail(0.5f)
                 .into(imageView)
         }

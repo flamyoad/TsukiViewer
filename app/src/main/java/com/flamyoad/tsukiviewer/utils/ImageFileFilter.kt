@@ -6,7 +6,7 @@ import java.util.*
 
 class ImageFileFilter() : FileFilter {
 
-    private val imageExtensions = arrayOf("jpg", "png", "gif", "jpeg")
+    private val imageExtensions = arrayOf("jpg", "png", "gif", "jpeg", "webp", "jpe", "bmp")
 
     override fun accept(f: File?): Boolean {
         if (f == null) {

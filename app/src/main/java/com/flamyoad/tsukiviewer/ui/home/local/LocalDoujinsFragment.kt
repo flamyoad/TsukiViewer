@@ -113,9 +113,7 @@ class LocalDoujinsFragment : Fragment() {
             }
         })
 
-        viewmodel.includedPathList.observe(viewLifecycleOwner, Observer {
-            viewmodel.fetchDoujinsFromDir(it)
-        })
+        viewmodel.initDoujinList()
     }
 
     private fun openSyncAlertDialog() {

@@ -14,7 +14,7 @@ interface IncludedPathDao {
     fun getAll(): LiveData<List<IncludedPath>>
 
     @Query("SELECT * FROM included_path")
-    suspend fun getAllAsync(): List<IncludedPath>
+    suspend fun getAllBlocking(): List<IncludedPath>
 
     @Insert
     suspend fun insert(path: IncludedPath)
