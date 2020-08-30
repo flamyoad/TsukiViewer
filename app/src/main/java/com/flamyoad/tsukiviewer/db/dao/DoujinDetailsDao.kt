@@ -24,11 +24,15 @@ interface DoujinDetailsDao {
     @Query("SELECT EXISTS(SELECT * FROM doujin_details WHERE absolutePath = :absolutePath)")
     suspend fun existsByAbsolutePath(absolutePath: String): Boolean
 
+    @Query("""
+        SELECT * FROM doujin_details 
+        WHERE fullTitleEnglish LIKE '%' || :query || '%' OR 
+        fullTitleJapanese LIKE '%' || :query || '%'
+        """)
+    suspend fun findByTitle(query: String): List<DoujinDetails>
+
     @Query("SELECT * FROM doujin_details WHERE absolutePath = :absolutePath")
     suspend fun findByAbsolutePath(absolutePath: String): List<DoujinDetails>
-
-    @Query("SELECT * FROM doujin_details WHERE fullTitleEnglish LIKE '%' || :query || '%' OR fullTitleJapanese LIKE '%' || :query || '%'")
-    suspend fun findByTitle(query: String): List<DoujinDetails>
 
     //    SELECT * FROM doujin_tags as dt
     //    INNER JOIN doujin_details ON doujin_details.id = dt.doujinId

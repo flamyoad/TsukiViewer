@@ -43,7 +43,7 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
 
     private val isLoading = MutableLiveData<Boolean>(false)
 
-    // DO not modify this list in any other places than the Dispatchers.IO
+    // DO not modify this list in any other places than the coroutine started in submitQuery() function
     private val doujinList = mutableListOf<Doujin>()
 
     fun searchedResult(): LiveData<List<Doujin>> = searchedResult

@@ -27,29 +27,55 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:srcCompat="@drawable/himekawa"/>
 
-    <TextView
-        android:id="@+id/txtTitleEng"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        tools:text="@string/doujin_name_en"
-        android:textColor="@android:color/black"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/imgCover"
-        app:layout_constraintTop_toTopOf="@+id/imgCover" />
-
-    <TextView
-        android:id="@+id/txtTitleJap"
+    <androidx.core.widget.NestedScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
-        tools:text="@string/doujin_name_jp"
-        android:textColor="#333333"
-        app:layout_constraintBottom_toBottomOf="@+id/imgBackground"
-        app:layout_constraintEnd_toEndOf="@+id/txtTitleEng"
-        app:layout_constraintStart_toStartOf="@+id/txtTitleEng"
-        app:layout_constraintTop_toBottomOf="@+id/txtTitleEng" />
+        android:layout_marginRight="4dp"
+        app:layout_constraintBottom_toBottomOf="@+id/imgCover"
+        app:layout_constraintEnd_toEndOf="@+id/imgBackground"
+        app:layout_constraintStart_toEndOf="@+id/imgCover"
+        app:layout_constraintTop_toTopOf="parent"
+        >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:paddingBottom="48dp">
+
+            <TextView
+                android:id="@+id/txtTitleEng"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:textColor="@android:color/black"
+                android:textSize="14sp"
+                tools:text="@string/doujin_name_en" />
+
+            <TextView
+                android:id="@+id/txtTitleJap"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="#333333"
+                tools:text="@string/doujin_name_jp" />
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/floatingActionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        app:tint="@android:color/white"
+        app:backgroundTint="@color/nh_favourite_button_pink"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/lblParodies"
+        app:srcCompat="@drawable/ic_favorite_gray_24dp"
+        android:translationY="-40dp"/>
 
     <TextView
         android:id="@+id/lblParodies"

@@ -78,6 +78,8 @@ class LocalDoujinsAdapter
         notifyDataSetChanged()
     }
 
+//    java.lang.NullPointerException: Attempt to invoke virtual method 'java.io.File com.flamyoad.tsukiviewer.model.Doujin.getPath()' on a null object reference
+//    at com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter.getItemId(LocalDoujinsAdapter.kt:82)
     override fun getItemId(position: Int): Long {
         val pathName = doujinList[position].path.toString()
         return pathName.hashCode().toLong()
