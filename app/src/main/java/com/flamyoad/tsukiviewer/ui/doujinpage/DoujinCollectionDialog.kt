@@ -9,19 +9,23 @@ import android.view.Window
 import android.widget.Button
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.CollectionListAdapter
 import com.flamyoad.tsukiviewer.model.DoujinCollection
 
-class DoujinCollectionDialog: DialogFragment() {
+class DoujinCollectionDialog: DialogFragment(), CollectionDialogListener {
+
+    private val viewmodel: DoujinViewModel by activityViewModels()
 
     companion object {
         @JvmStatic val DEFAULT_COLLECTION_NAME = "Default Collection"
     }
 
-    private val collectionAdapter: CollectionListAdapter = CollectionListAdapter()
+    private val collectionAdapter: CollectionListAdapter = CollectionListAdapter(this)
 
     private lateinit var btnSave: Button
     private lateinit var btnCancel: Button
@@ -48,7 +52,10 @@ class DoujinCollectionDialog: DialogFragment() {
 
         setRecyclerviewSize()
 
+        viewmodel.initializeDefaultCollection()
+
         btnSave.setOnClickListener {
+            viewmodel.insertItemIntoTickedCollections()
             this.dismiss()
         }
 
@@ -59,11 +66,10 @@ class DoujinCollectionDialog: DialogFragment() {
         listCollections.adapter = collectionAdapter
         listCollections.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
 
-        val mock = listOf(
-            DoujinCollection("Default Collection")
-        )
-
-        collectionAdapter.setList(mock)
+        viewmodel.getAllCollections().observe(this, Observer {
+            val newList = it.toMutableList()
+            collectionAdapter.setList(newList)
+        })
     }
 
     private fun setRecyclerviewSize() {
@@ -78,5 +84,13 @@ class DoujinCollectionDialog: DialogFragment() {
             layoutParams.height = (size.y * 0.5).toInt()
             requestLayout()
         }
+    }
+
+    override fun onCollectionTicked(collection: DoujinCollection) {
+        viewmodel.tickedCollections.add(collection)
+    }
+
+    override fun onCollectionUnticked(collection: DoujinCollection) {
+        viewmodel.tickedCollections.remove(collection)
     }
 }

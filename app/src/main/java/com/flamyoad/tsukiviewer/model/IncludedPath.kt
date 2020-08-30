@@ -8,6 +8,6 @@ import java.io.File
 @TypeConverters(FolderConverter::class)
 
 data class IncludedPath(
-    @PrimaryKey(OnConflictStrategy = OnConflictStrategy.IGNORE)
+    @PrimaryKey
     val dir: File
 )

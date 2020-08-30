@@ -6,6 +6,6 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "doujin_collection")
 data class DoujinCollection(
-    @PrimaryKey(OnConflictStrategy = OnConflictStrategy.IGNORE)
+    @PrimaryKey
     val name: String
 )

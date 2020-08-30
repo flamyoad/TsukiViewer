@@ -20,7 +20,7 @@ import java.io.File
 
 data class CollectionItem(
     @PrimaryKey(autoGenerate = true)
-    val id: Long,
+    val id: Long? = null,
 
     val absolutePath: File,
 

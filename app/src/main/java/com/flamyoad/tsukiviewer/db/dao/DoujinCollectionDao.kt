@@ -7,18 +7,18 @@ import com.flamyoad.tsukiviewer.model.DoujinCollection
 @Dao
 interface DoujinCollectionDao {
 
-    @Insert
-    fun insert(collection: DoujinCollection)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(collection: DoujinCollection)
 
     @Update
-    fun update(collection: DoujinCollection)
+    suspend fun update(collection: DoujinCollection)
 
     @Delete
-    fun delete(collection: DoujinCollection)
+    suspend fun delete(collection: DoujinCollection)
 
     @Query("SELECT * FROM doujin_collection")
-    fun getAll(collectionList: List<DoujinCollection>): LiveData<List<DoujinCollection>>
+    fun getAll(): LiveData<List<DoujinCollection>>
 
     @Query("SELECT * FROM doujin_collection")
-    fun getAllBlocking(collectionList: List<DoujinCollection>): List<DoujinCollection>
+    fun getAllBlocking(): List<DoujinCollection>
 }

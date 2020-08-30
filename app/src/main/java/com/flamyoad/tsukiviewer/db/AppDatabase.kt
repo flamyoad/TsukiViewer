@@ -26,6 +26,8 @@ abstract class AppDatabase: RoomDatabase() {
     abstract fun tagsDao(): TagDao
     abstract fun doujinTagDao(): DoujinTagsDao
     abstract fun folderDao(): IncludedFolderDao
+    abstract fun doujinCollectionDao(): DoujinCollectionDao
+    abstract fun collectionItemDao(): CollectionItemDao
 
     companion object {
         @Volatile

@@ -2,23 +2,26 @@ package com.flamyoad.tsukiviewer.ui.doujinpage
 
 import android.app.Application
 import android.net.Uri
-import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.flamyoad.tsukiviewer.db.AppDatabase
-import com.flamyoad.tsukiviewer.db.dao.DoujinDetailsDao
+import com.flamyoad.tsukiviewer.model.CollectionItem
+import com.flamyoad.tsukiviewer.model.DoujinCollection
 import com.flamyoad.tsukiviewer.model.DoujinDetailsWithTags
+import com.flamyoad.tsukiviewer.repository.CollectionRepository
 import com.flamyoad.tsukiviewer.repository.MetadataRepository
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 
 class DoujinViewModel(application: Application) : AndroidViewModel(application) {
 
     private val metadataRepo = MetadataRepository(application)
+
+    private val collectionRepo = CollectionRepository(application)
 
     lateinit var detailWithTags: LiveData<DoujinDetailsWithTags>
 
@@ -27,6 +30,8 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
     private val coverImage = MutableLiveData<Uri>()
 
     var currentPath: String = ""
+
+    val tickedCollections = mutableListOf<DoujinCollection>()
 
     fun imageList(): LiveData<List<File>> = imageList
 
@@ -59,8 +64,9 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
             Sort filenames in directory in ascending order [duplicate]
             https://stackoverflow.com/questions/33159106/sort-filenames-in-directory-in-ascending-order
          */
-        val naturalSort = compareBy<File> { it.name.length } // If you don't first compare by length, it won't work
-            .then(naturalOrder())
+        val naturalSort =
+            compareBy<File> { it.name.length } // If you don't first compare by length, it won't work
+                .then(naturalOrder())
 
         imageList.value = fetchedImages.sortedWith(naturalSort)
 
@@ -76,6 +82,28 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
         val dir = File(currentPath)
         viewModelScope.launch {
             metadataRepo.resetTags(dir)
+        }
+    }
+
+    fun getAllCollections(): LiveData<List<DoujinCollection>> {
+        return collectionRepo.getAllCollection()
+    }
+
+    fun insertNewCollection(collection: DoujinCollection) {
+        viewModelScope.launch(Dispatchers.IO) {
+            collectionRepo.insertCollection(collection)
+        }
+    }
+
+    fun insertItemIntoTickedCollections() {
+        viewModelScope.launch(Dispatchers.IO) {
+            collectionRepo.wipeAndInsertNew(File(currentPath), tickedCollections)
+        }
+    }
+
+    fun initializeDefaultCollection() {
+        viewModelScope.launch(Dispatchers.IO) {
+            collectionRepo.initializeCollection()
         }
     }
 }

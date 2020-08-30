@@ -14,7 +14,7 @@ import java.io.File
 
 @TypeConverters(FolderConverter::class)
 data class IncludedFolder(
-    @PrimaryKey(OnConflictStrategy = OnConflictStrategy.IGNORE)
+    @PrimaryKey
     val dir: File,
 
     val parentDir: File,

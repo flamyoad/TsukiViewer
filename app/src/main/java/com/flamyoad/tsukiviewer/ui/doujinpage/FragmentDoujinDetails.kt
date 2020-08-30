@@ -12,6 +12,7 @@ import com.bumptech.glide.Glide
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinTagsAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
+import com.flamyoad.tsukiviewer.model.DoujinCollection
 import com.flamyoad.tsukiviewer.model.DoujinDetailsWithTags
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap

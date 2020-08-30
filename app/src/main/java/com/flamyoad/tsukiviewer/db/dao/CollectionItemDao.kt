@@ -1,14 +1,20 @@
 package com.flamyoad.tsukiviewer.db.dao
 
-import androidx.room.Delete
-import androidx.room.Insert
+import androidx.room.*
+import com.flamyoad.tsukiviewer.db.typeconverter.FolderConverter
 import com.flamyoad.tsukiviewer.model.CollectionItem
+import java.io.File
 
+@Dao
+@TypeConverters(FolderConverter::class)
 interface CollectionItemDao {
 
-    @Insert
-    fun insert(item: CollectionItem)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(item: CollectionItem)
 
     @Delete
-    fun delete(item: CollectionItem)
+    suspend fun delete(item: CollectionItem)
+
+    @Query("DELETE FROM collection_item WHERE absolutePath = :path")
+    suspend fun deleteFromAllCollections(path: File)
 }

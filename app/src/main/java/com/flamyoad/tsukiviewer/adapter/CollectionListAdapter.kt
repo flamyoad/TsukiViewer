@@ -10,9 +10,11 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.model.DoujinCollection
+import com.flamyoad.tsukiviewer.ui.doujinpage.CollectionDialogListener
 import java.lang.IllegalArgumentException
 
-class CollectionListAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class CollectionListAdapter(private val listener: CollectionDialogListener)
+    : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private val ADD_NEW_BUTTON = 1
     private val COLLECTION_ITEM = 2
 
@@ -37,13 +39,17 @@ class CollectionListAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 val holder = CollectionViewHolder(view)
 
                 holder.itemView.setOnClickListener {
-                    holder.toggleCheckbox()
+                    val collection = list[holder.adapterPosition - 1]
+                    val isTicked = holder.toggleCheckbox()
+                    when (isTicked) {
+                        true -> listener.onCollectionTicked(collection)
+                        false -> listener.onCollectionUnticked(collection)
+                    }
                 }
-
                 return holder
             }
 
-            else -> { throw IllegalArgumentException("Wrong item type")}
+            else -> { throw IllegalArgumentException("Wrong item type") }
         }
     }
 
@@ -90,8 +96,9 @@ class CollectionListAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             txtCollectionName.text = collection.name
         }
 
-        fun toggleCheckbox() {
-            this.checkBox.isChecked = !checkBox.isChecked
+        fun toggleCheckbox(): Boolean {
+            checkBox.isChecked = !checkBox.isChecked
+            return checkBox.isChecked
         }
     }
 
