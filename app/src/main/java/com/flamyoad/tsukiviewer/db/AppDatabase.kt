@@ -14,7 +14,9 @@ const val DATABASE_NAME = "com.flamyoad.android.tsukiviewer.AppDatabase"
     DoujinDetails::class,
     Tag::class,
     DoujinTag::class,
-    IncludedFolder::class
+    IncludedFolder::class,
+    DoujinCollection::class,
+    CollectionItem::class
     ), version = 1)
 
 abstract class AppDatabase: RoomDatabase() {

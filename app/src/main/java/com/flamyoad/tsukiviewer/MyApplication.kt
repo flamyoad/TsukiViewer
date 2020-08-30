@@ -6,7 +6,9 @@ import android.os.StrictMode.VmPolicy
 import com.flamyoad.tsukiviewer.model.Doujin
 
 
-class MyApplication: Application() {
+class MyApplication : Application() {
+
+    var fullDoujinList: MutableList<Doujin>? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -21,9 +23,5 @@ class MyApplication: Application() {
         */
         val builder = VmPolicy.Builder()
         StrictMode.setVmPolicy(builder.build())
-    }
-
-    companion object {
-        var fullDoujinList: MutableList<Doujin>? = null
     }
 }

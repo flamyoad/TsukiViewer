@@ -25,6 +25,7 @@ class CollectionListAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             ADD_NEW_BUTTON -> {
                 val view = inflater.inflate(R.layout.dialog_select_favourite_addnew, parent, false)
                 val holder = ButtonAddNewItem(view)
+
                 holder.itemView.setOnClickListener {
 
                 }
@@ -34,6 +35,11 @@ class CollectionListAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             COLLECTION_ITEM -> {
                 val view = inflater.inflate(R.layout.dialog_select_favourite_listitem, parent, false)
                 val holder = CollectionViewHolder(view)
+
+                holder.itemView.setOnClickListener {
+                    holder.toggleCheckbox()
+                }
+
                 return holder
             }
 
@@ -82,6 +88,10 @@ class CollectionListAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
             txtIcon.text = firstLetter.toString()
             txtCollectionName.text = collection.name
+        }
+
+        fun toggleCheckbox() {
+            this.checkBox.isChecked = !checkBox.isChecked
         }
     }
 

@@ -17,9 +17,9 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 
-class LocalDoujinViewModel(application: Application) : AndroidViewModel(application) {
+class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app) {
 
-    val repo = MetadataRepository(application)
+    val repo = MetadataRepository(app)
 
     private val contentResolver: ContentResolver
 
@@ -40,11 +40,11 @@ class LocalDoujinViewModel(application: Application) : AndroidViewModel(applicat
     fun toastText(): LiveData<String?> = toastText
 
     init {
-        contentResolver = application.contentResolver
+        contentResolver = app.contentResolver
     }
 
     fun initDoujinList() {
-        val fullList = MyApplication.fullDoujinList
+        val fullList = (app as MyApplication).fullDoujinList
 
         if (fullList != null) {
             doujinList.value = fullList
@@ -69,7 +69,7 @@ class LocalDoujinViewModel(application: Application) : AndroidViewModel(applicat
                 }
             }
 
-            MyApplication.fullDoujinList = tempDoujins
+            (app as MyApplication).fullDoujinList = tempDoujins
             isSyncing.value = false
         }
     }

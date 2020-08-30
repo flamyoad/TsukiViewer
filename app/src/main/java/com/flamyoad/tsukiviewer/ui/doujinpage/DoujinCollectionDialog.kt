@@ -17,6 +17,10 @@ import com.flamyoad.tsukiviewer.model.DoujinCollection
 
 class DoujinCollectionDialog: DialogFragment() {
 
+    companion object {
+        @JvmStatic val DEFAULT_COLLECTION_NAME = "Default Collection"
+    }
+
     private val collectionAdapter: CollectionListAdapter = CollectionListAdapter()
 
     private lateinit var btnSave: Button
@@ -56,10 +60,7 @@ class DoujinCollectionDialog: DialogFragment() {
         listCollections.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
 
         val mock = listOf(
-            DoujinCollection("Default Collection"),
-            DoujinCollection("Love Live"),
-            DoujinCollection("这啥"),
-            DoujinCollection("ラブライブ")
+            DoujinCollection("Default Collection")
         )
 
         collectionAdapter.setList(mock)

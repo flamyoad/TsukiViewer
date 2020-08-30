@@ -25,7 +25,7 @@ import java.io.File
 import java.util.*
 
 
-class SearchResultViewModel(application: Application) : AndroidViewModel(application) {
+class SearchResultViewModel(private val app: Application) : AndroidViewModel(app) {
     private val context: Context
 
     private val contentResolver: ContentResolver
@@ -51,11 +51,11 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
     fun isLoading(): LiveData<Boolean> = isLoading
 
     init {
-        db = AppDatabase.getInstance(application)
+        db = AppDatabase.getInstance(app)
 
-        context = application.applicationContext
+        context = app.applicationContext
 
-        contentResolver = application.contentResolver
+        contentResolver = app.contentResolver
 
         pathDao = db.includedFolderDao()
         doujinDetailsDao = db.doujinDetailsDao()
@@ -75,7 +75,7 @@ class SearchResultViewModel(application: Application) : AndroidViewModel(applica
                when user queries using keyword and did not specify tags
             */
             if (tags.isBlank()) {
-                val existingList = MyApplication.fullDoujinList
+                val existingList = (app as MyApplication).fullDoujinList
                 if (existingList != null) {
                     searchFromExistingList(existingList, keyword)
                 } else {
