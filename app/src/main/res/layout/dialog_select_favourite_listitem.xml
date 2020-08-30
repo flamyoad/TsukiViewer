@@ -5,16 +5,19 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingHorizontal="24dp"
-    android:paddingVertical="16dp">
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="8dp"
+    android:clickable="true"
+    android:foreground="?android:selectableItemBackground">
 
     <FrameLayout
         android:id="@+id/txtIconLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
         android:background="@drawable/favourite_listitem_char_bg"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="4dp"
+        android:minWidth="40dp"
+        android:minHeight="36dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -22,11 +25,11 @@
             android:id="@+id/txtIcon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:paddingHorizontal="8dp"
             android:textColor="@android:color/white"
-            android:textSize="24sp"
+            android:textSize="24dp"
             android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
             tools:text="F" />
 
     </FrameLayout>
@@ -46,7 +49,7 @@
         app:layout_constraintTop_toTopOf="@+id/txtIconLayout" />
 
     <com.google.android.material.checkbox.MaterialCheckBox
-        android:id="@+id/checkBox2"
+        android:id="@+id/checkBox"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:text=""

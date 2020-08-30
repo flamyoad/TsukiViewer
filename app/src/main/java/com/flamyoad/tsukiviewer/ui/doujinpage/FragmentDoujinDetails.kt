@@ -22,10 +22,8 @@ import kotlinx.android.synthetic.main.activity_doujin_details.*
 import kotlinx.android.synthetic.main.doujin_details_tags_group.*
 import java.io.File
 
-/**
- * A simple [Fragment] subclass.
- */
 class FragmentDoujinDetails : Fragment() {
+    private val COLLECTION_DIALOG_TAG = "collection_dialog"
 
     private val viewmodel by activityViewModels<DoujinViewModel>()
 
@@ -38,7 +36,10 @@ class FragmentDoujinDetails : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        initUi()
+    }
 
+    private fun initUi() {
         viewmodel.coverImage().observe(viewLifecycleOwner, Observer { image ->
             Glide.with(this)
                 .load(image)
@@ -57,6 +58,10 @@ class FragmentDoujinDetails : Fragment() {
                 initDoujinDetails(it)
             }
         })
+
+        fab.setOnClickListener {
+            openCollectionDialog()
+        }
     }
 
     // Show directory name if metadata not yet obtained from API
@@ -119,6 +124,11 @@ class FragmentDoujinDetails : Fragment() {
 
             recyclerView?.addItemDecoration(itemDecoration)
         }
+    }
+
+    private fun openCollectionDialog() {
+        val dialog = DoujinCollectionDialog()
+        dialog.show(childFragmentManager, COLLECTION_DIALOG_TAG)
     }
 
     companion object {
