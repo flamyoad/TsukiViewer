@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.ui.search.SearchActivity
+import com.flamyoad.tsukiviewer.utils.GridSpacingItemDecoration
 import com.flamyoad.tsukiviewer.utils.ItemOffsetDecoration
 import kotlinx.android.synthetic.main.fragment_local_doujins.*
 import kotlinx.coroutines.launch
@@ -170,7 +171,11 @@ class LocalDoujinsFragment : Fragment() {
 
         listLocalDoujins.adapter = adapter
         listLocalDoujins.layoutManager = gridLayoutManager
-        listLocalDoujins.addItemDecoration(ItemOffsetDecoration(8))
+
+        val itemDecoration = GridSpacingItemDecoration(2, 4, includeEdge = true)
+
+        listLocalDoujins.addItemDecoration(itemDecoration)
+
         listLocalDoujins.setHasFixedSize(true)
 
         viewmodel.doujinList().observe(viewLifecycleOwner, Observer { newList ->

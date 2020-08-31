@@ -1,5 +1,6 @@
 package com.flamyoad.tsukiviewer.db.dao
 
+import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.flamyoad.tsukiviewer.db.typeconverter.FolderConverter
 import com.flamyoad.tsukiviewer.model.CollectionItem
@@ -9,7 +10,13 @@ import java.io.File
 @TypeConverters(FolderConverter::class)
 interface CollectionItemDao {
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Query("SELECT * FROM collection_item")
+    fun selectAll(): LiveData<List<CollectionItem>>
+
+    @Query("SELECT * FROM collection_item WHERE collectionName = :collectionName")
+    suspend fun selectFrom(collectionName: String): List<CollectionItem>
+
+    @Insert
     suspend fun insert(item: CollectionItem)
 
     @Delete

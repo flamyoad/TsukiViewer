@@ -14,7 +14,7 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
-import com.flamyoad.tsukiviewer.adapter.CollectionListAdapter
+import com.flamyoad.tsukiviewer.adapter.CollectionPickerAdapter
 import com.flamyoad.tsukiviewer.model.DoujinCollection
 
 class DoujinCollectionDialog: DialogFragment(), CollectionDialogListener {
@@ -25,7 +25,7 @@ class DoujinCollectionDialog: DialogFragment(), CollectionDialogListener {
         @JvmStatic val DEFAULT_COLLECTION_NAME = "Default Collection"
     }
 
-    private val collectionAdapter: CollectionListAdapter = CollectionListAdapter(this)
+    private val collectionAdapter: CollectionPickerAdapter = CollectionPickerAdapter(this)
 
     private lateinit var btnSave: Button
     private lateinit var btnCancel: Button

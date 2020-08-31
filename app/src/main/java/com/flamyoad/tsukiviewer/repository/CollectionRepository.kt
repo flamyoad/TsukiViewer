@@ -29,8 +29,20 @@ class CollectionRepository(private val context: Context) {
         itemDao = db.collectionItemDao()
     }
 
+    fun getAllItems(): LiveData<List<CollectionItem>> {
+        return itemDao.selectAll()
+    }
+
+    suspend fun getAllItemsFrom(collection: DoujinCollection): List<CollectionItem> {
+        return itemDao.selectFrom(collection.name)
+    }
+
     fun getAllCollection(): LiveData<List<DoujinCollection>> {
         return collectionDao.getAll()
+    }
+
+    suspend fun getAllCollectionBlocking(): List<DoujinCollection> {
+        return collectionDao.getAllBlocking()
     }
 
     // Inserts a default folder first.
@@ -58,7 +70,7 @@ class CollectionRepository(private val context: Context) {
                     itemDao.insert(newItem)
                 }
             } catch (e: Exception) {
-                Log.d("db", e.message)
+                Log.e("db", e.message)
                 e.printStackTrace()
             }
         }

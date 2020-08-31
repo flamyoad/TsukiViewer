@@ -1,9 +1,6 @@
 package com.flamyoad.tsukiviewer.model
 
-import androidx.room.Entity
-import androidx.room.ForeignKey
-import androidx.room.PrimaryKey
-import androidx.room.TypeConverters
+import androidx.room.*
 import com.flamyoad.tsukiviewer.db.typeconverter.FolderConverter
 import java.io.File
 
@@ -24,5 +21,19 @@ data class CollectionItem(
 
     val absolutePath: File,
 
-    val collectionName: String
-)
+    val collectionName: String,
+
+    @Ignore
+    val isHeader: Boolean = false,
+
+    @Ignore
+    val doujin: Doujin? = null
+) {
+    constructor(id: Long, absolutePath: File, collectionName: String) : this(
+        id,
+        absolutePath,
+        collectionName,
+        false,
+        null
+    )
+}

@@ -13,7 +13,7 @@ import com.flamyoad.tsukiviewer.model.DoujinCollection
 import com.flamyoad.tsukiviewer.ui.doujinpage.CollectionDialogListener
 import java.lang.IllegalArgumentException
 
-class CollectionListAdapter(private val listener: CollectionDialogListener)
+class CollectionPickerAdapter(private val listener: CollectionDialogListener)
     : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private val ADD_NEW_BUTTON = 1
     private val COLLECTION_ITEM = 2
@@ -39,6 +39,7 @@ class CollectionListAdapter(private val listener: CollectionDialogListener)
                 val holder = CollectionViewHolder(view)
 
                 holder.itemView.setOnClickListener {
+                    val position = holder.adapterPosition - 1
                     val collection = list[holder.adapterPosition - 1]
                     val isTicked = holder.toggleCheckbox()
                     when (isTicked) {

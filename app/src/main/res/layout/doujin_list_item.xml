@@ -4,7 +4,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="300dp"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:clickable="true"
+    android:foreground="?android:selectableItemBackground">
 
     <ImageView
         android:id="@+id/imgCover"

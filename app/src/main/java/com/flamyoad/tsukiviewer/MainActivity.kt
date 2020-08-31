@@ -1,25 +1,18 @@
 package com.flamyoad.tsukiviewer
 
 import android.content.Intent
-import android.os.AsyncTask
 import android.os.Bundle
-import android.util.Log
 import android.view.MenuItem
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
-import com.flamyoad.tsukiviewer.ui.home.favourite.FavouriteDoujinFragment
+import com.flamyoad.tsukiviewer.ui.home.collection.CollectionDoujinFragment
 import com.flamyoad.tsukiviewer.ui.home.local.LocalDoujinsFragment
 import com.flamyoad.tsukiviewer.ui.home.online.OnlineDoujinFragment
 import com.flamyoad.tsukiviewer.ui.settings.SettingsActivity
 import com.google.android.material.navigation.NavigationView
 import kotlinx.android.synthetic.main.activity_main.*
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.net.HttpURLConnection
-import java.net.URL
 
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -52,7 +45,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
 
             R.id.nav_favourites -> {
-                switchFragment(FavouriteDoujinFragment.newInstance())
+                switchFragment(CollectionDoujinFragment.newInstance())
                 setTitle("Favourites")
             }
 
