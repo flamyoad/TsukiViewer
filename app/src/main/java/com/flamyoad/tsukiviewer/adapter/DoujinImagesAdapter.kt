@@ -36,14 +36,13 @@ class DoujinImagesAdapter(
     private var count = 0
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
-        val xml = if (itemType == ItemType.Grid) {
-            R.layout.image_grid_item
-        } else {
-            R.layout.image_list_item
-        }
+        val layoutInflater = LayoutInflater.from(parent.context)
 
-        val layout = LayoutInflater.from(parent.context)
-            .inflate(xml, parent, false)
+        val layout = when (itemType) {
+            ItemType.Grid -> layoutInflater.inflate(R.layout.image_grid_item, parent, false)
+            ItemType.Scaled -> layoutInflater.inflate(R.layout.image_scaled_item, parent, false)
+            ItemType.Row -> layoutInflater.inflate(R.layout.image_row_item, parent, false)
+        }
 
         val holder = ImageViewHolder(layout)
 
@@ -123,7 +122,7 @@ class DoujinImagesAdapter(
     }
 
     enum class ItemType {
-        Grid, List
+        Grid, Scaled, Row
     }
 
 }

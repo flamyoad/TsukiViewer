@@ -57,7 +57,7 @@ class DoujinDetailsActivity : AppCompatActivity() {
                 startActivity(newIntent)
             }
         }
-        return true
+        return false
     }
 
     private fun handleIntent() {

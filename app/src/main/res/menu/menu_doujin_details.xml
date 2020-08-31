@@ -20,11 +20,14 @@
         android:orderInCategory="102">
 
         <menu>
-            <item android:id="@+id/action_mode_square"
+            <item android:id="@+id/action_switch_to_grid"
                 android:title="Grid"/>
 
-            <item android:id="@+id/action_mode_original"
+            <item android:id="@+id/action_switch_to_scaled"
                 android:title="Scaled"/>
+
+            <item android:id="@+id/action_switch_to_row"
+                android:title="Row"/>
         </menu>
     </item>
 </menu>

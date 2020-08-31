@@ -5,7 +5,6 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentStatePagerAdapter
 import com.flamyoad.tsukiviewer.ui.doujinpage.FragmentDoujinDetails
 import com.flamyoad.tsukiviewer.ui.doujinpage.FragmentGridImages
-import com.flamyoad.tsukiviewer.ui.doujinpage.FragmentListImages
 import java.lang.IllegalArgumentException
 import java.lang.RuntimeException
 
