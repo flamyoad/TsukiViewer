@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingHorizontal="16dp"
-    android:paddingVertical="8dp"
     android:clickable="true"
-    android:foreground="?android:selectableItemBackground">
+    android:foreground="?android:selectableItemBackground"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="8dp">
 
     <FrameLayout
         android:id="@+id/txtIconLayout"
@@ -16,8 +15,6 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="5dp"
         android:background="@drawable/favourite_listitem_char_bg"
-        android:minWidth="40dp"
-        android:minHeight="36dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -25,8 +22,9 @@
             android:id="@+id/txtIcon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:paddingHorizontal="8dp"
+            android:gravity="center"
+            android:minWidth="36dp"
+            android:minHeight="36dp"
             android:textColor="@android:color/white"
             android:textSize="24dp"
             android:textStyle="bold"
@@ -36,26 +34,26 @@
 
     <TextView
         android:id="@+id/txtCollectionName"
+        style="@style/favourite_group_item_label"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        tools:text="Default Collection"
-        android:lines="1"
         android:ellipsize="end"
-        style="@style/favourite_group_item_label"
+        android:lines="1"
         app:layout_constraintBottom_toBottomOf="@+id/txtIconLayout"
         app:layout_constraintStart_toEndOf="@+id/txtIconLayout"
-        app:layout_constraintTop_toTopOf="@+id/txtIconLayout" />
+        app:layout_constraintTop_toTopOf="@+id/txtIconLayout"
+        tools:text="Default Collection" />
 
     <com.google.android.material.checkbox.MaterialCheckBox
         android:id="@+id/checkBox"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:text=""
+        android:translationX="12dp"
         app:layout_constraintBottom_toBottomOf="@+id/txtIconLayout"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/txtIconLayout"
-        android:translationX="12dp" />
+        app:layout_constraintTop_toTopOf="@+id/txtIconLayout" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

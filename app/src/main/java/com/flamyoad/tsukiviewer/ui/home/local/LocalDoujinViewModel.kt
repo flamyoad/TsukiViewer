@@ -9,7 +9,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.model.Doujin
-import com.flamyoad.tsukiviewer.model.IncludedPath
 import com.flamyoad.tsukiviewer.repository.MetadataRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -53,9 +52,11 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
         }
     }
 
-    fun postResult(doujin: Doujin) {
-        tempDoujins.add(doujin)
-        doujinList.postValue(tempDoujins)
+    private suspend fun setResult(doujin: Doujin) {
+        withContext(Dispatchers.Main) {
+            tempDoujins.add(doujin)
+            doujinList.value = tempDoujins
+        }
     }
 
     fun fetchDoujinsFromDir() {
@@ -89,7 +90,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
                 val lastModified = currentDir.lastModified()
 
                 val doujin = Doujin(coverImage, title, numberOfImages, lastModified, currentDir)
-                postResult(doujin)
+                setResult(doujin)
             }
 
             for (f in fileList) {

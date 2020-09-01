@@ -2,12 +2,12 @@ package com.flamyoad.tsukiviewer.ui.doujinpage
 
 import android.app.Application
 import android.net.Uri
+import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.flamyoad.tsukiviewer.model.CollectionItem
 import com.flamyoad.tsukiviewer.model.DoujinCollection
 import com.flamyoad.tsukiviewer.model.DoujinDetailsWithTags
 import com.flamyoad.tsukiviewer.repository.CollectionRepository
@@ -15,6 +15,7 @@ import com.flamyoad.tsukiviewer.repository.MetadataRepository
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 class DoujinViewModel(application: Application) : AndroidViewModel(application) {
@@ -26,16 +27,19 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
     lateinit var detailWithTags: LiveData<DoujinDetailsWithTags>
 
     private val imageList = MutableLiveData<List<File>>()
-
-    private val coverImage = MutableLiveData<Uri>()
-
-    var currentPath: String = ""
-
-    val tickedCollections = mutableListOf<DoujinCollection>()
-
     fun imageList(): LiveData<List<File>> = imageList
 
+    private val coverImage = MutableLiveData<Uri>()
     fun coverImage(): LiveData<Uri> = coverImage
+
+    private val collectionList = MutableLiveData<List<DoujinCollection>>()
+    fun collectionList(): LiveData<List<DoujinCollection>> = collectionList
+
+    val collectionTickStatus = hashMapOf<String, Boolean>()
+
+    val snackbarMsg = MutableLiveData<String>("")
+
+    var currentPath: String = ""
 
     fun scanForImages(dirPath: String) {
         if (dirPath == currentPath) {
@@ -85,25 +89,41 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    fun getAllCollections(): LiveData<List<DoujinCollection>> {
-        return collectionRepo.getAllCollection()
-    }
-
-    fun insertNewCollection(collection: DoujinCollection) {
+    fun initCollectionList() {
         viewModelScope.launch(Dispatchers.IO) {
-            collectionRepo.insertCollection(collection)
+            if (currentPath.isNotBlank()) {
+                val dir = File(currentPath)
+                val collections = collectionRepo.getAllCollectionsFrom(dir)
+
+                withContext(Dispatchers.Main) {
+                    collectionList.value = collections
+                }
+            }
         }
     }
 
     fun insertItemIntoTickedCollections() {
+        val hashmap = collectionTickStatus
         viewModelScope.launch(Dispatchers.IO) {
-            collectionRepo.wipeAndInsertNew(File(currentPath), tickedCollections)
+            val status = collectionRepo.wipeAndInsertNew(File(currentPath), hashmap)
+
+            withContext(Dispatchers.Main) {
+                snackbarMsg.value = status
+            }
         }
     }
 
-    fun initializeDefaultCollection() {
+    fun createDefaultCollection() {
         viewModelScope.launch(Dispatchers.IO) {
-            collectionRepo.initializeCollection()
+            collectionRepo.createDefaultCollection()
         }
+    }
+
+    fun tickCollection(collection: DoujinCollection) {
+        collectionTickStatus.put(collection.name, true)
+    }
+
+    fun untickCollection(collection: DoujinCollection) {
+        collectionTickStatus.put(collection.name, false)
     }
 }

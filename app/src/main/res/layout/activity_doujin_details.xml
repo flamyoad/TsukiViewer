@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rootView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
@@ -40,14 +40,14 @@
                 android:id="@+id/tabLayout"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                app:layout_scrollFlags="scroll|enterAlwaysCollapsed"
-                android:elevation="0dp"
                 android:backgroundTint="@color/colorPrimary"
+                android:elevation="0dp"
+                app:layout_scrollFlags="scroll|enterAlwaysCollapsed"
                 app:tabIndicatorColor="@android:color/white"
+                app:tabRippleColor="@color/colorPrimaryDark"
                 app:tabSelectedTextColor="@android:color/white"
                 app:tabTextAppearance="@style/MyTabLayoutTextAppearance"
-                app:tabRippleColor="@color/colorPrimaryDark"
-                app:tabTextColor="#DCDCDC"/>
+                app:tabTextColor="#DCDCDC" />
 
         </com.google.android.material.appbar.AppBarLayout>
 
@@ -55,7 +55,7 @@
             android:id="@+id/viewpager"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </LinearLayout>

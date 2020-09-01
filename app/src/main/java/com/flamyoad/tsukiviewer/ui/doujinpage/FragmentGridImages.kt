@@ -57,7 +57,7 @@ class FragmentGridImages : Fragment() {
              // No action here. However, LiveData needs to be observed for changes to be notified to it.
         })
 
-        setListToRow(dirPath)
+        setListToScaled(dirPath)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

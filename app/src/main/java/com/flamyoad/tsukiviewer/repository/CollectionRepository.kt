@@ -10,6 +10,7 @@ import com.flamyoad.tsukiviewer.db.dao.DoujinCollectionDao
 import com.flamyoad.tsukiviewer.model.CollectionItem
 import com.flamyoad.tsukiviewer.model.DoujinCollection
 import java.io.File
+import java.lang.StringBuilder
 
 class CollectionRepository(private val context: Context) {
 
@@ -37,16 +38,28 @@ class CollectionRepository(private val context: Context) {
         return itemDao.selectFrom(collection.name)
     }
 
-    fun getAllCollection(): LiveData<List<DoujinCollection>> {
+    fun getAllCollections(): LiveData<List<DoujinCollection>> {
         return collectionDao.getAll()
     }
 
-    suspend fun getAllCollectionBlocking(): List<DoujinCollection> {
+    suspend fun getAllCollectionsFrom(absolutePath: File): List<DoujinCollection> {
+        val collections = collectionDao.getAllBlocking()
+        val names = collectionDao.getCollectionNamesFrom(absolutePath)
+
+        for (collection in collections) {
+            if (collection.name in names) {
+                collection.isTicked = true
+            }
+        }
+        return collections
+    }
+
+    suspend fun getAllCollectionsBlocking(): List<DoujinCollection> {
         return collectionDao.getAllBlocking()
     }
 
     // Inserts a default folder first.
-    suspend fun initializeCollection() {
+    suspend fun createDefaultCollection() {
         collectionDao.insert(DoujinCollection(DEFAULT_COLLECTION))
     }
 
@@ -58,21 +71,53 @@ class CollectionRepository(private val context: Context) {
         itemDao.insert(item)
     }
 
-    suspend fun wipeAndInsertNew(absolutePath: File, collections: List<DoujinCollection>) {
-        db.withTransaction {
+    // Returns: Snackbar message to be shown to user indicating the number of insert and delete
+    suspend fun wipeAndInsertNew(absolutePath: File, hashMap: HashMap<String, Boolean>): String {
+        val message = db.withTransaction {
             try {
-                itemDao.deleteFromAllCollections(absolutePath)
-                for (collection in collections) {
-                    val newItem = CollectionItem(
-                        absolutePath = absolutePath,
-                        collectionName = collection.name
-                    )
-                    itemDao.insert(newItem)
+                val namesOfCollectionsToRemoveFrom = hashMap
+                    .filter { kvp -> kvp.value == false   }
+                    .map { kvp -> kvp.key }
+
+                var deleteCount = 0
+                for (name in namesOfCollectionsToRemoveFrom) {
+                    val count = itemDao.delete(absolutePath, name)
+                    deleteCount += count
                 }
+
+                val itemsToInsert = hashMap
+                    .filter { kvp -> kvp.value == true  }
+                    .map { kvp -> CollectionItem(absolutePath = absolutePath, collectionName = kvp.key) }
+
+                val insertIds = itemDao.insert(itemsToInsert)
+                val insertCount = insertIds.size
+
+                // Example message:  Added into 1 collection. Removed from 1 collection.
+                val stringBuilder = StringBuilder()
+
+                if (insertCount > 0) {
+                    stringBuilder.append("Added into ${insertCount} ${getNoun(insertCount)}. ")
+                }
+
+                if (deleteCount > 0) {
+                    stringBuilder.append("Removed from ${deleteCount} ${getNoun(deleteCount)}")
+                }
+                return@withTransaction stringBuilder.toString()
+
             } catch (e: Exception) {
                 Log.e("db", e.message)
                 e.printStackTrace()
+                return@withTransaction "Failed to add or remove current doujin"
             }
+        }
+        return message
+    }
+
+    private fun getNoun(number: Int): String {
+        if (number > 1) {
+            return "collections"
+        } else {
+            return "collection"
         }
     }
 }

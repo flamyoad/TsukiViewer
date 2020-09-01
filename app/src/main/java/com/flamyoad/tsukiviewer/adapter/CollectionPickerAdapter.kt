@@ -95,6 +95,7 @@ class CollectionPickerAdapter(private val listener: CollectionDialogListener)
 
             txtIcon.text = firstLetter.toString()
             txtCollectionName.text = collection.name
+            checkBox.isChecked = collection.isTicked
         }
 
         fun toggleCheckbox(): Boolean {

@@ -17,5 +17,5 @@ interface IncludedFolderDao {
     suspend fun insert(folder: IncludedFolder)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertAll(list: List<IncludedFolder>)
+    suspend fun insert(list: List<IncludedFolder>)
 }

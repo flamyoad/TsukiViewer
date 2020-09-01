@@ -33,7 +33,7 @@ class CollectionDoujinViewModel(application: Application) : AndroidViewModel(app
 
     fun refreshList() {
         viewModelScope.launch(Dispatchers.IO) {
-            val collections = collectionRepo.getAllCollectionBlocking()
+            val collections = collectionRepo.getAllCollectionsBlocking()
             for (collection in collections) {
                 postResult(getHeaderItem(collection.name))
 

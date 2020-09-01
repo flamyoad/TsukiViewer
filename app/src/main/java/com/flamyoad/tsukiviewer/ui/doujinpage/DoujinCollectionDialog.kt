@@ -1,6 +1,7 @@
 package com.flamyoad.tsukiviewer.ui.doujinpage
 
 import android.app.Dialog
+import android.content.DialogInterface
 import android.graphics.Point
 import android.os.Bundle
 import android.view.Display
@@ -49,10 +50,15 @@ class DoujinCollectionDialog: DialogFragment(), CollectionDialogListener {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        viewmodel.createDefaultCollection()
+
+        viewmodel.initCollectionList()
+
+        viewmodel.collectionList().observe(this, Observer {
+            collectionAdapter.setList(it)
+        })
 
         setRecyclerviewSize()
-
-        viewmodel.initializeDefaultCollection()
 
         btnSave.setOnClickListener {
             viewmodel.insertItemIntoTickedCollections()
@@ -65,11 +71,10 @@ class DoujinCollectionDialog: DialogFragment(), CollectionDialogListener {
 
         listCollections.adapter = collectionAdapter
         listCollections.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+    }
 
-        viewmodel.getAllCollections().observe(this, Observer {
-            val newList = it.toMutableList()
-            collectionAdapter.setList(newList)
-        })
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
     }
 
     private fun setRecyclerviewSize() {
@@ -87,10 +92,10 @@ class DoujinCollectionDialog: DialogFragment(), CollectionDialogListener {
     }
 
     override fun onCollectionTicked(collection: DoujinCollection) {
-        viewmodel.tickedCollections.add(collection)
+        viewmodel.tickCollection(collection)
     }
 
     override fun onCollectionUnticked(collection: DoujinCollection) {
-        viewmodel.tickedCollections.remove(collection)
+        viewmodel.untickCollection(collection)
     }
 }

@@ -19,9 +19,18 @@ interface CollectionItemDao {
     @Insert
     suspend fun insert(item: CollectionItem)
 
+    @Insert
+    suspend fun insert(items: List<CollectionItem>): List<Long>
+
     @Delete
     suspend fun delete(item: CollectionItem)
 
+    @Delete
+    suspend fun delete(items: List<CollectionItem>): Int
+
+    @Query("DELETE FROM collection_item WHERE absolutePath = :absolutePath AND collectionName = :collectionName")
+    suspend fun delete(absolutePath: File, collectionName: String): Int
+
     @Query("DELETE FROM collection_item WHERE absolutePath = :path")
-    suspend fun deleteFromAllCollections(path: File)
+    suspend fun deleteFromAllCollections(path: File): Int
 }

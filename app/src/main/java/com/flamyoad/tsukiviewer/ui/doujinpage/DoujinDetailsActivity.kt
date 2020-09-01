@@ -14,6 +14,7 @@ import com.flamyoad.tsukiviewer.adapter.DoujinPagerAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.network.FetchMetadataService
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_doujin_details.*
 
 class DoujinDetailsActivity : AppCompatActivity() {
@@ -29,6 +30,16 @@ class DoujinDetailsActivity : AppCompatActivity() {
         handleIntent()
         initTabLayout()
         initToolbar()
+
+        viewmodel.snackbarMsg.observe(this, Observer { msg ->
+            if (msg.isNullOrBlank()) {
+                return@Observer
+            }
+
+            Snackbar.make(rootView, msg, Snackbar.LENGTH_LONG)
+                .show()
+            viewmodel.snackbarMsg.value = ""
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
