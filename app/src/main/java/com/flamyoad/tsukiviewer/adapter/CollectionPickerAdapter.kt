@@ -39,11 +39,14 @@ class CollectionPickerAdapter(private val listener: CollectionDialogListener)
                 val holder = CollectionViewHolder(view)
 
                 holder.itemView.setOnClickListener {
-                    val position = holder.adapterPosition - 1
-
                     val collection = list[holder.adapterPosition - 1]
-                    val isTicked = holder.toggleCheckbox()
+                    holder.toggleCheckbox()
+                }
 
+                val holderCheckbox = holder.itemView.findViewById<CheckBox>(R.id.checkBox)
+
+                holderCheckbox.setOnCheckedChangeListener { compoundButton, isTicked ->
+                    val collection = list[holder.adapterPosition - 1]
                     when (isTicked) {
                         true -> listener.onCollectionTicked(collection)
                         false -> listener.onCollectionUnticked(collection)
@@ -91,6 +94,10 @@ class CollectionPickerAdapter(private val listener: CollectionDialogListener)
         private val txtIcon: TextView = itemView.findViewById(R.id.txtIcon)
         private val txtCollectionName: TextView = itemView.findViewById(R.id.txtCollectionName)
         private val checkBox: CheckBox = itemView.findViewById(R.id.checkBox)
+
+        init {
+
+        }
 
         fun bindTo(collection: DoujinCollection) {
             val firstLetter = collection.name.first().toUpperCase()

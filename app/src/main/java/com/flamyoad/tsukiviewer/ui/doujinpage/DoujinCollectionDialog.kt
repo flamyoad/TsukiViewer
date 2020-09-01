@@ -96,15 +96,9 @@ class DoujinCollectionDialog: DialogFragment(), CollectionDialogListener {
 
     override fun onCollectionTicked(collection: DoujinCollection) {
         collectionTickStatus.put(collection.name, true)
-
-        // Don't remove this line :(
-        Log.d("collection", "onCollectionTicked() called")
     }
 
     override fun onCollectionUnticked(collection: DoujinCollection) {
         collectionTickStatus.put(collection.name, false)
-
-        // Don't remove this line :(
-        Log.d("collection", "onCollectionUnticked() called")
     }
 }

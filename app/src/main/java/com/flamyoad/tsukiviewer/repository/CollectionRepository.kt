@@ -103,7 +103,6 @@ class CollectionRepository(private val context: Context) {
                     stringBuilder.append("Removed from ${deleteCount} ${getNoun(deleteCount)}")
                 }
 
-                val string = stringBuilder.toString()
                 return@withTransaction stringBuilder.toString()
 
             } catch (e: Exception) {

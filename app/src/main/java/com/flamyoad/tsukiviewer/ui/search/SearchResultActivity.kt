@@ -11,7 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
-import com.flamyoad.tsukiviewer.utils.ItemOffsetDecoration
+import com.flamyoad.tsukiviewer.utils.ItemDecoration
 import kotlinx.android.synthetic.main.activity_search_result.*
 import kotlinx.coroutines.launch
 
@@ -90,7 +90,7 @@ class SearchResultActivity : AppCompatActivity() {
 
         listSearchedDoujins.adapter = adapter
         listSearchedDoujins.layoutManager = gridLayoutManager
-        listSearchedDoujins.addItemDecoration(ItemOffsetDecoration(8))
+        listSearchedDoujins.addItemDecoration(ItemDecoration(8))
 
         viewmodel.searchedResult().observe(this, Observer {
             adapter.setList(it)

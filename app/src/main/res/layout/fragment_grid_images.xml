@@ -8,9 +8,13 @@
     tools:context=".ui.doujinpage.FragmentGridImages"
     android:background="@color/webDraculaBackgroundColor">
 
-    <androidx.recyclerview.widget.RecyclerView
+    <com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
         android:id="@+id/listImages"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        app:fastScrollPopupBgColor="@color/actionBlue"
+        app:fastScrollPopupTextColor="@android:color/primary_text_dark"
+        app:fastScrollThumbColor="@color/actionBlue"
+        app:fastScrollTrackColor="#1f000000"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 </FrameLayout>

@@ -23,6 +23,9 @@ data class CollectionItem(
 
     val collectionName: String,
 
+    // todo: add this field
+    // val dateAdded: Long,
+
     @Ignore
     val isHeader: Boolean = false,
 

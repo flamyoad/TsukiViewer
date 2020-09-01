@@ -8,16 +8,13 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.GridLayoutManager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter.ItemType
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
-import com.flamyoad.tsukiviewer.utils.GridSpacingItemDecoration
-import com.flamyoad.tsukiviewer.utils.ItemOffsetDecoration
+import com.flamyoad.tsukiviewer.utils.GridItemDecoration
 import kotlinx.android.synthetic.main.fragment_grid_images.*
-import java.io.File
 
 
 /**
@@ -100,7 +97,7 @@ class FragmentGridImages : Fragment() {
             listImages.removeItemDecorationAt(0)
         }
 
-        val itemDecoration = GridSpacingItemDecoration(spanCount, 4, includeEdge = false)
+        val itemDecoration = GridItemDecoration(spanCount, 4, includeEdge = false)
 
         listImages.addItemDecoration(itemDecoration)
 

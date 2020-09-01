@@ -11,8 +11,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinCollectionAdapter
-import com.flamyoad.tsukiviewer.utils.GridSpacingItemDecoration
-import com.flamyoad.tsukiviewer.utils.ItemOffsetDecoration
+import com.flamyoad.tsukiviewer.utils.GridItemDecoration
 import kotlinx.android.synthetic.main.fragment_favourite_doujin.*
 import java.lang.IllegalArgumentException
 
@@ -61,7 +60,7 @@ class CollectionDoujinFragment : Fragment() {
             }
         }
 
-        val itemDecoration = GridSpacingItemDecoration(2, 4, includeEdge = true)
+        val itemDecoration = GridItemDecoration(2, 4, includeEdge = true)
 
         listCollectionDoujins.adapter = adapter
         listCollectionDoujins.layoutManager = gridLayoutManager

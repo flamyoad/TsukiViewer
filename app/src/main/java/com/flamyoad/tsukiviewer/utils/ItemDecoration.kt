@@ -1,15 +1,15 @@
 package com.flamyoad.tsukiviewer.utils
 
-import android.view.View
 import android.content.Context
 import android.graphics.Rect
+import android.view.View
 import androidx.annotation.DimenRes
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ItemDecoration
 
 
-class ItemOffsetDecoration(private val mItemOffset: Int) : ItemDecoration() {
+class ItemDecoration(private val mItemOffset: Int) : ItemDecoration() {
 
     constructor(context: Context, @DimenRes itemOffsetId: Int) : this(
         context.resources.getDimensionPixelSize(

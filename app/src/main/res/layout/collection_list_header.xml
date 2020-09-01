@@ -4,7 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:background="#039BE5">
+    android:background="#039BE5"
+    android:clickable="true"
+    android:foreground="?android:selectableItemBackground">
 
     <TextView
         android:id="@+id/header"
