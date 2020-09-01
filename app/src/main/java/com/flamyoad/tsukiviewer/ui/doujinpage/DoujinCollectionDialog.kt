@@ -4,6 +4,7 @@ import android.app.Dialog
 import android.content.DialogInterface
 import android.graphics.Point
 import android.os.Bundle
+import android.util.Log
 import android.view.Display
 import android.view.LayoutInflater
 import android.view.Window
@@ -27,6 +28,8 @@ class DoujinCollectionDialog: DialogFragment(), CollectionDialogListener {
     }
 
     private val collectionAdapter: CollectionPickerAdapter = CollectionPickerAdapter(this)
+
+    private val collectionTickStatus = hashMapOf<String, Boolean>()
 
     private lateinit var btnSave: Button
     private lateinit var btnCancel: Button
@@ -61,7 +64,7 @@ class DoujinCollectionDialog: DialogFragment(), CollectionDialogListener {
         setRecyclerviewSize()
 
         btnSave.setOnClickListener {
-            viewmodel.insertItemIntoTickedCollections()
+            viewmodel.insertItemIntoTickedCollections(collectionTickStatus)
             this.dismiss()
         }
 
@@ -92,10 +95,16 @@ class DoujinCollectionDialog: DialogFragment(), CollectionDialogListener {
     }
 
     override fun onCollectionTicked(collection: DoujinCollection) {
-        viewmodel.tickCollection(collection)
+        collectionTickStatus.put(collection.name, true)
+
+        // Don't remove this line :(
+        Log.d("collection", "onCollectionTicked() called")
     }
 
     override fun onCollectionUnticked(collection: DoujinCollection) {
-        viewmodel.untickCollection(collection)
+        collectionTickStatus.put(collection.name, false)
+
+        // Don't remove this line :(
+        Log.d("collection", "onCollectionUnticked() called")
     }
 }

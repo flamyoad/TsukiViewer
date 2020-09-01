@@ -35,8 +35,6 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
     private val collectionList = MutableLiveData<List<DoujinCollection>>()
     fun collectionList(): LiveData<List<DoujinCollection>> = collectionList
 
-    val collectionTickStatus = hashMapOf<String, Boolean>()
-
     val snackbarMsg = MutableLiveData<String>("")
 
     var currentPath: String = ""
@@ -102,10 +100,9 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    fun insertItemIntoTickedCollections() {
-        val hashmap = collectionTickStatus
+    fun insertItemIntoTickedCollections(collectionWithTickStatus: HashMap<String, Boolean>) {
         viewModelScope.launch(Dispatchers.IO) {
-            val status = collectionRepo.wipeAndInsertNew(File(currentPath), hashmap)
+            val status = collectionRepo.wipeAndInsertNew(File(currentPath), collectionWithTickStatus)
 
             withContext(Dispatchers.Main) {
                 snackbarMsg.value = status
@@ -117,13 +114,5 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch(Dispatchers.IO) {
             collectionRepo.createDefaultCollection()
         }
-    }
-
-    fun tickCollection(collection: DoujinCollection) {
-        collectionTickStatus.put(collection.name, true)
-    }
-
-    fun untickCollection(collection: DoujinCollection) {
-        collectionTickStatus.put(collection.name, false)
     }
 }

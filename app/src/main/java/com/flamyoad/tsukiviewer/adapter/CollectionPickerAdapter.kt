@@ -40,8 +40,10 @@ class CollectionPickerAdapter(private val listener: CollectionDialogListener)
 
                 holder.itemView.setOnClickListener {
                     val position = holder.adapterPosition - 1
+
                     val collection = list[holder.adapterPosition - 1]
                     val isTicked = holder.toggleCheckbox()
+
                     when (isTicked) {
                         true -> listener.onCollectionTicked(collection)
                         false -> listener.onCollectionUnticked(collection)

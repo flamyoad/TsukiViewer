@@ -73,21 +73,21 @@ class CollectionRepository(private val context: Context) {
 
     // Returns: Snackbar message to be shown to user indicating the number of insert and delete
     suspend fun wipeAndInsertNew(absolutePath: File, hashMap: HashMap<String, Boolean>): String {
-        val message = db.withTransaction {
-            try {
-                val namesOfCollectionsToRemoveFrom = hashMap
-                    .filter { kvp -> kvp.value == false   }
-                    .map { kvp -> kvp.key }
+        val namesOfCollectionsToRemoveFrom = hashMap
+            .filter { kvp -> kvp.value == false   }
+            .map { kvp -> kvp.key }
 
+        val itemsToInsert = hashMap
+            .filter { kvp -> kvp.value == true  }
+            .map { kvp -> CollectionItem(absolutePath = absolutePath, collectionName = kvp.key) }
+
+        return db.withTransaction {
+            try {
                 var deleteCount = 0
                 for (name in namesOfCollectionsToRemoveFrom) {
                     val count = itemDao.delete(absolutePath, name)
                     deleteCount += count
                 }
-
-                val itemsToInsert = hashMap
-                    .filter { kvp -> kvp.value == true  }
-                    .map { kvp -> CollectionItem(absolutePath = absolutePath, collectionName = kvp.key) }
 
                 val insertIds = itemDao.insert(itemsToInsert)
                 val insertCount = insertIds.size
@@ -102,6 +102,8 @@ class CollectionRepository(private val context: Context) {
                 if (deleteCount > 0) {
                     stringBuilder.append("Removed from ${deleteCount} ${getNoun(deleteCount)}")
                 }
+
+                val string = stringBuilder.toString()
                 return@withTransaction stringBuilder.toString()
 
             } catch (e: Exception) {
@@ -110,7 +112,6 @@ class CollectionRepository(private val context: Context) {
                 return@withTransaction "Failed to add or remove current doujin"
             }
         }
-        return message
     }
 
     private fun getNoun(number: Int): String {
