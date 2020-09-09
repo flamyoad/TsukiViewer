@@ -4,7 +4,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
-import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
@@ -29,7 +28,7 @@ class CollectionPickerAdapter(private val listener: CollectionDialogListener)
                 val holder = ButtonAddNewItem(view)
 
                 holder.itemView.setOnClickListener {
-
+                    listener.onAddCollectionClicked()
                 }
                 return holder
             }

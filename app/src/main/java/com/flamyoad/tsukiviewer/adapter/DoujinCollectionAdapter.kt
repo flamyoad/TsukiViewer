@@ -2,6 +2,7 @@ package com.flamyoad.tsukiviewer.adapter
 
 import android.content.Context
 import android.content.Intent
+import android.view.ContextMenu
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,9 +21,15 @@ class DoujinCollectionAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() 
         const val HEADER_TYPE = 0
         const val ITEM_TYPE = 1
         const val EMPTY = 2
+
+        const val MENU_CHANGE_NAME = "Change Name"
+        const val MENU_DELETE_COLLECTION = "Delete Collection"
     }
 
     private var list: List<CollectionItem> = emptyList()
+
+    var onLongClickItem: CollectionItem? = null
+        private set
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
@@ -35,6 +42,17 @@ class DoujinCollectionAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() 
                 view.setOnClickListener {
 
                 }
+
+                // https://stackoverflow.com/questions/49234423/full-screen-floating-context-menu-in-android-8-0-api-26
+                view.setOnLongClickListener {
+                    val item = list[holder.adapterPosition]
+                    onLongClickItem = item
+
+                    it.showContextMenu()
+
+                    return@setOnLongClickListener true
+                }
+
                 return holder
             }
 

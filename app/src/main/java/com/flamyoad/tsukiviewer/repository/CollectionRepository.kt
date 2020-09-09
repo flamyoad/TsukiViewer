@@ -42,6 +42,10 @@ class CollectionRepository(private val context: Context) {
         return collectionDao.getAll()
     }
 
+    fun collectionNameExists(name: String): LiveData<Boolean> {
+        return collectionDao.exists(name)
+    }
+
     suspend fun getAllCollectionsFrom(absolutePath: File): List<DoujinCollection> {
         val collections = collectionDao.getAllBlocking()
         val names = collectionDao.getCollectionNamesFrom(absolutePath)

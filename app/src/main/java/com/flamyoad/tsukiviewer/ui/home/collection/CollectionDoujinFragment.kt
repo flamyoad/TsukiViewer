@@ -1,16 +1,16 @@
 package com.flamyoad.tsukiviewer.ui.home.collection
 
 import android.os.Bundle
+import android.view.*
+import android.widget.Toast
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinCollectionAdapter
+import com.flamyoad.tsukiviewer.model.CollectionItem
 import com.flamyoad.tsukiviewer.utils.GridItemDecoration
 import kotlinx.android.synthetic.main.fragment_favourite_doujin.*
 import java.lang.IllegalArgumentException
@@ -37,6 +37,8 @@ class CollectionDoujinFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
 
         initRecyclerView()
+
+        registerForContextMenu(listCollectionDoujins)
 
         viewmodel.itemsNoHeaders.observe(viewLifecycleOwner, Observer {
             viewmodel.refreshList()
@@ -68,7 +70,37 @@ class CollectionDoujinFragment : Fragment() {
         listCollectionDoujins.setHasFixedSize(true)
     }
 
+    override fun onCreateContextMenu(
+        menu: ContextMenu,
+        v: View,
+        menuInfo: ContextMenu.ContextMenuInfo?
+    ) {
+        menu.add(MENU_CHANGE_NAME)
+        menu.add(MENU_DELETE_COLLECTION)
+    }
+
+    override fun onContextItemSelected(item: MenuItem): Boolean {
+        val selectedCollection = adapter.onLongClickItem ?: return true
+
+        when (item.title) {
+            MENU_CHANGE_NAME -> openChangeNameDialog(selectedCollection)
+            MENU_DELETE_COLLECTION -> openDeleteCollectionDialog(selectedCollection)
+        }
+        return true
+    }
+
+    private fun openChangeNameDialog(collectionItem: CollectionItem) {
+
+    }
+
+    private fun openDeleteCollectionDialog(collectionItem: CollectionItem) {
+
+    }
+
     companion object {
+        const val MENU_CHANGE_NAME = "Change Name"
+        const val MENU_DELETE_COLLECTION = "Delete Collection"
+
         @JvmStatic
         fun newInstance() =
             CollectionDoujinFragment()

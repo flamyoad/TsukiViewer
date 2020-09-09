@@ -19,12 +19,12 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.CollectionPickerAdapter
 import com.flamyoad.tsukiviewer.model.DoujinCollection
 
-class DoujinCollectionDialog: DialogFragment(), CollectionDialogListener {
-
+class CollectionListDialog: DialogFragment(), CollectionDialogListener {
     private val viewmodel: DoujinViewModel by activityViewModels()
 
     companion object {
-        @JvmStatic val DEFAULT_COLLECTION_NAME = "Default Collection"
+        const val DEFAULT_COLLECTION_NAME = "Default Collection"
+        const val NEW_COLLECTION_DIALOG = "NEW_COLLECTION_DIALOG"
     }
 
     private val collectionAdapter: CollectionPickerAdapter = CollectionPickerAdapter(this)
@@ -100,5 +100,12 @@ class DoujinCollectionDialog: DialogFragment(), CollectionDialogListener {
 
     override fun onCollectionUnticked(collection: DoujinCollection) {
         collectionTickStatus.put(collection.name, false)
+    }
+
+    override fun onAddCollectionClicked() {
+        this.dismiss()
+
+        val dialog = NewCollectionDialog()
+        dialog.show(parentFragmentManager, NEW_COLLECTION_DIALOG)
     }
 }

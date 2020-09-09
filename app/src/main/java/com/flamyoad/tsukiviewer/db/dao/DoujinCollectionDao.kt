@@ -22,6 +22,9 @@ interface DoujinCollectionDao {
     @Query("SELECT * FROM doujin_collection")
     fun getAll(): LiveData<List<DoujinCollection>>
 
+    @Query("SELECT EXISTS(SELECT * FROM doujin_collection WHERE name = :name)")
+    fun exists(name: String): LiveData<Boolean>
+
     @Query("SELECT * FROM doujin_collection")
     suspend fun getAllBlocking(): List<DoujinCollection>
 

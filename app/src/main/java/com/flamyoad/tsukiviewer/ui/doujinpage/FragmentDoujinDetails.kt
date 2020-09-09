@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
@@ -12,14 +11,11 @@ import com.bumptech.glide.Glide
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinTagsAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
-import com.flamyoad.tsukiviewer.model.DoujinCollection
 import com.flamyoad.tsukiviewer.model.DoujinDetailsWithTags
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxItemDecoration
 import com.google.android.flexbox.FlexboxLayoutManager
-import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.activity_doujin_details.*
 import kotlinx.android.synthetic.main.doujin_details_tags_group.*
 import java.io.File
 
@@ -128,7 +124,7 @@ class FragmentDoujinDetails : Fragment() {
     }
 
     private fun openCollectionDialog() {
-        val dialog = DoujinCollectionDialog()
+        val dialog = CollectionListDialog()
         dialog.show(childFragmentManager, COLLECTION_DIALOG_TAG)
     }
 

@@ -2,12 +2,8 @@ package com.flamyoad.tsukiviewer.ui.doujinpage
 
 import android.app.Application
 import android.net.Uri
-import android.util.Log
 import androidx.core.net.toUri
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.model.DoujinCollection
 import com.flamyoad.tsukiviewer.model.DoujinDetailsWithTags
 import com.flamyoad.tsukiviewer.repository.CollectionRepository
@@ -34,6 +30,12 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
 
     private val collectionList = MutableLiveData<List<DoujinCollection>>()
     fun collectionList(): LiveData<List<DoujinCollection>> = collectionList
+
+    val newCollectionName = MutableLiveData<String>()
+
+    val collectionNameExists: LiveData<Boolean> = newCollectionName.switchMap { name ->
+        return@switchMap collectionRepo.collectionNameExists(name)
+    }
 
     val snackbarMsg = MutableLiveData<String>("")
 
@@ -113,6 +115,12 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
     fun createDefaultCollection() {
         viewModelScope.launch(Dispatchers.IO) {
             collectionRepo.createDefaultCollection()
+        }
+    }
+
+    fun createCollection(name: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            collectionRepo.insertCollection(DoujinCollection(name))
         }
     }
 }
