@@ -29,7 +29,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         nav_view.setNavigationItemSelectedListener(this)
 
-        switchFragment(LocalDoujinsFragment.newInstance())
+        if (savedInstanceState == null) {
+            switchFragment(LocalDoujinsFragment.newInstance())
+        }
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {

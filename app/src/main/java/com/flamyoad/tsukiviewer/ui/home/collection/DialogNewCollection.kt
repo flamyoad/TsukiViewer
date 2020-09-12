@@ -37,12 +37,13 @@ class DialogNewCollection: DialogFragment() {
         builder.setTitle("Create new collection")
         builder.setView(view)
         builder.setNegativeButton("Return", DialogInterface.OnClickListener { dialogInterface, i ->
-            dialogInterface.dismiss()
+            viewmodel.newCollectionName.value = ""
         })
 
         builder.setPositiveButton("Ok", DialogInterface.OnClickListener { dialogInterface, i ->
             val name = fieldName.text.toString()
             viewmodel.createCollection(name)
+            viewmodel.newCollectionName.value = ""
         })
 
         val dialog = builder.create()

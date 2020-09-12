@@ -54,7 +54,7 @@ class DialogChangeName: DialogFragment() {
         builder.setTitle(oldName)
         builder.setView(view)
         builder.setNegativeButton("Return", DialogInterface.OnClickListener { dialogInterface, i ->
-            dialogInterface.dismiss()
+            viewmodel.newCollectionName.value = ""
         })
 
         builder.setPositiveButton("Ok", DialogInterface.OnClickListener { dialogInterface, i ->
@@ -64,6 +64,7 @@ class DialogChangeName: DialogFragment() {
 
             val newName = fieldName.text.toString()
             viewmodel.changeCollectionName(oldName, newName)
+            viewmodel.newCollectionName.value = ""
         })
 
         val dialog = builder.create()

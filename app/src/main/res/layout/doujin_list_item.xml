@@ -60,5 +60,18 @@
             app:layout_constraintStart_toStartOf="@+id/txtTitleEng"
             app:layout_constraintTop_toBottomOf="@+id/txtTitleEng"
             tools:text="120" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    <ImageView
+        android:id="@+id/multiSelectIndicator"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_gravity="top|right"
+        android:layout_margin="20dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        app:srcCompat="@drawable/ic_check_circle_blue_24dp" />
+
 </FrameLayout>

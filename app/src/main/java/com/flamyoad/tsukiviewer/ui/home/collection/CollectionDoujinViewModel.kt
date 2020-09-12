@@ -29,17 +29,23 @@ class CollectionDoujinViewModel(application: Application) : AndroidViewModel(app
         return@switchMap collectionRepo.collectionNameExists(name)
     }
 
+    val headers: LiveData<List<DoujinCollection>>
+
     val itemsNoHeaders: LiveData<List<CollectionItem>>
 
     init {
+        headers = collectionRepo.getAllCollections()
         itemsNoHeaders = collectionRepo.getAllItems()
     }
 
     fun refreshList() {
         viewModelScope.launch(Dispatchers.IO) {
             val collections = collectionRepo.getAllCollectionsBlocking()
+
+            val list = mutableListOf<CollectionItem>()
+
             for (collection in collections) {
-                postResult(getHeaderItem(collection.name))
+                list.add(getHeaderItem(collection.name))
 
                 val itemsInCollection = collectionRepo.getAllItemsFrom(collection)
 
@@ -51,9 +57,10 @@ class CollectionDoujinViewModel(application: Application) : AndroidViewModel(app
                         absolutePath = item.absolutePath,
                         doujin = getDoujin(item.absolutePath)
                     )
-                    postResult(actualItem)
+                    list.add(actualItem)
                 }
             }
+            itemsWithHeaders.postValue(list)
         }
     }
 
@@ -106,6 +113,12 @@ class CollectionDoujinViewModel(application: Application) : AndroidViewModel(app
 
         viewModelScope.launch(Dispatchers.IO) {
             collectionRepo.deleteCollection(name)
+        }
+    }
+
+    fun deleteItems(items: List<CollectionItem>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            collectionRepo.itemDao.delete(items)
         }
     }
 

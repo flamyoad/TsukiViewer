@@ -3,13 +3,13 @@ package com.flamyoad.tsukiviewer.ui.home.collection
 import android.content.DialogInterface
 import android.os.Bundle
 import android.view.*
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.ActionMode
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
-
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinCollectionAdapter
 import com.flamyoad.tsukiviewer.model.CollectionItem
@@ -17,13 +17,14 @@ import com.flamyoad.tsukiviewer.ui.doujinpage.CollectionListDialog
 import com.flamyoad.tsukiviewer.ui.doujinpage.DialogNewCollection
 import com.flamyoad.tsukiviewer.utils.GridItemDecoration
 import kotlinx.android.synthetic.main.fragment_favourite_doujin.*
-import java.lang.IllegalArgumentException
 
-class CollectionDoujinFragment : Fragment() {
+class CollectionDoujinFragment : Fragment(), ActionMode.Callback, ActionModeListener {
 
     private val viewmodel: CollectionDoujinViewModel by activityViewModels()
 
-    private val adapter: DoujinCollectionAdapter = DoujinCollectionAdapter()
+    private val adapter: DoujinCollectionAdapter = DoujinCollectionAdapter(this)
+
+    private var actionMode: ActionMode? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,12 +46,16 @@ class CollectionDoujinFragment : Fragment() {
 
         registerForContextMenu(listCollectionDoujins)
 
+        viewmodel.headers.observe(viewLifecycleOwner, Observer {
+            viewmodel.refreshList()
+        })
+
         viewmodel.itemsNoHeaders.observe(viewLifecycleOwner, Observer {
             viewmodel.refreshList()
         })
 
         viewmodel.itemsWithHeaders().observe(viewLifecycleOwner, Observer {
-            adapter.setList(it)
+            adapter.submitList(it)
         })
     }
 
@@ -63,7 +68,7 @@ class CollectionDoujinFragment : Fragment() {
 
     private fun initRecyclerView() {
         val gridLayoutManager = GridLayoutManager(requireContext(), 2)
-        gridLayoutManager.spanSizeLookup = object: GridLayoutManager.SpanSizeLookup() {
+        gridLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
             override fun getSpanSize(position: Int): Int {
                 return when (adapter.getItemViewType(position)) {
                     DoujinCollectionAdapter.HEADER_TYPE -> 2
@@ -127,6 +132,84 @@ class CollectionDoujinFragment : Fragment() {
         dialog.show()
     }
 
+    private fun showDeleteDialog(mode: ActionMode?) {
+        val builder = AlertDialog.Builder(requireContext())
+
+        builder.setTitle("Delete ${adapter.getSelectedItemCount()} items?")
+
+        builder.setPositiveButton("Delete", DialogInterface.OnClickListener { dialogInterface, i ->
+            // toList() is required.
+            // This is because the referenced list is cleared automatically in destruction of dialog
+            // If toList() is not called, delete will not work because the list is already empty
+            viewmodel.deleteItems(adapter.selectedItems.toList())
+            mode?.finish()
+        })
+
+        builder.setNegativeButton("Return", DialogInterface.OnClickListener { dialogInterface, i ->
+
+        })
+
+        builder.setItems(
+            adapter.getSelectedItemNames(),
+            DialogInterface.OnClickListener { dialogInterface, i ->
+
+            })
+
+        val dialog = builder.create()
+
+        dialog.listView.setOnItemClickListener { adapterView, view, i, l ->
+            // do nothing. replaces the default listener just to prevent the dialog from closing itself when clicking on one of the items
+        }
+
+        dialog.show()
+    }
+
+    override fun openActionMode() {
+        if (requireActivity() is AppCompatActivity) {
+            val appCompat = requireActivity() as AppCompatActivity
+            actionMode = appCompat.startSupportActionMode(this)
+            adapter.setActionMode(true)
+        }
+    }
+
+    override fun onItemCountChange(count: Int) {
+        if (count == 0) {
+            actionMode?.finish()
+        }
+        actionMode?.setTitle(count.toString())
+        actionMode?.invalidate()
+    }
+
+    override fun onActionItemClicked(
+        mode: ActionMode?,
+        item: MenuItem?
+    ): Boolean {
+        when (item?.itemId) {
+            R.id.action_delete -> showDeleteDialog(mode)
+        }
+        return true
+    }
+
+    override fun onCreateActionMode(
+        mode: ActionMode?,
+        menu: Menu?
+    ): Boolean {
+        requireActivity().menuInflater.inflate(R.menu.menu_contextual_collection, menu)
+        return true
+    }
+
+    override fun onPrepareActionMode(
+        mode: ActionMode?,
+        menu: Menu?
+    ): Boolean {
+        return false
+    }
+
+    override fun onDestroyActionMode(mode: ActionMode?) {
+        actionMode = null
+        adapter.setActionMode(false)
+    }
+
     companion object {
         const val MENU_CHANGE_NAME = "Change Name"
         const val MENU_DELETE_COLLECTION = "Delete Collection"
@@ -138,4 +221,5 @@ class CollectionDoujinFragment : Fragment() {
         fun newInstance() =
             CollectionDoujinFragment()
     }
+
 }

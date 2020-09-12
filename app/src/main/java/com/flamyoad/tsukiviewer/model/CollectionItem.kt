@@ -30,7 +30,9 @@ data class CollectionItem(
 
     @Ignore val doujin: Doujin? = null,
 
-    @Ignore var isCollapsed: Boolean = false)
+    @Ignore var isCollapsed: Boolean = false,
+
+    @Ignore var isSelected: Boolean = false)
 
 {
     constructor(id: Long, absolutePath: File, collectionName: String) : this(
@@ -39,6 +41,7 @@ data class CollectionItem(
         collectionName,
         false,
         null,
+        false,
         false
     )
 }
