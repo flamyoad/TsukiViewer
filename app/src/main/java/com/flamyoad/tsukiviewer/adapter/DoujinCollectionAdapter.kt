@@ -2,7 +2,6 @@ package com.flamyoad.tsukiviewer.adapter
 
 import android.content.Context
 import android.content.Intent
-import android.view.ContextMenu
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,12 +20,11 @@ class DoujinCollectionAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() 
         const val HEADER_TYPE = 0
         const val ITEM_TYPE = 1
         const val EMPTY = 2
-
-        const val MENU_CHANGE_NAME = "Change Name"
-        const val MENU_DELETE_COLLECTION = "Delete Collection"
     }
 
-    private var list: List<CollectionItem> = emptyList()
+    private var list: MutableList<CollectionItem> = mutableListOf()
+
+    private val itemsByHeader = hashMapOf<String, List<CollectionItem>>()
 
     var onLongClickItem: CollectionItem? = null
         private set
@@ -40,13 +38,14 @@ class DoujinCollectionAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() 
                 val holder = HeaderViewHolder(view)
 
                 view.setOnClickListener {
-
+                    val header = list[holder.adapterPosition]
+                    toggleHeader(header, holder.adapterPosition)
                 }
 
                 // https://stackoverflow.com/questions/49234423/full-screen-floating-context-menu-in-android-8-0-api-26
                 view.setOnLongClickListener {
-                    val item = list[holder.adapterPosition]
-                    onLongClickItem = item
+                    val header = list[holder.adapterPosition]
+                    onLongClickItem = header
 
                     it.showContextMenu()
 
@@ -99,7 +98,7 @@ class DoujinCollectionAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() 
     }
 
     fun setList(newList: List<CollectionItem>) {
-        list = newList
+        list = newList.toMutableList()
         notifyDataSetChanged()
     }
 
@@ -114,6 +113,38 @@ class DoujinCollectionAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() 
         intent.putExtra(LocalDoujinsAdapter.DOUJIN_NAME, doujin.title)
 
         context.startActivity(intent)
+    }
+
+    private fun toggleHeader(header: CollectionItem, headerPosition: Int) {
+        when (header.isCollapsed) {
+            true -> show(header.collectionName, headerPosition)
+            false -> collapse(header.collectionName, headerPosition)
+        }
+        header.isCollapsed = !header.isCollapsed
+    }
+
+    private fun collapse(collectionName: String, headerPosition: Int) {
+        val lastItem = list.findLast { item -> item.collectionName == collectionName }
+
+        val lastItemIndex = list.indexOf(lastItem)
+
+        // fromIndex (inclusive) and toIndex (exclusive)
+        val collapsedItems = list.subList(headerPosition + 1, lastItemIndex + 1).toList()
+
+        itemsByHeader.put(collectionName, collapsedItems)
+
+        list.removeAll { item -> !item.isHeader && item.collectionName == collectionName }
+
+        notifyItemRangeRemoved(headerPosition + 1, collapsedItems.size)
+    }
+
+    private fun show(collectionName: String, headerPosition: Int) {
+        val collapsedItems = itemsByHeader[collectionName]
+
+        if (collapsedItems != null) {
+            list.addAll(headerPosition + 1, collapsedItems)
+            notifyItemRangeInserted(headerPosition + 1, collapsedItems.size)
+        }
     }
 
     inner class HeaderViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

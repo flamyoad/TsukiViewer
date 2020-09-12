@@ -10,14 +10,14 @@ import java.io.File
         entity = DoujinCollection::class,
         parentColumns = ["name"],
         childColumns = ["collectionName"],
-        onDelete = ForeignKey.CASCADE
+        onDelete = ForeignKey.CASCADE,
+        onUpdate = ForeignKey.CASCADE
     )]
 )
 @TypeConverters(FolderConverter::class)
 
 data class CollectionItem(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long? = null,
+    @PrimaryKey(autoGenerate = true) val id: Long? = null,
 
     val absolutePath: File,
 
@@ -26,17 +26,19 @@ data class CollectionItem(
     // todo: add this field
     // val dateAdded: Long,
 
-    @Ignore
-    val isHeader: Boolean = false,
+    @Ignore val isHeader: Boolean = false,
 
-    @Ignore
-    val doujin: Doujin? = null
-) {
+    @Ignore val doujin: Doujin? = null,
+
+    @Ignore var isCollapsed: Boolean = false)
+
+{
     constructor(id: Long, absolutePath: File, collectionName: String) : this(
         id,
         absolutePath,
         collectionName,
         false,
-        null
+        null,
+        false
     )
 }

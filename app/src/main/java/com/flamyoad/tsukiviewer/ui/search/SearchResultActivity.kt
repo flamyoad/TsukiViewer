@@ -3,6 +3,7 @@ package com.flamyoad.tsukiviewer.ui.search
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.ProgressBar
 import androidx.lifecycle.Observer
@@ -57,6 +58,13 @@ class SearchResultActivity : AppCompatActivity() {
             }
         })
 
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> finish()
+        }
         return true
     }
 

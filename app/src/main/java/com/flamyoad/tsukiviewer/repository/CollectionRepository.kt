@@ -58,6 +58,18 @@ class CollectionRepository(private val context: Context) {
         return collections
     }
 
+    suspend fun changeCollectionName(oldName: String, newName: String) {
+        collectionDao.changeName(oldName, newName)
+    }
+
+    suspend fun deleteCollection(collection: DoujinCollection) {
+        collectionDao.delete(collection)
+    }
+
+    suspend fun deleteCollection(name: String) {
+        collectionDao.delete(name)
+    }
+
     suspend fun getAllCollectionsBlocking(): List<DoujinCollection> {
         return collectionDao.getAllBlocking()
     }

@@ -112,12 +112,6 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    fun createDefaultCollection() {
-        viewModelScope.launch(Dispatchers.IO) {
-            collectionRepo.createDefaultCollection()
-        }
-    }
-
     fun createCollection(name: String) {
         viewModelScope.launch(Dispatchers.IO) {
             collectionRepo.insertCollection(DoujinCollection(name))

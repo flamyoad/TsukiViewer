@@ -4,7 +4,6 @@ import android.app.Dialog
 import android.content.DialogInterface
 import android.graphics.Point
 import android.os.Bundle
-import android.util.Log
 import android.view.Display
 import android.view.LayoutInflater
 import android.view.Window
@@ -53,7 +52,6 @@ class CollectionListDialog: DialogFragment(), CollectionDialogListener {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        viewmodel.createDefaultCollection()
 
         viewmodel.initCollectionList()
 
@@ -105,7 +103,7 @@ class CollectionListDialog: DialogFragment(), CollectionDialogListener {
     override fun onAddCollectionClicked() {
         this.dismiss()
 
-        val dialog = NewCollectionDialog()
+        val dialog = DialogNewCollection()
         dialog.show(parentFragmentManager, NEW_COLLECTION_DIALOG)
     }
 }

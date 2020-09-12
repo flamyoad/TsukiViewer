@@ -2,12 +2,10 @@ package com.flamyoad.tsukiviewer.ui.home.collection
 
 import android.app.Application
 import androidx.core.net.toUri
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.model.CollectionItem
 import com.flamyoad.tsukiviewer.model.Doujin
+import com.flamyoad.tsukiviewer.model.DoujinCollection
 import com.flamyoad.tsukiviewer.repository.CollectionRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -24,6 +22,12 @@ class CollectionDoujinViewModel(application: Application) : AndroidViewModel(app
     private val itemsWithHeaders = MutableLiveData<List<CollectionItem>>()
 
     fun itemsWithHeaders(): LiveData<List<CollectionItem>> = itemsWithHeaders
+
+    val newCollectionName = MutableLiveData<String>()
+
+    val collectionNameExists: LiveData<Boolean> = newCollectionName.switchMap { name ->
+        return@switchMap collectionRepo.collectionNameExists(name)
+    }
 
     val itemsNoHeaders: LiveData<List<CollectionItem>>
 
@@ -81,6 +85,28 @@ class CollectionDoujinViewModel(application: Application) : AndroidViewModel(app
         val doujin = Doujin(coverImage, title, numberOfImages, lastModified, currentDir)
 
         return doujin
+    }
+
+    fun createCollection(name: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            collectionRepo.insertCollection(DoujinCollection(name))
+        }
+    }
+
+    fun changeCollectionName(oldName: String, newName: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            collectionRepo.changeCollectionName(oldName, newName)
+        }
+    }
+
+    fun deleteCollection(name: String) {
+        if (name.isBlank()) {
+            return
+        }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            collectionRepo.deleteCollection(name)
+        }
     }
 
 }

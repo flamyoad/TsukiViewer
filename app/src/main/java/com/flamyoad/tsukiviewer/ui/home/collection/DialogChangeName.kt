@@ -1,4 +1,4 @@
-package com.flamyoad.tsukiviewer.ui.doujinpage
+package com.flamyoad.tsukiviewer.ui.home.collection
 
 import android.app.Dialog
 import android.content.DialogInterface
@@ -13,13 +13,30 @@ import com.flamyoad.tsukiviewer.R
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 
-class NewCollectionDialog: DialogFragment() {
-    private val viewmodel: DoujinViewModel by activityViewModels()
+class DialogChangeName: DialogFragment() {
+
+    companion object {
+        const val COLLECTION_NAME = "collection_name"
+
+        fun newInstance(name: String): DialogChangeName {
+            val bundle = Bundle()
+            bundle.putString(COLLECTION_NAME, name)
+
+            val dialog = DialogChangeName()
+            dialog.arguments = bundle
+
+            return dialog
+        }
+    }
+
+    private val viewmodel: CollectionDoujinViewModel by activityViewModels()
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val oldName = requireArguments().getString(COLLECTION_NAME)
+
         val builder = AlertDialog.Builder(requireContext())
 
-        val view = layoutInflater.inflate(R.layout.dialog_add_collection,null , false)
+        val view = layoutInflater.inflate(R.layout.dialog_add_collection, null, false)
 
         val fieldName: TextInputEditText = view.findViewById(R.id.fieldName)
         val fieldLayout: TextInputLayout = view.findViewById(R.id.fieldNameLayout)
@@ -34,15 +51,19 @@ class NewCollectionDialog: DialogFragment() {
             }
         })
 
-        builder.setTitle("Create new collection")
+        builder.setTitle(oldName)
         builder.setView(view)
         builder.setNegativeButton("Return", DialogInterface.OnClickListener { dialogInterface, i ->
             dialogInterface.dismiss()
         })
 
         builder.setPositiveButton("Ok", DialogInterface.OnClickListener { dialogInterface, i ->
-            val name = fieldName.text.toString()
-            viewmodel.createCollection(name)
+            if (oldName.isNullOrBlank()) {
+                return@OnClickListener
+            }
+
+            val newName = fieldName.text.toString()
+            viewmodel.changeCollectionName(oldName, newName)
         })
 
         val dialog = builder.create()

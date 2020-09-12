@@ -19,6 +19,15 @@ interface DoujinCollectionDao {
     @Delete
     suspend fun delete(collection: DoujinCollection)
 
+    @Query("DELETE FROM doujin_collection WHERE name = :collectionName")
+    suspend fun delete(collectionName: String)
+
+    @Query("""
+        UPDATE doujin_collection 
+        SET name = :newName 
+        WHERE name = :oldName""")
+    suspend fun changeName(oldName: String, newName: String)
+
     @Query("SELECT * FROM doujin_collection")
     fun getAll(): LiveData<List<DoujinCollection>>
 
