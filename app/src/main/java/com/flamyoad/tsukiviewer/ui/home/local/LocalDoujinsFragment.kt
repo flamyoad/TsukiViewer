@@ -84,7 +84,6 @@ class LocalDoujinsFragment : BaseFragment() {
                 openSearchActivity()
             }
 
-            // TODO: SET PROGRESS INDICATOR
             R.id.action_sync -> {
                 if (shouldShowSyncDialog()) {
                     openSyncAlertDialog()

@@ -6,15 +6,13 @@ import android.content.Intent
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.repository.MetadataRepository
 import com.flamyoad.tsukiviewer.ui.fetcher.FetcherStatusActivity
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.io.File
 import java.util.*
 
@@ -26,7 +24,7 @@ class FetchMetadataService : Service() {
 
     private val ACTION_CLOSE = "action_close"
 
-    private val ioScope = CoroutineScope(Dispatchers.IO)
+    private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     private var job: Job = Job()
 
@@ -46,7 +44,9 @@ class FetchMetadataService : Service() {
                 metadataRepo = MetadataRepository(context)
             }
 
-            notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            if (notificationManager == null) {
+                notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            }
 
             val startIntent = Intent(context, FetchMetadataService::class.java)
 
@@ -61,6 +61,10 @@ class FetchMetadataService : Service() {
                 metadataRepo = MetadataRepository(context)
             }
 
+            if (notificationManager == null) {
+                notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            }
+
             ContextCompat.startForegroundService(context, startIntent)
         }
 
@@ -73,15 +77,19 @@ class FetchMetadataService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.let {
             if (it.action == ACTION_CLOSE) {
-                stopForeground(true)
+                Log.d("fetchService", "ACTION_CLOSE intent is received")
+                stopForeground(false)
                 stopSelf()
             }
         }
 
         val doujinPath = intent?.getStringExtra(DOUJIN_PATH) ?: ""
+
         val doujinDir = File(doujinPath)
 
-        fetchSingleMetadata(doujinDir)
+        if (doujinPath.isNotBlank()) {
+            fetchSingleMetadata(doujinDir)
+        }
 
         createNotificationChannel()
 
@@ -111,13 +119,14 @@ class FetchMetadataService : Service() {
     }
 
     private fun fetchSingleMetadata(dir: File) {
-        job = ioScope.launch {
+        createNotification(dir.name)
+
+        job = coroutineScope.launch {
             metadataRepo?.fetchMetadata(dir)
+            // delay() is not same as Thread.sleep() wtf
         }
 
         job.invokeOnCompletion {
-            createNotification(dir.name)
-
             if (!ongoingQueue && queue.isEmpty()) {
                 stopForeground(true)
                 stopSelf()
@@ -162,7 +171,7 @@ class FetchMetadataService : Service() {
             .setContentTitle("Fetching metadata")
             .setContentText(text)
             .setOnlyAlertOnce(true) // So when data is updated don't make sound and alert in android 8.0+
-            .setOngoing(true) // Ongoing notifications cannot be dismissed by the user
+//            .setOngoing(true) // Ongoing notifications cannot be dismissed by the user
             .setSmallIcon(R.drawable.ic_android_black_24dp)
             .setContentIntent(pendingIntent)
             .addAction(R.drawable.ic_close_gray_24dp, "Stop", stopPendingIntent)
@@ -175,7 +184,7 @@ class FetchMetadataService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        job.cancel()
+        coroutineScope.cancel()
     }
 
     inner class FetchBinder: Binder() {

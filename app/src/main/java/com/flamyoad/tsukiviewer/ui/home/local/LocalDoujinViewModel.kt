@@ -3,6 +3,7 @@ package com.flamyoad.tsukiviewer.ui.home.local
 import android.app.Application
 import android.content.*
 import android.os.IBinder
+import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -141,6 +142,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
             }
 
             override fun onServiceDisconnected(className: ComponentName?) {
+                Log.d("fetchService", "onServiceDisconnected() is called")
                 fetchService = null
             }
         }

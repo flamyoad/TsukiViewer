@@ -61,7 +61,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 if (fragmentTag != LocalDoujinsFragment.APPBAR_TITLE) {
                     val fragment = LocalDoujinsFragment.newInstance()
                     addFragment(fragment, fragment.getTitle())
-                    setTitle(fragment.getTitle())
                 }
             }
 
@@ -69,7 +68,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 if (fragmentTag != OnlineDoujinFragment.APPBAR_TITLE) {
                     val fragment = OnlineDoujinFragment.newInstance()
                     pushFragment(fragment, fragment.getTitle())
-                    setTitle(fragment.getTitle())
                 }
             }
 
@@ -77,7 +75,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 if (fragmentTag != CollectionDoujinFragment.APPBAR_TITLE) {
                     val fragment = CollectionDoujinFragment.newInstance()
                     pushFragment(fragment, fragment.getTitle())
-                    setTitle(fragment.getTitle())
                 }
             }
 
@@ -99,6 +96,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             .replace(R.id.container, fragment, tagName)
             .addToBackStack("stack")
             .commit()
+
+        setTitle(tagName)
     }
 
     // Adds fragment without pushing to backstack
@@ -106,6 +105,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         supportFragmentManager.beginTransaction()
             .replace(R.id.container, fragment, tagName)
             .commit()
+
+        setTitle(tagName)
     }
 
     override fun onBackPressed() {
@@ -114,6 +115,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             supportFragmentManager.popBackStack(first.id, FragmentManager.POP_BACK_STACK_INCLUSIVE)
 
             setTitle(LocalDoujinsFragment.APPBAR_TITLE)
+            nav_view.setCheckedItem(R.id.nav_localdoujins)
         }
     }
 }
