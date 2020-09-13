@@ -87,6 +87,8 @@ class MetadataRepository(private val context: Context) {
             } else {
                 Log.d("retrofit", "Can't find this sauce in NH.net")
             }
+
+            delay(1000)
         }
     }
 
@@ -103,7 +105,6 @@ class MetadataRepository(private val context: Context) {
         return itemsFetched
     }
 
-    // Test the edge case where user moves the directory after details scanned into DB
     private suspend fun storeMetadata(metadata: Metadata, dir: File) {
         // Api might return a list of duplicate results. We only want the first one
         val item = metadata.result.first()

@@ -140,7 +140,7 @@ class CollectionDoujinFragment : Fragment(), ActionMode.Callback, ActionModeList
         builder.setPositiveButton("Delete", DialogInterface.OnClickListener { dialogInterface, i ->
             // toList() is required.
             // This is because the referenced list is cleared automatically in destruction of dialog
-            // If toList() is not called, delete will not work because the list is already empty
+            // If toList() is not called, delete will not work because the referenced list is already empty
             viewmodel.deleteItems(adapter.selectedItems.toList())
             mode?.finish()
         })
@@ -158,7 +158,8 @@ class CollectionDoujinFragment : Fragment(), ActionMode.Callback, ActionModeList
         val dialog = builder.create()
 
         dialog.listView.setOnItemClickListener { adapterView, view, i, l ->
-            // do nothing. replaces the default listener just to prevent the dialog from closing itself when clicking on one of the items
+            // Does nothing. Replaces the default listener just to prevent
+            // the dialog from closing itself when clicking on one of the items
         }
 
         dialog.show()
@@ -210,12 +211,18 @@ class CollectionDoujinFragment : Fragment(), ActionMode.Callback, ActionModeList
         adapter.setActionMode(false)
     }
 
+    fun getAppbarTitle(): String {
+        return APPBAR_TITLE
+    }
+
     companion object {
         const val MENU_CHANGE_NAME = "Change Name"
         const val MENU_DELETE_COLLECTION = "Delete Collection"
 
         const val CHANGE_NAME_DIALOG = "change_name_dialog"
         const val DELETE_COLLECTION_DIALOG = "delete_collection_dialog"
+
+        const val APPBAR_TITLE = "Collections"
 
         @JvmStatic
         fun newInstance() =

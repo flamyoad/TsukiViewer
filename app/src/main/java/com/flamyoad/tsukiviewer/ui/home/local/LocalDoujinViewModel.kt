@@ -1,7 +1,8 @@
 package com.flamyoad.tsukiviewer.ui.home.local
 
 import android.app.Application
-import android.content.ContentResolver
+import android.content.*
+import android.os.IBinder
 import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -9,6 +10,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.model.Doujin
+import com.flamyoad.tsukiviewer.network.FetchMetadataService
 import com.flamyoad.tsukiviewer.repository.MetadataRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -22,7 +24,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 
     private val contentResolver: ContentResolver
 
-    private val tempDoujins = mutableListOf<Doujin>()
+    private var tempDoujins = mutableListOf<Doujin>()
 
     private var doujinList = MutableLiveData<MutableList<Doujin>>()
 
@@ -32,6 +34,8 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 
     private val imageExtensions = arrayOf("jpg", "png", "gif", "jpeg", "webp", "jpe", "bmp")
 
+    private var fetchService: FetchMetadataService? = null
+
     fun doujinList(): LiveData<MutableList<Doujin>> = doujinList
 
     fun isSyncing(): LiveData<Boolean> = isSyncing
@@ -40,14 +44,17 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 
     init {
         contentResolver = app.contentResolver
+        initDoujinList()
     }
 
-    fun initDoujinList() {
+    private fun initDoujinList() {
         val fullList = (app as MyApplication).fullDoujinList
 
         if (fullList != null) {
+//            tempDoujins = fullList
             doujinList.value = fullList
         } else {
+            tempDoujins.clear()
             fetchDoujinsFromDir()
         }
     }
@@ -56,10 +63,12 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
         withContext(Dispatchers.Main) {
             tempDoujins.add(doujin)
             doujinList.value = tempDoujins
+
+            fetchService?.enqueue(doujin.path)
         }
     }
 
-    fun fetchDoujinsFromDir() {
+    private fun fetchDoujinsFromDir() {
         viewModelScope.launch {
             isSyncing.value = true
 
@@ -72,6 +81,8 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 
             (app as MyApplication).fullDoujinList = tempDoujins
             isSyncing.value = false
+
+            fetchService?.ongoingQueue = false
         }
     }
 
@@ -113,6 +124,34 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 
             toastText.value = "Sync done for $amountFetched $noun"
         }
+    }
+
+    fun fetchMetadataAll() {
+        val context = app.applicationContext
+        FetchMetadataService.startService(context)
+
+        val connection = object: ServiceConnection {
+            override fun onServiceConnected(className: ComponentName?, service: IBinder?) {
+                fetchService = (service as FetchMetadataService.FetchBinder).getService()
+
+                val dirs = tempDoujins.map { doujin -> doujin.path }
+
+                fetchService?.enqueue(dirs)
+                fetchService?.startFetching()
+            }
+
+            override fun onServiceDisconnected(className: ComponentName?) {
+                fetchService = null
+            }
+        }
+
+        val bindIntent = Intent(context, FetchMetadataService::class.java)
+        context.bindService(bindIntent, connection, Context.BIND_AUTO_CREATE)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        fetchService = null
     }
 
 }

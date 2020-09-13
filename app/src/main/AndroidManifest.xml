@@ -16,9 +16,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ui.editor.EditorActivity"></activity>
+        <activity android:name=".ui.fetcher.FetcherStatusActivity"></activity>
+        <activity android:name=".ui.editor.EditorActivity" />
 
-        <service android:name=".network.FetchMetadataService"></service>
+        <service android:name=".network.FetchMetadataService" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

@@ -2,11 +2,13 @@ package com.flamyoad.tsukiviewer
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.MenuItem
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import com.flamyoad.tsukiviewer.ui.home.collection.CollectionDoujinFragment
 import com.flamyoad.tsukiviewer.ui.home.local.LocalDoujinsFragment
 import com.flamyoad.tsukiviewer.ui.home.online.OnlineDoujinFragment
@@ -23,32 +25,60 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         setSupportActionBar(toolbar)
 
         val toggle = ActionBarDrawerToggle(
-            this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
+            this,
+            drawerLayout,
+            toolbar,
+            R.string.navigation_drawer_open,
+            R.string.navigation_drawer_close
+        )
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
 
         nav_view.setNavigationItemSelectedListener(this)
 
+        Log.d("localdoujins", "MainActivity's onCreate() is called")
+
         if (savedInstanceState == null) {
-            switchFragment(LocalDoujinsFragment.newInstance())
+            addFragment(LocalDoujinsFragment.newInstance(), LocalDoujinsFragment.APPBAR_TITLE)
+            Log.d("localdoujins", "switchFragment(LocalDoujinsFragment.newInstance())")
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        val fragmentTag = supportFragmentManager
+            .findFragmentById(R.id.container)?.tag ?: ""
+
+        setTitle(fragmentTag)
+    }
+
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        val fragmentTag = supportFragmentManager
+            .findFragmentById(R.id.container)?.tag ?: ""
+
         when (item.itemId) {
             R.id.nav_localdoujins -> {
-                switchFragment(LocalDoujinsFragment.newInstance())
-                setTitle("Local Storage")
+                if (fragmentTag != LocalDoujinsFragment.APPBAR_TITLE) {
+                    val fragment = LocalDoujinsFragment.newInstance()
+                    addFragment(fragment, fragment.getAppbarTitle())
+                    setTitle(fragment.getAppbarTitle())
+                }
             }
 
             R.id.nav_online -> {
-                switchFragment(OnlineDoujinFragment.newInstance())
-                setTitle("Online")
+                if (fragmentTag != OnlineDoujinFragment.APPBAR_TITLE) {
+                    val fragment = OnlineDoujinFragment.newInstance()
+                    pushFragment(fragment, fragment.getAppbarTitle())
+                    setTitle(fragment.getAppbarTitle())
+                }
             }
 
             R.id.nav_favourites -> {
-                switchFragment(CollectionDoujinFragment.newInstance())
-                setTitle("Favourites")
+                if (fragmentTag != CollectionDoujinFragment.APPBAR_TITLE) {
+                    val fragment = CollectionDoujinFragment.newInstance()
+                    pushFragment(fragment, fragment.getAppbarTitle())
+                    setTitle(fragment.getAppbarTitle())
+                }
             }
 
             R.id.nav_settings -> {
@@ -64,9 +94,24 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         return true
     }
 
-    private fun switchFragment(fragment: Fragment) {
+    private fun pushFragment(fragment: Fragment, tagName: String) {
         supportFragmentManager.beginTransaction()
-            .replace(R.id.container, fragment)
+            .replace(R.id.container, fragment, tagName)
+            .addToBackStack("stack")
             .commit()
+    }
+
+    // Adds fragment without pushing to backstack
+    private fun addFragment(fragment: Fragment, tagName: String) {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.container, fragment, tagName)
+            .commit()
+    }
+
+    override fun onBackPressed() {
+        if (supportFragmentManager.backStackEntryCount > 0) {
+            val first = supportFragmentManager.getBackStackEntryAt(0)
+            supportFragmentManager.popBackStack(first.id, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+        }
     }
 }

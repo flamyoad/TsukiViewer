@@ -3,6 +3,7 @@ package com.flamyoad.tsukiviewer.ui.home.local
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.widget.CheckBox
 import android.widget.ProgressBar
@@ -11,15 +12,12 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
-
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.ui.search.SearchActivity
 import com.flamyoad.tsukiviewer.utils.GridItemDecoration
 import kotlinx.android.synthetic.main.fragment_local_doujins.*
-import kotlinx.coroutines.launch
 
 class LocalDoujinsFragment : Fragment() {
 
@@ -90,10 +88,7 @@ class LocalDoujinsFragment : Fragment() {
                 if (shouldShowSyncDialog()) {
                     openSyncAlertDialog()
                 } else {
-//                    syncProgressBar.visibility = View.VISIBLE
-                    lifecycleScope.launch {
-                        viewmodel.fetchMetadataAll(adapter.getDirectoryList)
-                    }
+                    viewmodel.fetchMetadataAll()
                 }
             }
         }
@@ -112,8 +107,6 @@ class LocalDoujinsFragment : Fragment() {
                 toast.show()
             }
         })
-
-        viewmodel.initDoujinList()
     }
 
     private fun openSyncAlertDialog() {
@@ -129,20 +122,11 @@ class LocalDoujinsFragment : Fragment() {
                 val showDialogAgain = !(checkbox.isChecked)
                 storeSyncDialogPreference(showDialogAgain)
 
-                this@LocalDoujinsFragment.lifecycleScope.launch {
-                    viewmodel.fetchMetadataAll(adapter.getDirectoryList)
-                }
-
-                dialogInterface.dismiss()
+                viewmodel.fetchMetadataAll()
             }
             .setNegativeButton("Back") { dialogInterface: DialogInterface, i: Int ->
                 val showDialogAgain = !(checkbox.isChecked)
                 storeSyncDialogPreference(showDialogAgain)
-
-                dialogInterface.dismiss()
-            }
-            .setOnDismissListener {
-
             }
 
         val dialog = builder.create()
@@ -187,11 +171,17 @@ class LocalDoujinsFragment : Fragment() {
         startActivity(intent)
     }
 
+    fun getAppbarTitle(): String {
+        return APPBAR_TITLE
+    }
+
     companion object {
         @JvmStatic
         fun newInstance(): LocalDoujinsFragment {
             return LocalDoujinsFragment()
         }
+
+        const val APPBAR_TITLE = "Local Storage"
     }
 
 }

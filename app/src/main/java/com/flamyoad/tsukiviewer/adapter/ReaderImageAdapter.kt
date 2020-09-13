@@ -3,6 +3,7 @@ package com.flamyoad.tsukiviewer.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.core.net.toUri
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -37,7 +38,7 @@ class ReaderImageAdapter : RecyclerView.Adapter<ReaderImageAdapter.ImageViewHold
     }
 
     inner class ImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val photoView: PhotoView = itemView.findViewById(R.id.photoView)
+        private val photoView: ImageView = itemView.findViewById(R.id.photoView)
 
         fun bind(file: File) {
             Glide.with(itemView)

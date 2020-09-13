@@ -21,9 +21,15 @@ class OnlineDoujinFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_online_doujin, container, false)
     }
 
+    fun getAppbarTitle(): String {
+        return APPBAR_TITLE
+    }
+
     companion object {
         @JvmStatic
         fun newInstance() =
             OnlineDoujinFragment()
+
+        const val APPBAR_TITLE = "Online"
     }
 }

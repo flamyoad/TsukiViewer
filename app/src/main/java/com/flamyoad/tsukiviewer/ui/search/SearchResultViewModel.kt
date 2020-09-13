@@ -263,6 +263,10 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
     fun File.toDoujin(): Doujin {
         val imageList = this.listFiles(ImageFileFilter())
 
+        if (imageList == null) {
+            Log.d("fucknull", this.absolutePath)
+        }
+
         val doujin = Doujin(
             pic = imageList.first().toUri(),
             title = this.name,
