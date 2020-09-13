@@ -5,13 +5,14 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.flamyoad.tsukiviewer.BaseFragment
 
 import com.flamyoad.tsukiviewer.R
 
 /**
  * A simple [Fragment] subclass.
  */
-class OnlineDoujinFragment : Fragment() {
+class OnlineDoujinFragment : BaseFragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -21,7 +22,7 @@ class OnlineDoujinFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_online_doujin, container, false)
     }
 
-    fun getAppbarTitle(): String {
+    override fun getTitle(): String {
         return APPBAR_TITLE
     }
 

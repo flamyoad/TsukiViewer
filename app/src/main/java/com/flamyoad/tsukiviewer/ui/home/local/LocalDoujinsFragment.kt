@@ -13,13 +13,14 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
+import com.flamyoad.tsukiviewer.BaseFragment
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.ui.search.SearchActivity
 import com.flamyoad.tsukiviewer.utils.GridItemDecoration
 import kotlinx.android.synthetic.main.fragment_local_doujins.*
 
-class LocalDoujinsFragment : Fragment() {
+class LocalDoujinsFragment : BaseFragment() {
 
     private val viewmodel: LocalDoujinViewModel by activityViewModels()
 
@@ -171,7 +172,7 @@ class LocalDoujinsFragment : Fragment() {
         startActivity(intent)
     }
 
-    fun getAppbarTitle(): String {
+    override fun getTitle(): String {
         return APPBAR_TITLE
     }
 

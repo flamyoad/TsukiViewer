@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
+import com.flamyoad.tsukiviewer.BaseFragment
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinCollectionAdapter
 import com.flamyoad.tsukiviewer.model.CollectionItem
@@ -18,7 +19,7 @@ import com.flamyoad.tsukiviewer.ui.doujinpage.DialogNewCollection
 import com.flamyoad.tsukiviewer.utils.GridItemDecoration
 import kotlinx.android.synthetic.main.fragment_favourite_doujin.*
 
-class CollectionDoujinFragment : Fragment(), ActionMode.Callback, ActionModeListener {
+class CollectionDoujinFragment : BaseFragment(), ActionMode.Callback, ActionModeListener {
 
     private val viewmodel: CollectionDoujinViewModel by activityViewModels()
 
@@ -211,7 +212,7 @@ class CollectionDoujinFragment : Fragment(), ActionMode.Callback, ActionModeList
         adapter.setActionMode(false)
     }
 
-    fun getAppbarTitle(): String {
+    override fun getTitle(): String {
         return APPBAR_TITLE
     }
 

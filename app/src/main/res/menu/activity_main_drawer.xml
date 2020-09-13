@@ -15,7 +15,7 @@
         <item
             android:id="@+id/nav_favourites"
             android:icon="@drawable/ic_favorite_gray_24dp"
-            android:title="Favourites"/>
+            android:title="Collections"/>
         <item
             android:id="@+id/nav_settings"
             android:icon="@drawable/ic_settings_gray_24dp"

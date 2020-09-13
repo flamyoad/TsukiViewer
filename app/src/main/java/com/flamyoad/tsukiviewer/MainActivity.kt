@@ -60,24 +60,24 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_localdoujins -> {
                 if (fragmentTag != LocalDoujinsFragment.APPBAR_TITLE) {
                     val fragment = LocalDoujinsFragment.newInstance()
-                    addFragment(fragment, fragment.getAppbarTitle())
-                    setTitle(fragment.getAppbarTitle())
+                    addFragment(fragment, fragment.getTitle())
+                    setTitle(fragment.getTitle())
                 }
             }
 
             R.id.nav_online -> {
                 if (fragmentTag != OnlineDoujinFragment.APPBAR_TITLE) {
                     val fragment = OnlineDoujinFragment.newInstance()
-                    pushFragment(fragment, fragment.getAppbarTitle())
-                    setTitle(fragment.getAppbarTitle())
+                    pushFragment(fragment, fragment.getTitle())
+                    setTitle(fragment.getTitle())
                 }
             }
 
             R.id.nav_favourites -> {
                 if (fragmentTag != CollectionDoujinFragment.APPBAR_TITLE) {
                     val fragment = CollectionDoujinFragment.newInstance()
-                    pushFragment(fragment, fragment.getAppbarTitle())
-                    setTitle(fragment.getAppbarTitle())
+                    pushFragment(fragment, fragment.getTitle())
+                    setTitle(fragment.getTitle())
                 }
             }
 
@@ -112,6 +112,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         if (supportFragmentManager.backStackEntryCount > 0) {
             val first = supportFragmentManager.getBackStackEntryAt(0)
             supportFragmentManager.popBackStack(first.id, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+
+            setTitle(LocalDoujinsFragment.APPBAR_TITLE)
         }
     }
 }
