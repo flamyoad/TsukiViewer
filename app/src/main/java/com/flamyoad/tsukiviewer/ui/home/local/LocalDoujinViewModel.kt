@@ -25,7 +25,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 
     private val contentResolver: ContentResolver
 
-    private var tempDoujins = mutableListOf<Doujin>()
+    private var doujinListBuffer = mutableListOf<Doujin>()
 
     private var doujinList = MutableLiveData<MutableList<Doujin>>()
 
@@ -55,15 +55,15 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 //            tempDoujins = fullList
             doujinList.value = fullList
         } else {
-            tempDoujins.clear()
+            doujinListBuffer.clear()
             fetchDoujinsFromDir()
         }
     }
 
     private suspend fun setResult(doujin: Doujin) {
         withContext(Dispatchers.Main) {
-            tempDoujins.add(doujin)
-            doujinList.value = tempDoujins
+            doujinListBuffer.add(doujin)
+            doujinList.value = doujinListBuffer
 
             fetchService?.enqueue(doujin.path)
         }
@@ -80,7 +80,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
                 }
             }
 
-            (app as MyApplication).fullDoujinList = tempDoujins
+            (app as MyApplication).fullDoujinList = doujinListBuffer
             isSyncing.value = false
 
             fetchService?.ongoingQueue = false
@@ -131,14 +131,20 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
         val context = app.applicationContext
         FetchMetadataService.startService(context)
 
-        val connection = object: ServiceConnection {
+        val connection = object : ServiceConnection {
             override fun onServiceConnected(className: ComponentName?, service: IBinder?) {
                 fetchService = (service as FetchMetadataService.FetchBinder).getService()
 
-                val dirs = tempDoujins.map { doujin -> doujin.path }
+                val temp = doujinListBuffer
 
-                fetchService?.enqueue(dirs)
-                fetchService?.startFetching()
+                viewModelScope.launch(Dispatchers.Default) {
+                    val dirs = temp.map { doujin -> doujin.path }
+
+                    withContext(Dispatchers.Main) {
+                        fetchService?.enqueue(dirs)
+                        fetchService?.startFetching()
+                    }
+                }
             }
 
             override fun onServiceDisconnected(className: ComponentName?) {

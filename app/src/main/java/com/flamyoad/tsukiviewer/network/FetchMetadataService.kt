@@ -39,7 +39,8 @@ class FetchMetadataService : Service() {
         private var metadataRepo: MetadataRepository? = null
         private var notificationManager: NotificationManager? = null
 
-        fun startService(context: Context) {
+        // Not thread safe apparently.
+        fun initComponents(context: Context) {
             if (metadataRepo == null) {
                 metadataRepo = MetadataRepository(context)
             }
@@ -47,6 +48,10 @@ class FetchMetadataService : Service() {
             if (notificationManager == null) {
                 notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             }
+        }
+
+        fun startService(context: Context) {
+            initComponents(context)
 
             val startIntent = Intent(context, FetchMetadataService::class.java)
 
@@ -57,13 +62,7 @@ class FetchMetadataService : Service() {
             val startIntent = Intent(context, FetchMetadataService::class.java)
             startIntent.putExtra(DOUJIN_PATH, dirPath)
 
-            if (metadataRepo == null) {
-                metadataRepo = MetadataRepository(context)
-            }
-
-            if (notificationManager == null) {
-                notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            }
+            initComponents(context)
 
             ContextCompat.startForegroundService(context, startIntent)
         }
@@ -167,11 +166,12 @@ class FetchMetadataService : Service() {
         stopIntent.action = ACTION_CLOSE
 
         val stopPendingIntent = PendingIntent.getService(this, 0, stopIntent, PendingIntent.FLAG_CANCEL_CURRENT)
+
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Fetching metadata")
             .setContentText(text)
             .setOnlyAlertOnce(true) // So when data is updated don't make sound and alert in android 8.0+
-//            .setOngoing(true) // Ongoing notifications cannot be dismissed by the user
+            .setOngoing(true) // Ongoing notifications cannot be dismissed by the user
             .setSmallIcon(R.drawable.ic_android_black_24dp)
             .setContentIntent(pendingIntent)
             .addAction(R.drawable.ic_close_gray_24dp, "Stop", stopPendingIntent)

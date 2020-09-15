@@ -17,6 +17,7 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.BottomThumbnailAdapter
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter
 import com.flamyoad.tsukiviewer.adapter.ReaderImageAdapter
+import com.flamyoad.tsukiviewer.utils.FastPagerSnapHelper
 import kotlinx.android.synthetic.main.activity_reader.*
 import java.io.File
 
@@ -66,7 +67,7 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
 
         val linearLayoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
 
-        val snapHelper = PagerSnapHelper()
+        val snapHelper = FastPagerSnapHelper(listImages)
 
         listImages.adapter = readerAdapter
         listImages.layoutManager = linearLayoutManager
