@@ -11,15 +11,22 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.ui.search.SearchActivity
 import com.flamyoad.tsukiviewer.ui.search.SearchResultActivity
+import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
 import kotlinx.android.synthetic.main.doujin_tags_item.view.*
 
-class DoujinTagsAdapter: RecyclerView.Adapter<DoujinTagsAdapter.DoujinTagHolder>() {
+class DoujinTagsAdapter(private val useLargerView: Boolean):
+    RecyclerView.Adapter<DoujinTagsAdapter.DoujinTagHolder>(), FastScrollRecyclerView.SectionedAdapter {
 
     private var tagList: List<Tag> = emptyList()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DoujinTagHolder {
+        val layoutId = when (useLargerView) {
+            true -> R.layout.doujin_tags_item_larger
+            false -> R.layout.doujin_tags_item
+        }
+
         val layout = LayoutInflater.from(parent.context)
-            .inflate(R.layout.doujin_tags_item, parent, false)
+            .inflate(layoutId, parent, false)
 
         val holder = DoujinTagHolder(layout)
 
@@ -58,5 +65,10 @@ class DoujinTagsAdapter: RecyclerView.Adapter<DoujinTagsAdapter.DoujinTagHolder>
             txtName.text = tag.name
             txtCount.text = tag.count.toString()
         }
+    }
+
+    override fun getSectionName(position: Int): String {
+        val item = tagList[position]
+        return item.name.first().toString()
     }
 }

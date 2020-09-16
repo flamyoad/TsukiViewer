@@ -37,6 +37,8 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 
     private var fetchService: FetchMetadataService? = null
 
+    private var serviceConnection: ServiceConnection? = null
+
     fun doujinList(): LiveData<MutableList<Doujin>> = doujinList
 
     fun isSyncing(): LiveData<Boolean> = isSyncing
@@ -52,7 +54,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
         val fullList = (app as MyApplication).fullDoujinList
 
         if (fullList != null) {
-//            tempDoujins = fullList
+//            doujinListBuffer = fullList
             doujinList.value = fullList
         } else {
             doujinListBuffer.clear()
@@ -65,7 +67,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
             doujinListBuffer.add(doujin)
             doujinList.value = doujinListBuffer
 
-            fetchService?.enqueue(doujin.path)
+            fetchService?.enqueue(doujin.path, onlyOneItem = false)
         }
     }
 
@@ -127,18 +129,21 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
         }
     }
 
+    // Todo: check which method inside is blocking UI thread
     fun fetchMetadataAll() {
         val context = app.applicationContext
         FetchMetadataService.startService(context)
 
-        val connection = object : ServiceConnection {
+        serviceConnection = object : ServiceConnection {
             override fun onServiceConnected(className: ComponentName?, service: IBinder?) {
                 fetchService = (service as FetchMetadataService.FetchBinder).getService()
 
-                val temp = doujinListBuffer
+//                java.util.ConcurrentModificationException
+//                at java.util.ArrayList$Itr.next(ArrayList.java:831)
+                val tempList = doujinListBuffer.toMutableList()
 
                 viewModelScope.launch(Dispatchers.Default) {
-                    val dirs = temp.map { doujin -> doujin.path }
+                    val dirs = tempList.map { doujin -> doujin.path }
 
                     withContext(Dispatchers.Main) {
                         fetchService?.enqueue(dirs)
@@ -154,12 +159,14 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
         }
 
         val bindIntent = Intent(context, FetchMetadataService::class.java)
-        context.bindService(bindIntent, connection, Context.BIND_AUTO_CREATE)
+        context.bindService(bindIntent, serviceConnection!!, Context.BIND_AUTO_CREATE)
     }
 
     override fun onCleared() {
         super.onCleared()
-        fetchService = null
+        if (serviceConnection != null) {
+            app.unbindService(serviceConnection)
+        }
     }
 
 }

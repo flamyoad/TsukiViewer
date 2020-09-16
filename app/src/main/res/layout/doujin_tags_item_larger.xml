@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?><!--<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--    xmlns:tools="http://schemas.android.com/tools"-->
+<!--    android:layout_width="wrap_content"-->
+<!--    android:layout_height="wrap_content"-->
+<!--    android:minHeight="@dimen/tag_group_min_height"-->
+<!--    android:orientation="horizontal">-->
+
+<!--    <TextView-->
+<!--        android:id="@+id/txtName"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:background="@drawable/doujin_tag_left_part"-->
+<!--        android:gravity="center_vertical"-->
+<!--        android:maxLines="2"-->
+<!--        android:paddingHorizontal="4dp"-->
+<!--        android:paddingVertical="4dp"-->
+<!--        android:textColor="#C7C1BE"-->
+<!--        android:textSize="16sp"-->
+<!--        android:textStyle="bold"-->
+<!--        tools:text="sole female" />-->
+
+<!--    <TextView-->
+<!--        android:id="@+id/txtCount"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:background="@drawable/doujin_tag_right_part"-->
+<!--        android:gravity="center_vertical"-->
+<!--        android:maxLines="2"-->
+<!--        android:minWidth="24dp"-->
+<!--        android:paddingHorizontal="4dp"-->
+<!--        android:paddingVertical="4dp"-->
+<!--        android:textColor="#808080"-->
+<!--        android:textSize="14sp"-->
+<!--        tools:text="30" />-->
+
+<!--</LinearLayout>-->
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clickable="true"
+    android:foreground="?android:selectableItemBackground"
+    android:minHeight="@dimen/tag_group_min_height"
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginVertical="4dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="8dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="8dp">
+
+        <TextView
+            android:id="@+id/txtName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:textColor="@color/mainTextColor"
+            app:layout_constraintEnd_toStartOf="@+id/imageView4"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:lines="1"
+            android:ellipsize="end"
+            tools:text="sole female" />
+
+        <TextView
+            android:id="@+id/txtCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="30dp"
+            android:textColor="@color/subTextColor"
+            app:layout_constraintBottom_toBottomOf="@+id/txtName"
+            app:layout_constraintTop_toTopOf="@+id/txtName"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="30" />
+
+        <ImageView
+            android:id="@+id/imageView4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintBottom_toBottomOf="@+id/txtCount"
+            app:layout_constraintEnd_toStartOf="@+id/txtCount"
+            app:layout_constraintTop_toTopOf="@+id/txtCount"
+            app:srcCompat="@drawable/ic_library_books_gray_24dp" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</androidx.cardview.widget.CardView>

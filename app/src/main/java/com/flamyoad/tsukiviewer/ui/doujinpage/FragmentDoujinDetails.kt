@@ -91,7 +91,7 @@ class FragmentDoujinDetails : Fragment() {
         for (i in listofTagGroups.indices) {
             val group = listofTagGroups[i]
 
-            val adapter = DoujinTagsAdapter()
+            val adapter = DoujinTagsAdapter(useLargerView = false)
             adapter.setList(group)
 
             val flexLayoutManager = FlexboxLayoutManager(context, FlexDirection.ROW)

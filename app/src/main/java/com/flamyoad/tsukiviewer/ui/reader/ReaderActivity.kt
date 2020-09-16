@@ -67,11 +67,13 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
 
         val linearLayoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
 
-        val snapHelper = FastPagerSnapHelper(listImages)
+        val snapHelper = PagerSnapHelper()
 
         listImages.adapter = readerAdapter
         listImages.layoutManager = linearLayoutManager
+        listImages.setHasFixedSize(true)
         snapHelper.attachToRecyclerView(listImages)
+
 
         viewmodel.imageList().observe(this, Observer {
             readerAdapter.setList(it)

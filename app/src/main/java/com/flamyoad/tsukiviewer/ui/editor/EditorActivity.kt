@@ -10,7 +10,6 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
-import com.flamyoad.tsukiviewer.model.EditorHistoryItem
 import com.flamyoad.tsukiviewer.model.Tag
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.chip.Chip
@@ -21,18 +20,18 @@ class EditorActivity : AppCompatActivity(), CreateTagListener {
 
     private val BACKMOST_POSITION = -1
 
-    private lateinit var viewmodel: EditorViewModel
+    private lateinit var viewModel: EditorViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_editor)
 
-        viewmodel = ViewModelProvider(this).get(EditorViewModel::class.java)
+        viewModel = ViewModelProvider(this).get(EditorViewModel::class.java)
 
         initToolbar()
         initTagGroups()
 
-        viewmodel.hasCompletedSaving().observe(this, Observer { hasCompleted ->
+        viewModel.hasCompletedSaving().observe(this, Observer { hasCompleted ->
             if (hasCompleted) {
                 Toast.makeText(this, "Data is saved", Toast.LENGTH_SHORT).show()
                 finish()
@@ -59,7 +58,7 @@ class EditorActivity : AppCompatActivity(), CreateTagListener {
             }
 
             R.id.action_save_edits -> {
-                viewmodel.save()
+                viewModel.save()
             }
         }
         return true
@@ -79,33 +78,33 @@ class EditorActivity : AppCompatActivity(), CreateTagListener {
     private fun initTagGroups() {
         val dirPath = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
 
-        viewmodel.retrieveDoujinTags(dirPath)
+        viewModel.retrieveDoujinTags(dirPath)
 
-        viewmodel.parody.observe(this, Observer {
+        viewModel.parody.observe(this, Observer {
             listParodies.setTagList("parody", it)
         })
 
-        viewmodel.character.observe(this, Observer {
+        viewModel.character.observe(this, Observer {
             listCharacters.setTagList("character", it)
         })
 
-        viewmodel.tags.observe(this, Observer {
+        viewModel.tags.observe(this, Observer {
             listTags.setTagList("tag", it)
         })
 
-        viewmodel.artist.observe(this, Observer {
+        viewModel.artist.observe(this, Observer {
             listArtists.setTagList("artist", it)
         })
 
-        viewmodel.group.observe(this, Observer {
+        viewModel.group.observe(this, Observer {
             listGroups.setTagList("group", it)
         })
 
-        viewmodel.language.observe(this, Observer {
+        viewModel.language.observe(this, Observer {
             listLanguages.setTagList("language", it)
         })
 
-        viewmodel.category.observe(this, Observer {
+        viewModel.category.observe(this, Observer {
             listCategories.setTagList("category", it)
         })
     }
@@ -144,7 +143,7 @@ class EditorActivity : AppCompatActivity(), CreateTagListener {
         }
 
         chip.setOnCloseIconClickListener {
-            viewmodel.removeTag(tag.name, tag.type)
+            viewModel.removeTag(tag.name, tag.type)
         }
     }
 
@@ -158,11 +157,11 @@ class EditorActivity : AppCompatActivity(), CreateTagListener {
     }
 
     private fun popUndoStack() {
-        viewmodel.popUndo()
+        viewModel.popUndo()
     }
 
     override fun onTagCreated(name: String, category: String) {
-        viewmodel.addTag(name, category)
+        viewModel.addTag(name, category)
         dismissNewTagDialog()
     }
 
@@ -170,7 +169,7 @@ class EditorActivity : AppCompatActivity(), CreateTagListener {
         val bottomSheetDialog = TagBottomSheetDialog()
         bottomSheetDialog.show(supportFragmentManager, "tag_dialog")
 
-        viewmodel.retrieveTagsByCategory(category)
+        viewModel.retrieveTagsByCategory(category)
     }
 
     private fun dismissNewTagDialog() {

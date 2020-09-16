@@ -9,22 +9,25 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.repository.MetadataRepository
 import com.flamyoad.tsukiviewer.ui.fetcher.FetcherStatusActivity
 import kotlinx.coroutines.*
 import java.io.File
 import java.util.*
+import java.util.concurrent.Executors
+
+private const val CHANNEL_ID = "FetchMetadataService"
+private const val NOTIFICATION_ID = 1234567880
+private const val ACTION_CLOSE = "action_close"
 
 class FetchMetadataService : Service() {
 
-    private val CHANNEL_ID = "FetchMetadataService"
+    private val executor = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 
-    private val NOTIFICATION_ID = 1234567880
-
-    private val ACTION_CLOSE = "action_close"
-
-    private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    private val coroutineScope = CoroutineScope(executor)
 
     private var job: Job = Job()
 
@@ -34,12 +37,23 @@ class FetchMetadataService : Service() {
 
     var ongoingQueue: Boolean = false
 
+    var onlyFetchingOneItem: Boolean = false
+
+    private val itemHistory: MutableLiveData<MutableList<File>> = MutableLiveData(mutableListOf())
+
+    fun itemHistory(): LiveData<MutableList<File>> = itemHistory
+
+    private val currentItem: MutableLiveData<File> = MutableLiveData()
+
+    fun currentItem(): LiveData<File> = currentItem
+
+    private var notificationBuilder: NotificationCompat.Builder? = null
+
     companion object {
         private val DOUJIN_PATH = "doujin_path"
         private var metadataRepo: MetadataRepository? = null
         private var notificationManager: NotificationManager? = null
 
-        // Not thread safe apparently.
         fun initComponents(context: Context) {
             if (metadataRepo == null) {
                 metadataRepo = MetadataRepository(context)
@@ -77,25 +91,22 @@ class FetchMetadataService : Service() {
         intent?.let {
             if (it.action == ACTION_CLOSE) {
                 Log.d("fetchService", "ACTION_CLOSE intent is received")
-                stopForeground(false)
+                stopForeground(true)
                 stopSelf()
+
+            } else {
+                val doujinPath = it.getStringExtra(DOUJIN_PATH) ?: ""
+                val doujinDir = File(doujinPath)
+
+                if (doujinPath.isNotBlank()) {
+                    fetchSingleMetadata(doujinDir)
+                }
+
+                createNotificationChannel()
+                val notification = createNotification(doujinDir.name)
+                startForeground(NOTIFICATION_ID, notification)
             }
         }
-
-        val doujinPath = intent?.getStringExtra(DOUJIN_PATH) ?: ""
-
-        val doujinDir = File(doujinPath)
-
-        if (doujinPath.isNotBlank()) {
-            fetchSingleMetadata(doujinDir)
-        }
-
-        createNotificationChannel()
-
-        val notification = createNotification(doujinDir.name)
-
-        startForeground(NOTIFICATION_ID, notification)
-
         return START_NOT_STICKY
     }
 
@@ -103,37 +114,44 @@ class FetchMetadataService : Service() {
         return binder
     }
 
-    fun startFetching() {
-        fetchMultipleMetadata()
-    }
-
-    fun enqueue(file: File) {
+    fun enqueue(file: File, onlyOneItem: Boolean) {
         queue.add(file)
-        fetchMultipleMetadata()
+
+        val temp = itemHistory.value
+        temp?.add(file)
+        itemHistory.value = temp
+
+        startFetching()
     }
 
     fun enqueue(files: List<File>) {
         queue.addAll(files)
-        fetchMultipleMetadata()
+
+        val temp = itemHistory.value
+        temp?.addAll(files)
+        itemHistory.value = temp
+
+        startFetching()
     }
 
     private fun fetchSingleMetadata(dir: File) {
-        createNotification(dir.name)
+        Log.d("fetchService", "fetchSingleMetadata() is called")
+        currentItem.value = dir
 
         job = coroutineScope.launch {
             metadataRepo?.fetchMetadata(dir)
-            // delay() is not same as Thread.sleep() wtf
+            // delay() is not same as Thread.sleep()
         }
 
         job.invokeOnCompletion {
             if (!ongoingQueue && queue.isEmpty()) {
-                stopForeground(true)
+                stopForeground(false)
                 stopSelf()
             }
         }
     }
 
-    private fun fetchMultipleMetadata() {
+    fun startFetching() {
         while (queue.isNotEmpty()) {
             val dir = queue.poll()
             if (dir != null) {
@@ -158,33 +176,49 @@ class FetchMetadataService : Service() {
     }
 
     private fun createNotification(text: String): Notification {
-        val startActivityIntent = Intent(this, FetcherStatusActivity::class.java)
+        // First time building the notification. Initialize all necessary things
+        if (notificationBuilder == null) {
+            notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
+            val startActivityIntent = Intent(this, FetcherStatusActivity::class.java)
 
-        val pendingIntent = PendingIntent.getActivity(this, 0, startActivityIntent, 0)
+            val pendingIntent = PendingIntent.getActivity(this, 0, startActivityIntent, 0)
 
-        val stopIntent = Intent(this, FetchMetadataService::class.java)
-        stopIntent.action = ACTION_CLOSE
+            val stopIntent = Intent(this, FetchMetadataService::class.java)
+            stopIntent.action = ACTION_CLOSE
 
-        val stopPendingIntent = PendingIntent.getService(this, 0, stopIntent, PendingIntent.FLAG_CANCEL_CURRENT)
+            val stopPendingIntent = PendingIntent.getService(this, 0, stopIntent, PendingIntent.FLAG_CANCEL_CURRENT)
 
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Fetching metadata")
-            .setContentText(text)
-            .setOnlyAlertOnce(true) // So when data is updated don't make sound and alert in android 8.0+
-            .setOngoing(true) // Ongoing notifications cannot be dismissed by the user
-            .setSmallIcon(R.drawable.ic_android_black_24dp)
-            .setContentIntent(pendingIntent)
-            .addAction(R.drawable.ic_close_gray_24dp, "Stop", stopPendingIntent)
-            .build()
+            notificationBuilder!!
+                .setContentTitle("Fetching metadata")
+//                .setContentText(text)
+                .setOnlyAlertOnce(true) // So when data is updated don't make sound and alert in android 8.0+
+                .setOngoing(true) // Ongoing notifications cannot be dismissed by the user
+                .setSmallIcon(R.drawable.ic_android_black_24dp)
+                .setContentIntent(pendingIntent)
+                .addAction(R.drawable.ic_close_gray_24dp, "Stop", stopPendingIntent)
+
+        } else {
+            // Second time. Just modify the content text of the builder
+//            notificationBuilder!!.setContentText(text)
+        }
+
+        val notification = notificationBuilder!!.build()
 
         notificationManager?.notify(NOTIFICATION_ID, notification)
 
         return notification
     }
 
+    private fun clearData() {
+        queue.clear()
+        itemHistory.value?.clear()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
+        Log.d("fetchService", "onDestroy() is called")
         coroutineScope.cancel()
+        executor.close()
     }
 
     inner class FetchBinder: Binder() {

@@ -3,13 +3,11 @@ package com.flamyoad.tsukiviewer.ui.home.local
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import android.widget.CheckBox
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
@@ -22,7 +20,7 @@ import kotlinx.android.synthetic.main.fragment_local_doujins.*
 
 class LocalDoujinsFragment : BaseFragment() {
 
-    private val viewmodel: LocalDoujinViewModel by activityViewModels()
+    private val viewModel: LocalDoujinViewModel by activityViewModels()
 
     private lateinit var adapter: LocalDoujinsAdapter
 
@@ -52,7 +50,7 @@ class LocalDoujinsFragment : BaseFragment() {
         syncProgressBar = view.findViewById(R.id.progressBarSync)
         syncProgressBar.visibility = View.GONE
 
-        viewmodel.isSyncing().observe(viewLifecycleOwner, Observer { stillSynchronizing ->
+        viewModel.isSyncing().observe(viewLifecycleOwner, Observer { stillSynchronizing ->
             if (stillSynchronizing) {
                 syncProgressBar.visibility = View.VISIBLE
             } else {
@@ -88,7 +86,7 @@ class LocalDoujinsFragment : BaseFragment() {
                 if (shouldShowSyncDialog()) {
                     openSyncAlertDialog()
                 } else {
-                    viewmodel.fetchMetadataAll()
+                    viewModel.fetchMetadataAll()
                 }
             }
         }
@@ -101,7 +99,7 @@ class LocalDoujinsFragment : BaseFragment() {
         initRecyclerView()
         toast = Toast.makeText(context, "", Toast.LENGTH_LONG)
 
-        viewmodel.toastText().observe(viewLifecycleOwner, Observer {
+        viewModel.toastText().observe(viewLifecycleOwner, Observer {
             if (it != null) {
                 toast.setText(it)
                 toast.show()
@@ -122,7 +120,7 @@ class LocalDoujinsFragment : BaseFragment() {
                 val showDialogAgain = !(checkbox.isChecked)
                 storeSyncDialogPreference(showDialogAgain)
 
-                viewmodel.fetchMetadataAll()
+                viewModel.fetchMetadataAll()
             }
             .setNegativeButton("Back") { dialogInterface: DialogInterface, i: Int ->
                 val showDialogAgain = !(checkbox.isChecked)
@@ -161,7 +159,7 @@ class LocalDoujinsFragment : BaseFragment() {
 
         listLocalDoujins.setHasFixedSize(true)
 
-        viewmodel.doujinList().observe(viewLifecycleOwner, Observer { newList ->
+        viewModel.doujinList().observe(viewLifecycleOwner, Observer { newList ->
             adapter.setList(newList)
         })
     }

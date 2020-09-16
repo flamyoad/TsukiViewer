@@ -19,26 +19,26 @@ import kotlinx.android.synthetic.main.activity_doujin_details.*
 
 class DoujinDetailsActivity : AppCompatActivity() {
 
-    private lateinit var viewmodel: DoujinViewModel
+    private lateinit var viewModel: DoujinViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_doujin_details)
 
-        viewmodel = ViewModelProvider(this).get(DoujinViewModel::class.java)
+        viewModel = ViewModelProvider(this).get(DoujinViewModel::class.java)
 
         handleIntent()
         initTabLayout()
         initToolbar()
 
-        viewmodel.snackbarMsg.observe(this, Observer { msg ->
+        viewModel.snackbarMsg.observe(this, Observer { msg ->
             if (msg.isNullOrBlank()) {
                 return@Observer
             }
 
             Snackbar.make(rootView, msg, Snackbar.LENGTH_LONG)
                 .show()
-            viewmodel.snackbarMsg.value = ""
+            viewModel.snackbarMsg.value = ""
         })
     }
 
@@ -73,7 +73,7 @@ class DoujinDetailsActivity : AppCompatActivity() {
 
     private fun handleIntent() {
         val dirPath = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
-        viewmodel.scanForImages(dirPath)
+        viewModel.scanForImages(dirPath)
     }
 
     private fun initTabLayout() {
@@ -87,7 +87,7 @@ class DoujinDetailsActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowHomeEnabled(true)
 
-        viewmodel.detailWithTags.observe(this, Observer {
+        viewModel.detailWithTags.observe(this, Observer {
             if (it != null) {
                 supportActionBar?.title = it.doujinDetails.shortTitleEnglish
             } else {
@@ -97,7 +97,7 @@ class DoujinDetailsActivity : AppCompatActivity() {
     }
 
     private fun syncMetadata() {
-        if (viewmodel.detailsNotExists()) {
+        if (viewModel.detailsNotExists()) {
             val dirPath = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
             FetchMetadataService.startService(this, dirPath)
         } else {
@@ -111,7 +111,7 @@ class DoujinDetailsActivity : AppCompatActivity() {
             .setMessage("Previous tags that have been added manually will be erased. Continue?")
             .setPositiveButton("Yes", DialogInterface.OnClickListener { dialogInterface, i ->
                 // Update tags in DB
-                viewmodel.resetTags()
+                viewModel.resetTags()
                 dialogInterface.dismiss()
             })
             .setNegativeButton("Cancel", DialogInterface.OnClickListener { dialogInterface, i ->

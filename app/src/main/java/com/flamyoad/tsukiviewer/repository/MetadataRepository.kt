@@ -88,7 +88,6 @@ class MetadataRepository(private val context: Context) {
                 Log.d("retrofit", "Can't find this sauce in NH.net")
             }
 
-            delay(1000)
         }
     }
 

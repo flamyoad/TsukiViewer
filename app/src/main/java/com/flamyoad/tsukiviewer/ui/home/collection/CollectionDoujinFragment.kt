@@ -6,7 +6,6 @@ import android.view.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
@@ -118,16 +117,16 @@ class CollectionDoujinFragment : BaseFragment(), ActionMode.Callback, ActionMode
     private fun openDeleteCollectionDialog(item: CollectionItem) {
         val builder = AlertDialog.Builder(requireContext())
 
-        builder.setTitle(item.collectionName)
-        builder.setMessage("Are you sure you want to delete this collection? Existing items will be lost")
+        builder.apply {
+            setTitle(item.collectionName)
+            setMessage("Are you sure you want to delete this collection? Existing items will be lost")
+            setPositiveButton("Delete", DialogInterface.OnClickListener { dialogInterface, i ->
+                viewmodel.deleteCollection(item.collectionName)
+            })
+            setNegativeButton("Return", DialogInterface.OnClickListener { dialogInterface, i ->
 
-        builder.setPositiveButton("Delete", DialogInterface.OnClickListener { dialogInterface, i ->
-            viewmodel.deleteCollection(item.collectionName)
-        })
-
-        builder.setNegativeButton("Return", DialogInterface.OnClickListener { dialogInterface, i ->
-
-        })
+            })
+        }
 
         val dialog = builder.create()
         dialog.show()
@@ -136,25 +135,24 @@ class CollectionDoujinFragment : BaseFragment(), ActionMode.Callback, ActionMode
     private fun showDeleteDialog(mode: ActionMode?) {
         val builder = AlertDialog.Builder(requireContext())
 
-        builder.setTitle("Delete ${adapter.getSelectedItemCount()} items?")
-
-        builder.setPositiveButton("Delete", DialogInterface.OnClickListener { dialogInterface, i ->
-            // toList() is required.
-            // This is because the referenced list is cleared automatically in destruction of dialog
-            // If toList() is not called, delete will not work because the referenced list is already empty
-            viewmodel.deleteItems(adapter.selectedItems.toList())
-            mode?.finish()
-        })
-
-        builder.setNegativeButton("Return", DialogInterface.OnClickListener { dialogInterface, i ->
-
-        })
-
-        builder.setItems(
-            adapter.getSelectedItemNames(),
-            DialogInterface.OnClickListener { dialogInterface, i ->
+        builder.apply {
+            setTitle("Delete ${adapter.getSelectedItemCount()} items?")
+            setPositiveButton("Delete", DialogInterface.OnClickListener { dialog, which ->
+                // toList() is required.
+                // This is because the referenced list is cleared automatically in destruction of dialog
+                // If toList() is not called, delete will not work because the referenced list is already empty
+                viewmodel.deleteItems(adapter.selectedItems.toList())
+                mode?.finish()
+            })
+            setNegativeButton("Return", DialogInterface.OnClickListener { dialogInterface, i ->
 
             })
+            setItems(
+                adapter.getSelectedItemNames(),
+                DialogInterface.OnClickListener { dialogInterface, i ->
+
+                })
+        }
 
         val dialog = builder.create()
 

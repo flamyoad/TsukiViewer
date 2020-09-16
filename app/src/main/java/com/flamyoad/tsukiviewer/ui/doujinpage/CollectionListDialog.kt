@@ -19,7 +19,7 @@ import com.flamyoad.tsukiviewer.adapter.CollectionPickerAdapter
 import com.flamyoad.tsukiviewer.model.DoujinCollection
 
 class CollectionListDialog: DialogFragment(), CollectionDialogListener {
-    private val viewmodel: DoujinViewModel by activityViewModels()
+    private val viewModel: DoujinViewModel by activityViewModels()
 
     companion object {
         const val DEFAULT_COLLECTION_NAME = "Default Collection"
@@ -53,16 +53,16 @@ class CollectionListDialog: DialogFragment(), CollectionDialogListener {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        viewmodel.initCollectionList()
+        viewModel.initCollectionList()
 
-        viewmodel.collectionList().observe(this, Observer {
+        viewModel.collectionList().observe(this, Observer {
             collectionAdapter.setList(it)
         })
 
         setRecyclerviewSize()
 
         btnSave.setOnClickListener {
-            viewmodel.insertItemIntoTickedCollections(collectionTickStatus)
+            viewModel.insertItemIntoTickedCollections(collectionTickStatus)
             this.dismiss()
         }
 
