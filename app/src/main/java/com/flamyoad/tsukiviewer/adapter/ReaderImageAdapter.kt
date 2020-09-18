@@ -7,12 +7,15 @@ import android.widget.ImageView
 import androidx.core.net.toUri
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.ListPreloader.*
+import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.flamyoad.tsukiviewer.R
 import com.github.chrisbanes.photoview.PhotoView
 import java.io.File
 
-class ReaderImageAdapter : RecyclerView.Adapter<ReaderImageAdapter.ImageViewHolder>() {
+class ReaderImageAdapter
+    : RecyclerView.Adapter<ReaderImageAdapter.ImageViewHolder>() {
 
     private var imageList: List<File> = emptyList()
 

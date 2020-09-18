@@ -90,8 +90,11 @@ class LocalDoujinsFragment : BaseFragment() {
                 }
             }
         }
-
         return true
+    }
+
+    override fun onResume() {
+        super.onResume()
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
