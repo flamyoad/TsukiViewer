@@ -18,9 +18,11 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
 
     fun imageList(): LiveData<List<File>> = imageList
 
-    var totalImageCount: Int = -1
-        private set
+//    var totalImageCount: Int = -1
+//        private set
+    private val totalImageCount = MutableLiveData<Int>(-1)
 
+    fun totalImageCount(): LiveData<Int> = totalImageCount
 
     var currentPath: String = ""
 
@@ -41,8 +43,8 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
                     .sortedWith(naturalSort)
 
                 withContext(Dispatchers.Main) {
+                    totalImageCount.value = fetchedImages.size
                     imageList.value = fetchedImages
-                    totalImageCount = fetchedImages.size
                 }
             }
         }

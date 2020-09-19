@@ -84,6 +84,9 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
         viewmodel.imageList().observe(this, Observer {
             imageAdapter.setList(it)
             viewpager.currentItem = imagePositionInList
+        })
+
+        viewmodel.totalImageCount().observe(this, Observer {
             setPageIndicatorNumber(1)
         })
     }
@@ -101,7 +104,6 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
 
         viewmodel.imageList().observe(this, Observer {
             adapter.setList(it)
-
             linearLayoutManager.scrollToPosition(imagePositionInList)
         })
     }
@@ -134,7 +136,7 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
     }
 
     private fun setPageIndicatorNumber(number: Int) {
-        val pageNumber = "Page: ${number} / ${viewmodel.totalImageCount}"
+        val pageNumber = "Page: ${number} / ${viewmodel.totalImageCount().value}"
         txtCurrentPageNumber.text = pageNumber
     }
 
