@@ -79,7 +79,7 @@ class FragmentGridImages : Fragment() {
         setupRecyclerview(dirPath, ItemType.Row, ROW_ITEM_COUNT)
     }
 
-    private fun setupRecyclerview(dirPath: String, type: DoujinImagesAdapter.ItemType, spanCount: Int) {
+    private fun setupRecyclerview(dirPath: String, type: ItemType, spanCount: Int) {
         adapter = DoujinImagesAdapter(type, dirPath)
 
         val gridLayoutManager = GridLayoutManager(context, spanCount)
@@ -87,8 +87,11 @@ class FragmentGridImages : Fragment() {
         listImages.adapter = adapter
         listImages.layoutManager = gridLayoutManager
 
-        // Clears previous item decoration added.
-        // Otherwise, the decors stack on top of other. 1dp will become 2dp, 2 dp will become 3dp and so on...
+        /*
+           Since this method is called each time the view type is changed,
+           We have to clear the item decorations added previously.
+           Otherwise, the decors stack on top of other. 1dp will become 2dp, 2 dp will become 3dp and so on...
+         */
         while (listImages.itemDecorationCount > 0) {
             listImages.removeItemDecorationAt(0)
         }

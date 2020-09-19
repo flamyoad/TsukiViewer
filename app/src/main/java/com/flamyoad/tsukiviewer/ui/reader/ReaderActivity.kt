@@ -84,6 +84,7 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
         viewmodel.imageList().observe(this, Observer {
             imageAdapter.setList(it)
             viewpager.currentItem = imagePositionInList
+            setPageIndicatorNumber(1)
         })
     }
 
@@ -112,8 +113,6 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
     }
 
     private fun initPageIndicator() {
-        setPageIndicatorNumber(1)
-
         viewpager.addOnPageChangeListener(object: ViewPager.SimpleOnPageChangeListener() {
             override fun onPageScrollStateChanged(state: Int) {
                 if (state == SCROLL_STATE_DRAGGING) {
