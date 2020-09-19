@@ -5,7 +5,11 @@ import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 class ReaderViewModel(application: Application) : AndroidViewModel(application) {
@@ -26,11 +30,23 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
         }
 
         val dir = File(dirPath)
-        val fetchedImages = dir.listFiles(ImageFileFilter()).sorted()
 
-        imageList.value = fetchedImages
+        viewModelScope.launch {
+            withContext(Dispatchers.Default) {
+                val naturalSort =
+                    compareBy<File> { it.name.length } // If you don't first compare by length, it won't work
+                        .then(naturalOrder())
 
-        totalImageCount = fetchedImages.size
+                val fetchedImages = dir.listFiles(ImageFileFilter())
+                    .sortedWith(naturalSort)
+
+                withContext(Dispatchers.Main) {
+                    imageList.value = fetchedImages
+                    totalImageCount = fetchedImages.size
+                }
+            }
+        }
+
     }
 
 }

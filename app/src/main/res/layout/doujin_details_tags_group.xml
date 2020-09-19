@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingBottom="32dp">
+    android:paddingBottom="32dp"
+    >
 
     <ImageView
         android:id="@+id/imgBackground"
@@ -35,8 +36,7 @@
         app:layout_constraintBottom_toBottomOf="@+id/imgCover"
         app:layout_constraintEnd_toEndOf="@+id/imgBackground"
         app:layout_constraintStart_toEndOf="@+id/imgCover"
-        app:layout_constraintTop_toTopOf="parent"
-        >
+        app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"

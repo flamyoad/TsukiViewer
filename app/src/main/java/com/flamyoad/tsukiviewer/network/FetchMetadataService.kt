@@ -17,7 +17,6 @@ import com.flamyoad.tsukiviewer.ui.fetcher.FetcherStatusActivity
 import kotlinx.coroutines.*
 import java.io.File
 import java.util.*
-import java.util.concurrent.Executors
 
 private const val CHANNEL_ID = "FetchMetadataService"
 private const val NOTIFICATION_ID = 1234567880
@@ -25,11 +24,12 @@ private const val ACTION_CLOSE = "action_close"
 
 class FetchMetadataService : Service() {
 
-    private val executor = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+//    private val executor = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 
-    private val coroutineScope = CoroutineScope(executor)
+    private val supervisorJob = SupervisorJob()
 
-    private var job: Job = Job()
+    //    private val coroutineScope = CoroutineScope(executor + supervisorJob)
+    private val coroutineScope = CoroutineScope(Dispatchers.IO + supervisorJob)
 
     private val binder = FetchBinder()
 
@@ -60,7 +60,8 @@ class FetchMetadataService : Service() {
             }
 
             if (notificationManager == null) {
-                notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                notificationManager =
+                    context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             }
         }
 
@@ -99,7 +100,9 @@ class FetchMetadataService : Service() {
                 val doujinDir = File(doujinPath)
 
                 if (doujinPath.isNotBlank()) {
-                    fetchSingleMetadata(doujinDir)
+                    coroutineScope.launch {
+                        fetchSingleMetadata(doujinDir)
+                    }
                 }
 
                 createNotificationChannel()
@@ -135,12 +138,8 @@ class FetchMetadataService : Service() {
     }
 
     private fun fetchSingleMetadata(dir: File) {
-        Log.d("fetchService", "fetchSingleMetadata() is called")
-        currentItem.value = dir
-
-        job = coroutineScope.launch {
+        val job = coroutineScope.launch {
             metadataRepo?.fetchMetadata(dir)
-            // delay() is not same as Thread.sleep()
         }
 
         job.invokeOnCompletion {
@@ -155,7 +154,9 @@ class FetchMetadataService : Service() {
         while (queue.isNotEmpty()) {
             val dir = queue.poll()
             if (dir != null) {
+                currentItem.value = dir
                 fetchSingleMetadata(dir)
+
             }
         }
     }
@@ -186,7 +187,8 @@ class FetchMetadataService : Service() {
             val stopIntent = Intent(this, FetchMetadataService::class.java)
             stopIntent.action = ACTION_CLOSE
 
-            val stopPendingIntent = PendingIntent.getService(this, 0, stopIntent, PendingIntent.FLAG_CANCEL_CURRENT)
+            val stopPendingIntent =
+                PendingIntent.getService(this, 0, stopIntent, PendingIntent.FLAG_CANCEL_CURRENT)
 
             notificationBuilder!!
                 .setContentTitle("Fetching metadata")
@@ -218,10 +220,10 @@ class FetchMetadataService : Service() {
         super.onDestroy()
         Log.d("fetchService", "onDestroy() is called")
         coroutineScope.cancel()
-        executor.close()
+//        executor.close()
     }
 
-    inner class FetchBinder: Binder() {
+    inner class FetchBinder : Binder() {
         fun getService(): FetchMetadataService {
             return this@FetchMetadataService
         }

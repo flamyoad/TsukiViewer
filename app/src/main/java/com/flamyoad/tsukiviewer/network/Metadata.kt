@@ -17,9 +17,21 @@ data class Result(
 
 data class Title (
 
+    /* Example of JSON which contains null japanese field
+
+    {"id":"328067",
+    "media_id":"1728054",
+    "title":{
+        "english":"[The Jinshan] Sadistic Beauty | \u8650\u7f8e\u4eba Ch.52-53 [Chinese] [\u6c92\u6709\u6f22\u5316][Ongoing]",
+        "japanese":null,
+        "pretty":"Sadistic Beauty}
+        . . . . . .
+    }
+
+     */
     @SerializedName("english") val english : String,
-    @SerializedName("japanese") val japanese : String,
-    @SerializedName("pretty") val pretty : String
+    @SerializedName("japanese") val japanese : String?, // This field might be null in JSON returned
+    @SerializedName("pretty") val pretty : String? // Haven't encountered nulls in this field. But it might
 )
 
 data class Tags(

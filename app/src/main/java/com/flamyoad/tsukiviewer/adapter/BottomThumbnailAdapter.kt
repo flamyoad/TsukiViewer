@@ -51,7 +51,7 @@ class BottomThumbnailAdapter(private val listener: OnItemClickListener)
         fun bind(file: File, adapterPosition: Int) {
             Glide.with(itemView)
                 .load(file.toUri())
-                .sizeMultiplier(0.75f)
+//                .sizeMultiplier(0.75f)
                 .into(imageView)
 
             txtPageNumber.text = adapterPosition.toString()

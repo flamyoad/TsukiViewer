@@ -24,7 +24,7 @@ class FetcherStatusActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        setContentView(R.layout.activity_fetcher_status)
+        setContentView(R.layout.activity_fetcher_status)
 
         doBindService()
     }

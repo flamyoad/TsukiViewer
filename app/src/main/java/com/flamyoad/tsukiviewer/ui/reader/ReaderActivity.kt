@@ -106,7 +106,6 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
     }
 
     private fun hideStatusBar() {
-        // Hides the status bar
         window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
 
         supportActionBar?.hide()
@@ -124,7 +123,7 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
 
             override fun onPageSelected(position: Int) {
                 setPageIndicatorNumber(position + 1)
-                
+
                 val thumbnailLayoutManager = bottomListThumbnails.layoutManager as LinearLayoutManager
                 thumbnailLayoutManager.scrollToPosition(position)
             }

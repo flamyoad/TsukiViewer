@@ -16,6 +16,7 @@ import com.flamyoad.tsukiviewer.network.NHService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import okhttp3.Dispatcher
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -48,7 +49,12 @@ class MetadataRepository(private val context: Context) {
     }
 
     private fun initializeNetwork() {
-        // Nhentai API refuses the requests if the user agent is not attached. Hence the OkHTTPInterceptor
+        // Nhentai API refuses the requests if the user agent is not attached.
+
+        val dispatcher = Dispatcher().apply {
+            maxRequests = 3
+        }
+
         val httpClient: OkHttpClient = OkHttpClient.Builder()
             .addInterceptor(object : Interceptor {
                 override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
@@ -60,7 +66,9 @@ class MetadataRepository(private val context: Context) {
 
                     return chain.proceed(request)
                 }
-            }).build()
+            })
+            .dispatcher(dispatcher)
+            .build()
 
         val retrofit = Retrofit.Builder()
             .client(httpClient)
@@ -111,8 +119,8 @@ class MetadataRepository(private val context: Context) {
         val doujinDetails = DoujinDetails(
             nukeCode = item.nukeCode,
             fullTitleEnglish = item.title.english,
-            fullTitleJapanese = item.title.japanese,
-            shortTitleEnglish = item.title.pretty,
+            fullTitleJapanese = item.title.japanese ?: "",
+            shortTitleEnglish = item.title.pretty ?: "",
             absolutePath = dir,
             folderName = dir.name
         )
@@ -156,7 +164,8 @@ class MetadataRepository(private val context: Context) {
             if (!doujinDetailsDao.existsByAbsolutePath(absolutePath)) {
                 doujinId = doujinDetailsDao.insert(doujinDetails)
             } else {
-                val fetchedItems: List<DoujinDetails> = doujinDetailsDao.findByAbsolutePath(absolutePath)
+                val fetchedItems: List<DoujinDetails> =
+                    doujinDetailsDao.findByAbsolutePath(absolutePath)
                 doujinId = fetchedItems.first().id ?: -1
             }
 

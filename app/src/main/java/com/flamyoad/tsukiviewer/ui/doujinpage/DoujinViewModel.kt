@@ -41,6 +41,7 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
 
     var currentPath: String = ""
 
+
     fun scanForImages(dirPath: String) {
         if (dirPath == currentPath) {
             return
@@ -54,28 +55,37 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
             .doujinDetailsDao
             .getLongDetailsByPath(dir.toString())
 
-        val fetchedImages = dir.listFiles(ImageFileFilter())
+        viewModelScope.launch {
+            withContext(Dispatchers.Default) {
+                val fetchedImages = dir.listFiles(ImageFileFilter())
 
-        /*  sortedBy { x -> x.name } will return the following wrong result:
-            ['0.jpg', '1.jpg', '10.jpg', '11.jpg', '12.jpg' . . .]
+                val naturalSort =
+                    compareBy<File> { it.name.length } // If you don't first compare by length, it won't work
+                        .then(naturalOrder())
+                /*
+                    sortedBy { x -> x.name } will return the following wrong result:
+                    ['0.jpg', '1.jpg', '10.jpg', '11.jpg', '12.jpg' . . .]
 
-            This is because sortedBy() is using ASCII order to sort.
-            Workaround is to use Natural Sort
+                    This is because sortedBy() is using ASCII order to sort.
+                    Workaround is to use Natural Sort
 
-            Article describing the differences about programming language's in-built sort and natural sort
-            https://blog.codinghorror.com/sorting-for-humans-natural-sort-order/
+                    Article describing the differences about programming language's in-built sort and natural sort
+                    https://blog.codinghorror.com/sorting-for-humans-natural-sort-order/
 
-            Sort filenames in directory in ascending order [duplicate]
-            https://stackoverflow.com/questions/33159106/sort-filenames-in-directory-in-ascending-order
-         */
-        val naturalSort =
-            compareBy<File> { it.name.length } // If you don't first compare by length, it won't work
-                .then(naturalOrder())
+                    Sort filenames in directory in ascending order [duplicate]
+                    https://stackoverflow.com/questions/33159106/sort-filenames-in-directory-in-ascending-order
+                */
 
-        imageList.value = fetchedImages.sortedWith(naturalSort)
+                val sortedImages = fetchedImages.sortedWith(naturalSort)
 
-        val firstImage = fetchedImages.first().toUri()
-        coverImage.value = firstImage
+                withContext(Dispatchers.Main) {
+                    imageList.value = sortedImages
+
+                    val firstImage = fetchedImages.first().toUri()
+                    coverImage.value = firstImage
+                }
+            }
+        }
     }
 
     fun detailsNotExists(): Boolean {

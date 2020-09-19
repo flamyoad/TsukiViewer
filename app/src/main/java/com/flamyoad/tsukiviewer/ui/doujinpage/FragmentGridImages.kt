@@ -16,15 +16,11 @@ import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.utils.GridItemDecoration
 import kotlinx.android.synthetic.main.fragment_grid_images.*
 
-
-/**
- * A simple [Fragment] subclass.
- */
 class FragmentGridImages : Fragment() {
 
-    private val GRID_ITEM_COUNT = 3
+    private val GRID_ITEM_COUNT = 1
     private val SCALED_ITEM_COUNT = 2
-    private val ROW_ITEM_COUNT = 1
+    private val ROW_ITEM_COUNT = 3
 
     private val viewmodel by activityViewModels<DoujinViewModel>()
 
@@ -51,7 +47,7 @@ class FragmentGridImages : Fragment() {
             .getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
 
         viewmodel.imageList().observe(viewLifecycleOwner, Observer {
-             // No action here. However, LiveData needs to be observed for changes to be notified to it.
+             adapter.setList(it)
         })
 
         setListToScaled(dirPath)
@@ -100,9 +96,6 @@ class FragmentGridImages : Fragment() {
         val itemDecoration = GridItemDecoration(spanCount, 4, includeEdge = false)
 
         listImages.addItemDecoration(itemDecoration)
-
-        val newList = viewmodel.imageList().value ?: emptyList()
-        adapter.setList(newList)
     }
 
     companion object {
