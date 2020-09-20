@@ -5,18 +5,22 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.ImageView
 import android.widget.ProgressBar
+import androidx.core.app.ActivityOptionsCompat
+import androidx.core.view.ViewCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
+import com.flamyoad.tsukiviewer.ui.home.local.TransitionAnimationListener
 import com.flamyoad.tsukiviewer.utils.ItemDecoration
 import kotlinx.android.synthetic.main.activity_search_result.*
 import kotlinx.coroutines.launch
 
-class SearchResultActivity : AppCompatActivity() {
+class SearchResultActivity : AppCompatActivity(), TransitionAnimationListener {
 
     private lateinit var viewmodel: SearchResultViewModel
 
@@ -93,7 +97,7 @@ class SearchResultActivity : AppCompatActivity() {
     }
 
     private fun initRecyclerView() {
-        val adapter = LocalDoujinsAdapter()
+        val adapter = LocalDoujinsAdapter(this)
         val gridLayoutManager = GridLayoutManager(this, 2)
 
         listSearchedDoujins.adapter = adapter
@@ -103,5 +107,14 @@ class SearchResultActivity : AppCompatActivity() {
         viewmodel.searchedResult().observe(this, Observer {
             adapter.setList(it)
         })
+    }
+
+    override fun makeSceneTransitionAnimation(view: View): ActivityOptionsCompat {
+        val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+            this,
+            view,
+            ViewCompat.getTransitionName(view) ?: ""
+        )
+        return options
     }
 }

@@ -4,20 +4,25 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="300dp"
-    android:orientation="vertical"
     android:clickable="true"
-    android:foreground="?android:selectableItemBackground">
+    android:foreground="?android:selectableItemBackground"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:id="@+id/transitionFrame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
 
     <ImageView
         android:id="@+id/imgCover"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="#B3000000"
         android:scaleType="centerCrop"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:background="#B3000000"
         tools:srcCompat="@drawable/cover" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -71,7 +76,7 @@
         android:layout_gravity="top|right"
         android:layout_margin="20dp"
         android:visibility="gone"
-        tools:visibility="visible"
-        app:srcCompat="@drawable/ic_check_circle_blue_24dp" />
+        app:srcCompat="@drawable/ic_check_circle_blue_24dp"
+        tools:visibility="visible" />
 
 </FrameLayout>

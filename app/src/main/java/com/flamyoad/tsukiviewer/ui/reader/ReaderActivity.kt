@@ -46,6 +46,7 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reader)
+        supportPostponeEnterTransition()
 
         viewmodel = ViewModelProvider(this).get(ReaderViewModel::class.java)
 

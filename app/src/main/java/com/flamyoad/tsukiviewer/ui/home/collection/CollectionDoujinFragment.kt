@@ -67,6 +67,8 @@ class CollectionDoujinFragment : BaseFragment(), ActionMode.Callback, ActionMode
     }
 
     private fun initRecyclerView() {
+        adapter.setHasStableIds(true)
+
         val gridLayoutManager = GridLayoutManager(requireContext(), 2)
         gridLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
             override fun getSpanSize(position: Int): Int {
@@ -85,6 +87,7 @@ class CollectionDoujinFragment : BaseFragment(), ActionMode.Callback, ActionMode
         listCollectionDoujins.layoutManager = gridLayoutManager
         listCollectionDoujins.addItemDecoration(itemDecoration)
         listCollectionDoujins.setHasFixedSize(true)
+        listCollectionDoujins.itemAnimator = null
     }
 
     override fun onCreateContextMenu(

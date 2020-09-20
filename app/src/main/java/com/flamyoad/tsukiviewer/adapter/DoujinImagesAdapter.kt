@@ -25,10 +25,9 @@ class DoujinImagesAdapter(
     RecyclerView.Adapter<DoujinImagesAdapter.ImageViewHolder>() {
 
     companion object {
-        @JvmStatic
-        val ADAPTER_POSITION = "DoujinImagesAdapter.ADAPTER_POSITION"
-        @JvmStatic
-        val DIRECTORY_PATH = "DoujinImagesAdapter.DIRECTORY_PATH"
+        const val ADAPTER_POSITION = "DoujinImagesAdapter.ADAPTER_POSITION"
+        const val DIRECTORY_PATH = "DoujinImagesAdapter.DIRECTORY_PATH"
+        const val TRANSITION_NAME = "DoujinImagesAdapter.TRANSITION_NAME"
     }
 
     private var imageList: List<File> = emptyList()
@@ -110,7 +109,7 @@ class DoujinImagesAdapter(
     }
 
     inner class ImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val imageView: ImageView = itemView.findViewById(R.id.imageView)
+        val imageView: ImageView = itemView.findViewById(R.id.imageView)
 
         fun bind(file: File) {
             Glide.with(itemView.context)
@@ -124,5 +123,4 @@ class DoujinImagesAdapter(
     enum class ItemType {
         Grid, Scaled, Row
     }
-
 }

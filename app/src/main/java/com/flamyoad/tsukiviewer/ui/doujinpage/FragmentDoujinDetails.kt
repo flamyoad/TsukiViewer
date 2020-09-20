@@ -1,17 +1,25 @@
 package com.flamyoad.tsukiviewer.ui.doujinpage
 
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.app.ActivityOptionsCompat
+import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinTagsAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.model.DoujinDetailsWithTags
+import com.flamyoad.tsukiviewer.ui.home.local.TransitionAnimationListener
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxItemDecoration
@@ -19,10 +27,10 @@ import com.google.android.flexbox.FlexboxLayoutManager
 import kotlinx.android.synthetic.main.doujin_details_tags_group.*
 import java.io.File
 
-class FragmentDoujinDetails : Fragment() {
+class FragmentDoujinDetails : Fragment(), TransitionAnimationListener {
     private val COLLECTION_DIALOG_TAG = "collection_dialog"
 
-    private val viewmodel by activityViewModels<DoujinViewModel>()
+    private val viewModel by activityViewModels<DoujinViewModel>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -33,11 +41,19 @@ class FragmentDoujinDetails : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        initTransition()
         initUi()
     }
 
+    private fun initTransition() {
+        val bundle = requireActivity().intent.extras
+
+        val imageTransitionName = bundle?.getString(LocalDoujinsAdapter.TRANSITION_NAME) ?: ""
+        imgCover.transitionName = imageTransitionName
+    }
+
     private fun initUi() {
-        viewmodel.coverImage().observe(viewLifecycleOwner, Observer { image ->
+        viewModel.coverImage().observe(viewLifecycleOwner, Observer { image ->
             Glide.with(this)
                 .load(image)
                 .sizeMultiplier(0.75f)
@@ -48,7 +64,7 @@ class FragmentDoujinDetails : Fragment() {
                 .into(imgCover)
         })
 
-        viewmodel.detailWithTags.observe(viewLifecycleOwner, Observer {
+        viewModel.detailWithTags.observe(viewLifecycleOwner, Observer {
             if (it == null) {
                 setDefaultToolbarText()
             } else {
@@ -126,6 +142,15 @@ class FragmentDoujinDetails : Fragment() {
     private fun openCollectionDialog() {
         val dialog = CollectionListDialog()
         dialog.show(childFragmentManager, COLLECTION_DIALOG_TAG)
+    }
+
+    override fun makeSceneTransitionAnimation(view: View): ActivityOptionsCompat {
+        val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+            requireActivity(),
+            view,
+            ViewCompat.getTransitionName(view) ?: ""
+        )
+        return options
     }
 
     companion object {

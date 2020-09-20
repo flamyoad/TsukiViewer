@@ -255,16 +255,19 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
     private fun postResult(dir: File) {
         val isDuplicate = doujinList.any { doujin -> doujin.title == dir.name}
         if (!isDuplicate) {
-            doujinList.add(dir.toDoujin())
-            searchedResult.postValue(doujinList)
+            val doujin = dir.toDoujin()
+            if (doujin != null) {
+                doujinList.add(doujin)
+                searchedResult.postValue(doujinList)
+            }
         }
     }
 
-    fun File.toDoujin(): Doujin {
+    fun File.toDoujin(): Doujin? {
         val imageList = this.listFiles(ImageFileFilter())
 
         if (imageList == null) {
-            Log.d("fucknull", this.absolutePath)
+            return null
         }
 
         val doujin = Doujin(

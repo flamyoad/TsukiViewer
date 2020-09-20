@@ -105,8 +105,17 @@ class CollectionRepository(private val context: Context) {
                     deleteCount += count
                 }
 
-                val insertIds = itemDao.insert(itemsToInsert)
-                val insertCount = insertIds.size
+                var insertCount = 0
+                for (item in itemsToInsert) {
+                    if (itemDao.exists(item.absolutePath, item.collectionName)) {
+                        continue
+                    } else {
+                        val insertedId = itemDao.insert(item)
+                        if (insertedId > 0) {
+                            insertCount++
+                        }
+                    }
+                }
 
                 // Example message:  Added into 1 collection. Removed from 1 collection.
                 val stringBuilder = StringBuilder()

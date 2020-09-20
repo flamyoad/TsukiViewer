@@ -5,9 +5,12 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.*
 import android.widget.CheckBox
+import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.app.ActivityOptionsCompat
+import androidx.core.view.ViewCompat
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
@@ -18,7 +21,7 @@ import com.flamyoad.tsukiviewer.ui.search.SearchActivity
 import com.flamyoad.tsukiviewer.utils.GridItemDecoration
 import kotlinx.android.synthetic.main.fragment_local_doujins.*
 
-class LocalDoujinsFragment : BaseFragment() {
+class LocalDoujinsFragment : BaseFragment(), TransitionAnimationListener {
 
     private val viewModel: LocalDoujinViewModel by activityViewModels()
 
@@ -149,7 +152,7 @@ class LocalDoujinsFragment : BaseFragment() {
     }
 
     private fun initRecyclerView() {
-        adapter = LocalDoujinsAdapter()
+        adapter = LocalDoujinsAdapter(this)
         adapter.setHasStableIds(true)
         val gridLayoutManager = GridLayoutManager(context, 2)
 
@@ -170,6 +173,15 @@ class LocalDoujinsFragment : BaseFragment() {
     private fun openSearchActivity() {
         val intent = Intent(context, SearchActivity::class.java)
         startActivity(intent)
+    }
+
+    override fun makeSceneTransitionAnimation(view: View): ActivityOptionsCompat {
+        val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+            requireActivity(),
+            view,
+            ViewCompat.getTransitionName(view) ?: ""
+        )
+        return options
     }
 
     override fun getTitle(): String {

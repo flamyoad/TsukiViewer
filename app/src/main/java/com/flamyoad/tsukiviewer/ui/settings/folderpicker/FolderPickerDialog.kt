@@ -43,17 +43,6 @@ class FolderPickerDialog : DialogFragment(),
 
     private var job: Job? = null
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putString(CURRENT_PATH_STRING, currentDir.toString())
-    }
-
-    override fun onResume() {
-        super.onResume()
-        val window: Window? = dialog!!.window
-        window?.setGravity(Gravity.CENTER)
-    }
-
     fun setAddFolderListener(listener: AddFolderListener) {
         addFolderListener = listener
     }
@@ -76,7 +65,9 @@ class FolderPickerDialog : DialogFragment(),
         // View is inflated here
         val view = LayoutInflater.from(context)
             .inflate(R.layout.folder_picker_dialog, null, false)
+
         onViewCreated(view, null)
+
         dialogBuilder.setView(view)
 
         listFolders = view.findViewById(R.id.listContainedFolders)
@@ -84,6 +75,17 @@ class FolderPickerDialog : DialogFragment(),
         listTopDirs = view.findViewById(R.id.listParentDirectories)
 
         return dialogBuilder.create()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(CURRENT_PATH_STRING, currentDir.toString())
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val window: Window? = dialog!!.window
+        window?.setGravity(Gravity.CENTER)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -199,7 +201,6 @@ class FolderPickerDialog : DialogFragment(),
         val parentsOfCurrentPath = mutableListOf<File>()
 
         while (path.parentFile != null) {
-
             // Add the item to the beginning of the list, otherwise the ordering would be reversed
             parentsOfCurrentPath.add(0, path)
 

@@ -5,6 +5,9 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import androidx.core.app.ActivityOptionsCompat
+import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
@@ -22,7 +25,7 @@ class FragmentGridImages : Fragment() {
     private val SCALED_ITEM_COUNT = 2
     private val ROW_ITEM_COUNT = 3
 
-    private val viewmodel by activityViewModels<DoujinViewModel>()
+    private val viewModel by activityViewModels<DoujinViewModel>()
 
     private lateinit var adapter: DoujinImagesAdapter
 
@@ -35,7 +38,6 @@ class FragmentGridImages : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_grid_images, container, false)
     }
 
@@ -46,7 +48,7 @@ class FragmentGridImages : Fragment() {
             .intent
             .getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
 
-        viewmodel.imageList().observe(viewLifecycleOwner, Observer {
+        viewModel.imageList().observe(viewLifecycleOwner, Observer {
              adapter.setList(it)
         })
 
@@ -107,4 +109,5 @@ class FragmentGridImages : Fragment() {
             return FragmentGridImages()
         }
     }
+
 }

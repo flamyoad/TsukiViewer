@@ -66,7 +66,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_localdoujins -> {
                 if (currentFragmentTag != LocalDoujinsFragment.APPBAR_TITLE) {
                     clearFragmentBackStack()
+
                     item.isChecked = true
+                    setTitle(LocalDoujinsFragment.APPBAR_TITLE)
 
                     showAppBarShadow()
                 }

@@ -1,6 +1,6 @@
 package com.flamyoad.tsukiviewer.model
 
-enum class SortDirection {
+enum class DoujinSortingMode {
     TITLE_ASCENDING,
     TITLE_DESCENDING,
 

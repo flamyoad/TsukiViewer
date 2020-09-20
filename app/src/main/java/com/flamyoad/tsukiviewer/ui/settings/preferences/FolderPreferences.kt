@@ -8,7 +8,7 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
 import com.flamyoad.tsukiviewer.R
-import com.flamyoad.tsukiviewer.ui.settings.GalleryPickerDialog
+import com.flamyoad.tsukiviewer.ui.settings.GalleryAppPickerDialog
 
 class FolderPreferences : PreferenceFragmentCompat(), GalleryPickListener {
 
@@ -57,7 +57,7 @@ class FolderPreferences : PreferenceFragmentCompat(), GalleryPickListener {
     private fun showGalleryPicker() {
         val fm = requireActivity().supportFragmentManager
         val fragmentTransaction = fm.beginTransaction()
-        val dialog = GalleryPickerDialog(this)
+        val dialog = GalleryAppPickerDialog(this)
         dialog.show(fragmentTransaction, "dialog_gallery_picker")
     }
 

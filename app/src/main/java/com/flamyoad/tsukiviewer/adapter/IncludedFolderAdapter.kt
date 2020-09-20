@@ -38,7 +38,7 @@ class IncludedFolderAdapter(private val listener: RemoveFolderListener) :
 
             EMPTY_INDICATOR -> {
                 val view = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.loading_indicator, parent, false)
+                    .inflate(R.layout.no_result_found, parent, false)
 
                 return EmptyViewHolder(view)
             }

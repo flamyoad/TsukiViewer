@@ -5,38 +5,35 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.model.Doujin
-import com.flamyoad.tsukiviewer.model.SortDirection
+import com.flamyoad.tsukiviewer.model.DoujinSortingMode
 import com.flamyoad.tsukiviewer.ui.doujinpage.DoujinDetailsActivity
+import com.flamyoad.tsukiviewer.ui.home.local.TransitionAnimationListener
 import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
-import java.io.File
 import java.util.*
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 
 
-class LocalDoujinsAdapter
-    : RecyclerView.Adapter<LocalDoujinsAdapter.DoujinViewHolder>(), RecyclerViewFastScroller.OnPopupTextUpdate {
+class LocalDoujinsAdapter(private val listener: TransitionAnimationListener) :
+    RecyclerView.Adapter<LocalDoujinsAdapter.DoujinViewHolder>(),
+    RecyclerViewFastScroller.OnPopupTextUpdate {
 
     companion object {
         const val DOUJIN_FILE_PATH = "LocalDoujinsAdapter.DOUJIN_FILE_PATH"
         const val DOUJIN_NAME = "LocalDoujinsAdapter.DOUJIN_NAME"
+        const val TRANSITION_NAME = "LocalDoujinsAdapter.TRANSITION_NAME"
     }
 
     private var doujinList: List<Doujin> = emptyList()
 
-    val getDirectoryList: List<File>
-        get() {
-            return doujinList.map {
-                it.path
-            }
-        }
-
-    private var currentSort = SortDirection.NONE
+    private var currentSort = DoujinSortingMode.NONE
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DoujinViewHolder {
         val layout = LayoutInflater.from(parent.context)
@@ -58,6 +55,9 @@ class LocalDoujinsAdapter
             val intent = Intent(context, DoujinDetailsActivity::class.java)
             intent.putExtra(DOUJIN_FILE_PATH, doujin.path.toString())
             intent.putExtra(DOUJIN_NAME, doujin.title)
+            intent.putExtra(TRANSITION_NAME, ViewCompat.getTransitionName(holder.frame))
+
+//            val options = listener.makeSceneTransitionAnimation(holder.frame)
 
             context.startActivity(intent)
         }
@@ -78,7 +78,7 @@ class LocalDoujinsAdapter
         notifyDataSetChanged()
     }
 
-//    java.lang.NullPointerException: Attempt to invoke virtual method 'java.io.File com.flamyoad.tsukiviewer.model.Doujin.getPath()' on a null object reference
+    //    java.lang.NullPointerException: Attempt to invoke virtual method 'java.io.File com.flamyoad.tsukiviewer.model.Doujin.getPath()' on a null object reference
 //    at com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter.getItemId(LocalDoujinsAdapter.kt:82)
     override fun getItemId(position: Int): Long {
         val pathName = doujinList[position].path.toString()
@@ -86,56 +86,57 @@ class LocalDoujinsAdapter
     }
 
     fun sortByName() {
-        if (currentSort == SortDirection.TITLE_ASCENDING) {
+        if (currentSort == DoujinSortingMode.TITLE_ASCENDING) {
             doujinList = doujinList.sortedByDescending {
                 it.title.toLowerCase(Locale.ROOT)
             }
-            currentSort = SortDirection.TITLE_DESCENDING
+            currentSort = DoujinSortingMode.TITLE_DESCENDING
 
         } else {
             doujinList = doujinList.sortedBy {
                 it.title.toLowerCase(Locale.ROOT)
             }
-            currentSort = SortDirection.TITLE_ASCENDING
+            currentSort = DoujinSortingMode.TITLE_ASCENDING
         }
         notifyDataSetChanged()
     }
 
 
     fun sortByDate() {
-        if (currentSort == SortDirection.DATE_ASCENDING) {
+        if (currentSort == DoujinSortingMode.DATE_ASCENDING) {
             doujinList = doujinList.sortedByDescending {
                 it.lastModified
             }
-            currentSort = SortDirection.DATE_DESCENDING
+            currentSort = DoujinSortingMode.DATE_DESCENDING
 
         } else {
             doujinList = doujinList.sortedBy {
                 it.lastModified
             }
-            currentSort = SortDirection.DATE_ASCENDING
+            currentSort = DoujinSortingMode.DATE_ASCENDING
         }
         notifyDataSetChanged()
     }
 
     fun sortByPath() {
-        if (currentSort == SortDirection.PATH_ASCENDING) {
+        if (currentSort == DoujinSortingMode.PATH_ASCENDING) {
             doujinList = doujinList.sortedByDescending {
                 it.path.toString().toLowerCase(Locale.ROOT)
             }
-            currentSort = SortDirection.PATH_DESCENDING
+            currentSort = DoujinSortingMode.PATH_DESCENDING
 
         } else {
             doujinList = doujinList.sortedBy {
                 it.path.toString().toLowerCase(Locale.ROOT)
             }
-            currentSort = SortDirection.PATH_ASCENDING
+            currentSort = DoujinSortingMode.PATH_ASCENDING
         }
 
         notifyDataSetChanged()
     }
 
     inner class DoujinViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val frame: FrameLayout = itemView.findViewById(R.id.transitionFrame)
         private val coverImg: ImageView = itemView.findViewById(R.id.imgCover)
         private val txtTitle: TextView = itemView.findViewById(R.id.txtTitleEng)
         private val txtPageNumber: TextView = itemView.findViewById(R.id.txtPageNumber)
@@ -157,29 +158,29 @@ class LocalDoujinsAdapter
         val doujin = doujinList[position]
 
         return when (currentSort) {
-            SortDirection.TITLE_ASCENDING -> {
+            DoujinSortingMode.TITLE_ASCENDING -> {
                 doujin.title
             }
 
-            SortDirection.TITLE_DESCENDING -> {
+            DoujinSortingMode.TITLE_DESCENDING -> {
                 doujin.title
             }
 
-            SortDirection.DATE_ASCENDING -> {
+            DoujinSortingMode.DATE_ASCENDING -> {
                 val datetime = Date(doujin.lastModified)
                 return datetime.toString()
             }
 
-            SortDirection.DATE_DESCENDING -> {
+            DoujinSortingMode.DATE_DESCENDING -> {
                 val datetime = Date(doujin.lastModified)
                 return datetime.toString()
             }
 
-            SortDirection.PATH_ASCENDING -> {
+            DoujinSortingMode.PATH_ASCENDING -> {
                 doujin.path.absolutePath
             }
 
-            SortDirection.PATH_DESCENDING -> {
+            DoujinSortingMode.PATH_DESCENDING -> {
                 doujin.path.absolutePath
             }
 

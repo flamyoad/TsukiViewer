@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.*
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Observer
 import com.flamyoad.tsukiviewer.BaseFragment
 
 import com.flamyoad.tsukiviewer.R
@@ -11,7 +12,7 @@ import com.flamyoad.tsukiviewer.model.TagType
 import com.google.android.material.tabs.TabLayoutMediator
 import kotlinx.android.synthetic.main.fragment_doujin_tags.*
 
-class DoujinTagsFragment : BaseFragment() {
+class DoujinTagsFragment : BaseFragment(), SearchView.OnQueryTextListener {
 
     private val viewModel by activityViewModels<DoujinTagsViewModel>()
 
@@ -42,8 +43,10 @@ class DoujinTagsFragment : BaseFragment() {
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.menu_tags_fragment, menu)
-        val searchItem: MenuItem? = menu?.findItem(R.id.action_search)
+        val searchItem: MenuItem? = menu.findItem(R.id.action_search)
         searchView = searchItem?.actionView as SearchView
+
+        searchView?.setOnQueryTextListener(this)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -58,6 +61,8 @@ class DoujinTagsFragment : BaseFragment() {
 
         // Disables swiping of viewpager
         viewpager.isUserInputEnabled = false
+
+        viewModel.searchTerms().observe(viewLifecycleOwner, Observer {  })
     }
 
     override fun getTitle(): String {
@@ -70,5 +75,14 @@ class DoujinTagsFragment : BaseFragment() {
             DoujinTagsFragment()
 
         const val APPBAR_TITLE = "Tags"
+    }
+
+    override fun onQueryTextSubmit(query: String?): Boolean {
+        return true
+    }
+
+    override fun onQueryTextChange(newText: String?): Boolean {
+        viewModel.setQuery(newText ?: "")
+        return true
     }
 }

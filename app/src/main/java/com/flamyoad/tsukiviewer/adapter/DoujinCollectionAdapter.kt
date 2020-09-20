@@ -115,6 +115,11 @@ class DoujinCollectionAdapter(private val listener: ActionModeListener) :
         }
     }
 
+    override fun getItemId(position: Int): Long {
+        val item = getItem(position)
+        return item.id ?: -1
+    }
+
     override fun getItemViewType(position: Int): Int {
         val item = getItem(position)
         return when (item.isHeader) {

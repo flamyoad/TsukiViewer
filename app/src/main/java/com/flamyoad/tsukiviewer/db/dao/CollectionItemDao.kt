@@ -16,10 +16,16 @@ interface CollectionItemDao {
     @Query("SELECT * FROM collection_item WHERE collectionName = :collectionName")
     suspend fun selectFrom(collectionName: String): List<CollectionItem>
 
-    @Insert
-    suspend fun insert(item: CollectionItem)
+    @Query("""
+        SELECT EXISTS(SELECT * FROM collection_item 
+                      WHERE collectionName = :collectionName AND absolutePath = :folderPath)
+    """)
+    suspend fun exists(folderPath: File, collectionName: String): Boolean
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(item: CollectionItem): Long
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(items: List<CollectionItem>): List<Long>
 
     @Delete

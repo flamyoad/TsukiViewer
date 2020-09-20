@@ -25,7 +25,8 @@ interface DoujinCollectionDao {
     @Query("""
         UPDATE doujin_collection 
         SET name = :newName 
-        WHERE name = :oldName""")
+        WHERE name = :oldName
+        """)
     suspend fun changeName(oldName: String, newName: String)
 
     @Query("SELECT * FROM doujin_collection")

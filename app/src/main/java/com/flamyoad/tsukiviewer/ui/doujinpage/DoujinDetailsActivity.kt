@@ -3,8 +3,10 @@ package com.flamyoad.tsukiviewer.ui.doujinpage
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
+import android.transition.Explode
 import android.view.Menu
 import android.view.MenuItem
+import android.view.Window
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -26,7 +28,6 @@ class DoujinDetailsActivity : AppCompatActivity() {
         setContentView(R.layout.activity_doujin_details)
 
         viewModel = ViewModelProvider(this).get(DoujinViewModel::class.java)
-
         handleIntent()
         initTabLayout()
         initToolbar()

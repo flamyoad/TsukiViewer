@@ -18,13 +18,13 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.GalleryPickerAdapter
 import com.flamyoad.tsukiviewer.ui.settings.preferences.GalleryPickListener
 
-class GalleryPickerDialog(private val listener: GalleryPickListener)
+class GalleryAppPickerDialog(private val listener: GalleryPickListener)
     : DialogFragment() {
 
     companion object {
         @JvmStatic
         fun newInstance(listener: GalleryPickListener)
-                = GalleryPickerDialog(listener)
+                = GalleryAppPickerDialog(listener)
     }
 
     private lateinit var viewmodel: SettingsViewModel

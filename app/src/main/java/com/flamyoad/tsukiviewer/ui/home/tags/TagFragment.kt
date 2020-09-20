@@ -46,7 +46,6 @@ class TagFragment : Fragment() {
                 adapter.setList(it)
             })
         }
-
     }
 
     private fun initList() {
