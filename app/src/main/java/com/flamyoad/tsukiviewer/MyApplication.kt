@@ -4,6 +4,7 @@ import android.app.Application
 import android.os.StrictMode
 import android.os.StrictMode.VmPolicy
 import com.flamyoad.tsukiviewer.model.Doujin
+import com.jakewharton.threetenabp.AndroidThreeTen
 
 
 class MyApplication : Application() {
@@ -12,6 +13,8 @@ class MyApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        AndroidThreeTen.init(this)
+
         /*
         https://stackoverflow.com/questions/42251634/android-os-fileuriexposedexception-file-jpg-exposed-beyond-app-through-clipdata
 

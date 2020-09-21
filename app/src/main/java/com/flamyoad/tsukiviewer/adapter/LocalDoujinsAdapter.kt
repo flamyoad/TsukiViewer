@@ -55,9 +55,6 @@ class LocalDoujinsAdapter(private val listener: TransitionAnimationListener) :
             val intent = Intent(context, DoujinDetailsActivity::class.java)
             intent.putExtra(DOUJIN_FILE_PATH, doujin.path.toString())
             intent.putExtra(DOUJIN_NAME, doujin.title)
-            intent.putExtra(TRANSITION_NAME, ViewCompat.getTransitionName(holder.frame))
-
-//            val options = listener.makeSceneTransitionAnimation(holder.frame)
 
             context.startActivity(intent)
         }
@@ -136,7 +133,6 @@ class LocalDoujinsAdapter(private val listener: TransitionAnimationListener) :
     }
 
     inner class DoujinViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val frame: FrameLayout = itemView.findViewById(R.id.transitionFrame)
         private val coverImg: ImageView = itemView.findViewById(R.id.imgCover)
         private val txtTitle: TextView = itemView.findViewById(R.id.txtTitleEng)
         private val txtPageNumber: TextView = itemView.findViewById(R.id.txtPageNumber)

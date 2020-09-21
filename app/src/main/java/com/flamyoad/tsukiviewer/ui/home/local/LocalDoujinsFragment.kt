@@ -2,6 +2,7 @@ package com.flamyoad.tsukiviewer.ui.home.local
 
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.*
 import android.widget.CheckBox
@@ -20,6 +21,7 @@ import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.ui.search.SearchActivity
 import com.flamyoad.tsukiviewer.utils.GridItemDecoration
 import kotlinx.android.synthetic.main.fragment_local_doujins.*
+import java.lang.IllegalArgumentException
 
 class LocalDoujinsFragment : BaseFragment(), TransitionAnimationListener {
 
@@ -158,12 +160,18 @@ class LocalDoujinsFragment : BaseFragment(), TransitionAnimationListener {
         // StateRestorationPolicy is in alpha stage. It may crash the app
         adapter.stateRestorationPolicy = StateRestorationPolicy.PREVENT_WHEN_EMPTY
 
-        val gridLayoutManager = GridLayoutManager(context, 2)
+        val spanCount = when (resources.configuration.orientation) {
+            Configuration.ORIENTATION_PORTRAIT -> 2
+            Configuration.ORIENTATION_LANDSCAPE -> 4
+            else -> 2
+        }
+
+        val gridLayoutManager = GridLayoutManager(context, spanCount)
 
         listLocalDoujins.adapter = adapter
         listLocalDoujins.layoutManager = gridLayoutManager
 
-        val itemDecoration = GridItemDecoration(2, 4, includeEdge = true)
+        val itemDecoration = GridItemDecoration(spanCount, 4, includeEdge = true)
 
         listLocalDoujins.addItemDecoration(itemDecoration)
 

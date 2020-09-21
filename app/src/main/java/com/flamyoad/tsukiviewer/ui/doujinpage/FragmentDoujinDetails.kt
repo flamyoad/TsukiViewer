@@ -15,12 +15,15 @@ import com.flamyoad.tsukiviewer.adapter.DoujinTagsAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.model.DoujinDetailsWithTags
 import com.flamyoad.tsukiviewer.ui.home.local.TransitionAnimationListener
+import com.flamyoad.tsukiviewer.utils.TimeUtils
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxItemDecoration
 import com.google.android.flexbox.FlexboxLayoutManager
 import kotlinx.android.synthetic.main.doujin_details_tags_group.*
 import kotlinx.android.synthetic.main.fragment_doujin_details.*
+import org.threeten.bp.Instant
+import org.threeten.bp.ZoneId
 import java.io.File
 import java.util.*
 
@@ -41,6 +44,7 @@ class FragmentDoujinDetails : Fragment(), TransitionAnimationListener {
         initUi()
     }
 
+    // Todo: This method is getting too cluttered. Consider refactoring
     private fun initUi() {
         viewModel.coverImage().observe(viewLifecycleOwner, Observer { image ->
             Glide.with(this)
@@ -61,13 +65,14 @@ class FragmentDoujinDetails : Fragment(), TransitionAnimationListener {
             val dir = File(currentPath)
 
             txtDirectory.text = dir.absolutePath
-            txtDateModified.text = Date(dir.lastModified()).toString()
+            txtDateModified.text = TimeUtils.getReadableDate(dir.lastModified())
 
             if (it == null) {
                 setDefaultToolbarText(dir)
                 tagsNotFoundIndicator.visibility = View.VISIBLE
             } else {
                 tagGroup.visibility = View.VISIBLE
+                tagsNotFoundIndicator.visibility = View.INVISIBLE
                 initDoujinDetails(it)
             }
         })

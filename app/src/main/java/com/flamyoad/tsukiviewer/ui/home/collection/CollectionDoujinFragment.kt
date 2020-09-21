@@ -1,6 +1,7 @@
 package com.flamyoad.tsukiviewer.ui.home.collection
 
 import android.content.DialogInterface
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.*
 import androidx.appcompat.app.AlertDialog
@@ -74,13 +75,19 @@ class CollectionDoujinFragment : BaseFragment(), ActionMode.Callback, ActionMode
         // StateRestorationPolicy is in alpha stage. It may crash the app
         adapter.stateRestorationPolicy = StateRestorationPolicy.PREVENT_WHEN_EMPTY
 
-        val gridLayoutManager = GridLayoutManager(requireContext(), 2)
+        val spanCount = when (resources.configuration.orientation) {
+            Configuration.ORIENTATION_PORTRAIT -> 2
+            Configuration.ORIENTATION_LANDSCAPE -> 4
+            else -> 2
+        }
+
+        val gridLayoutManager = GridLayoutManager(requireContext(), spanCount)
         gridLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
             override fun getSpanSize(position: Int): Int {
                 return when (adapter.getItemViewType(position)) {
-                    DoujinCollectionAdapter.HEADER_TYPE -> 2
+                    DoujinCollectionAdapter.HEADER_TYPE -> spanCount
                     DoujinCollectionAdapter.ITEM_TYPE -> 1
-                    DoujinCollectionAdapter.EMPTY -> 2
+                    DoujinCollectionAdapter.EMPTY -> spanCount
                     else -> throw IllegalArgumentException("Item view type does not exist")
                 }
             }

@@ -1,5 +1,6 @@
 package com.flamyoad.tsukiviewer.ui.search
 
+import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
@@ -13,9 +14,11 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.ui.home.local.TransitionAnimationListener
+import com.flamyoad.tsukiviewer.utils.GridItemDecoration
 import com.flamyoad.tsukiviewer.utils.ItemDecoration
 import kotlinx.android.synthetic.main.activity_search_result.*
 import kotlinx.coroutines.launch
@@ -97,12 +100,25 @@ class SearchResultActivity : AppCompatActivity(), TransitionAnimationListener {
     }
 
     private fun initRecyclerView() {
+        val spanCount = when (resources.configuration.orientation) {
+            Configuration.ORIENTATION_PORTRAIT -> 2
+            Configuration.ORIENTATION_LANDSCAPE -> 4
+            else -> 2
+        }
+
+        val gridLayoutManager = GridLayoutManager(this, spanCount)
+
         val adapter = LocalDoujinsAdapter(this)
-        val gridLayoutManager = GridLayoutManager(this, 2)
+
+        // StateRestorationPolicy is in alpha stage. It may crash the app
+        adapter.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
 
         listSearchedDoujins.adapter = adapter
         listSearchedDoujins.layoutManager = gridLayoutManager
-        listSearchedDoujins.addItemDecoration(ItemDecoration(8))
+
+        val itemDecoration = GridItemDecoration(spanCount, 4, includeEdge = true)
+
+        listSearchedDoujins.addItemDecoration(itemDecoration)
 
         viewmodel.searchedResult().observe(this, Observer {
             adapter.setList(it)
