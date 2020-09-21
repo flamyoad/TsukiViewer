@@ -59,6 +59,25 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         setTitle(fragmentTag)
     }
 
+    // Note to self: The onOptionsItemSelected() event actually bubbles up from Activity to Fragment
+    // I thought it was the other way round.
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        when (item?.itemId) {
+            R.id.action_search_local -> {
+                /*  There is no need to animate the closing of DrawerLayout if we start a new activity.
+                    This is because the animation has to be completed before the new activity can be started.
+                    It can cause delay and is bad for UX
+                 */
+                drawerLayout.closeDrawer(GravityCompat.START, false)
+                return false
+            }
+            else -> {
+                drawerLayout.closeDrawer(GravityCompat.START)
+                return false
+            }
+        }
+    }
+
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         val currentFragmentTag = supportFragmentManager.findFragmentById(R.id.container)?.tag ?: ""
 

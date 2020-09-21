@@ -85,12 +85,16 @@
 
         <TextView
             android:id="@+id/lblTag"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
+            android:background="@color/blackOlive"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="8dp"
             android:text="TAGS"
+            android:textColor="@android:color/white"
+            android:textSize="15sp"
             android:typeface="monospace"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/imgBackground" />
 
@@ -99,7 +103,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:layout_marginEnd="8dp"
+            android:paddingHorizontal="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@+id/lblTag"
             app:layout_constraintTop_toBottomOf="@+id/lblTag">
@@ -127,24 +131,32 @@
                 tools:visibility="visible" />
         </FrameLayout>
 
+        <!--
+            This divider is not used. I just feel lazy to remove it
+            since I have to refactor the constraints if this gets removed
+         -->
         <View
             android:id="@+id/verticalDivider"
             android:layout_width="0dp"
-            android:layout_height="12dp"
+            android:layout_height="1dp"
             android:layout_marginTop="16dp"
-            android:background="@color/subLightTextColor"
+            android:background="@android:color/transparent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tagLayout" />
 
         <TextView
             android:id="@+id/lblFolderDetails"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="16dp"
+            android:background="@color/blackOlive"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="8dp"
             android:text="FOLDER DETAILS"
+            android:textColor="@android:color/white"
+            android:textSize="15sp"
             android:typeface="monospace"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/verticalDivider" />
 
@@ -152,6 +164,7 @@
             android:id="@+id/imgDirectory"
             android:layout_width="24dp"
             android:layout_height="24dp"
+            android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
             android:src="@drawable/ic_folder"
             app:layout_constraintStart_toStartOf="@+id/lblFolderDetails"
@@ -188,7 +201,7 @@
             android:layout_marginEnd="16dp"
             android:gravity="center_horizontal"
             android:text="21/9/2020"
-            android:textColor="@color/material_500_orange"
+            android:textColor="@color/wine_red"
             app:layout_constraintEnd_toStartOf="@+id/horizontalDivider"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/txtDirectory" />
@@ -200,7 +213,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:gravity="center"
-            android:textColor="@color/material_500_orange"
+            android:textColor="@color/wine_red"
             app:layout_constraintBottom_toBottomOf="@+id/txtDateModified"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/horizontalDivider"

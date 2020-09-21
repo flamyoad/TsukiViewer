@@ -95,7 +95,7 @@ class LocalDoujinsFragment : BaseFragment(), TransitionAnimationListener {
                 }
             }
         }
-        return true
+        return false
     }
 
     override fun onResume() {
