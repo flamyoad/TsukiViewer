@@ -21,7 +21,7 @@ import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
 import java.util.*
 
 
-class LocalDoujinsAdapter(private val listener: TransitionAnimationListener) :
+class LocalDoujinsAdapter :
     RecyclerView.Adapter<LocalDoujinsAdapter.DoujinViewHolder>(),
     RecyclerViewFastScroller.OnPopupTextUpdate {
 
@@ -75,7 +75,7 @@ class LocalDoujinsAdapter(private val listener: TransitionAnimationListener) :
         notifyDataSetChanged()
     }
 
-    //    java.lang.NullPointerException: Attempt to invoke virtual method 'java.io.File com.flamyoad.tsukiviewer.model.Doujin.getPath()' on a null object reference
+    //java.lang.NullPointerException: Attempt to invoke virtual method 'java.io.File com.flamyoad.tsukiviewer.model.Doujin.getPath()' on a null object reference
 //    at com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter.getItemId(LocalDoujinsAdapter.kt:82)
     override fun getItemId(position: Int): Long {
         val pathName = doujinList[position].path.toString()

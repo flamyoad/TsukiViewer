@@ -1,15 +1,13 @@
 package com.flamyoad.tsukiviewer.ui.search
 
 import android.content.res.Configuration
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.ImageView
 import android.widget.ProgressBar
-import androidx.core.app.ActivityOptionsCompat
-import androidx.core.view.ViewCompat
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -17,13 +15,11 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
-import com.flamyoad.tsukiviewer.ui.home.local.TransitionAnimationListener
 import com.flamyoad.tsukiviewer.utils.GridItemDecoration
-import com.flamyoad.tsukiviewer.utils.ItemDecoration
 import kotlinx.android.synthetic.main.activity_search_result.*
 import kotlinx.coroutines.launch
 
-class SearchResultActivity : AppCompatActivity(), TransitionAnimationListener {
+class SearchResultActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
 
     private lateinit var viewmodel: SearchResultViewModel
 
@@ -50,18 +46,32 @@ class SearchResultActivity : AppCompatActivity(), TransitionAnimationListener {
         return true
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
-        val menuItem = menu.findItem(R.id.progress_bar_loading)
-        val view = menuItem.actionView
+    /*
+        In this method, the SearchView is disabled before all the items have finished loading.
+        This is because it will be very error prone to incorporate searching for second time
+        while the original search result is still being processed.
 
-        val progressBar: ProgressBar = view.findViewById(R.id.progressBarSync)
-        progressBar.visibility = View.GONE
+        I try to avoid it because searching is done in multithreaded manner using Coroutines and
+        the List which contains the searched doujins is a mutable shared state.
+
+        Only after the original search result has done loading, the SearchView is set as visible
+        to allow user to perform searching for the 2nd time.
+     */
+    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+        val progressBarItem = menu.findItem(R.id.progress_bar_loading)
+        val progressActionView = progressBarItem.actionView
+        val progressBar: ProgressBar = progressActionView.findViewById(R.id.progressBarSync)
+
+        val searchItem: MenuItem? = menu.findItem(R.id.action_search)
+        searchItem?.isVisible = false
+
+        val searchView = searchItem?.actionView as SearchView
+        searchView.setOnQueryTextListener(this)
 
         viewmodel.isLoading().observe(this, Observer { isLoading ->
-            if (isLoading) {
-                progressBar.visibility = View.VISIBLE
-            } else {
+            if (!isLoading) { // If has done loading all items ...
                 progressBar.visibility = View.GONE
+                searchItem.isVisible = true
             }
         })
 
@@ -108,10 +118,11 @@ class SearchResultActivity : AppCompatActivity(), TransitionAnimationListener {
 
         val gridLayoutManager = GridLayoutManager(this, spanCount)
 
-        val adapter = LocalDoujinsAdapter(this)
+        val adapter = LocalDoujinsAdapter()
 
         // StateRestorationPolicy is in alpha stage. It may crash the app
-        adapter.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
+        adapter.stateRestorationPolicy =
+            RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
 
         listSearchedDoujins.adapter = adapter
         listSearchedDoujins.layoutManager = gridLayoutManager
@@ -125,12 +136,12 @@ class SearchResultActivity : AppCompatActivity(), TransitionAnimationListener {
         })
     }
 
-    override fun makeSceneTransitionAnimation(view: View): ActivityOptionsCompat {
-        val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
-            this,
-            view,
-            ViewCompat.getTransitionName(view) ?: ""
-        )
-        return options
+    override fun onQueryTextChange(newText: String?): Boolean {
+        viewmodel.filterList(newText ?: "")
+        return true
+    }
+
+    override fun onQueryTextSubmit(query: String?): Boolean {
+        return true
     }
 }

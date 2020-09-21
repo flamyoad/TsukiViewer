@@ -10,6 +10,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.DoujinDetailsDao
@@ -20,6 +21,8 @@ import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.IncludedPath
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.*
@@ -39,14 +42,16 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
 
     private val includedPathList: LiveData<List<IncludedPath>>
 
-    private val searchedResult = MutableLiveData<List<Doujin>>()
-
-    private val isLoading = MutableLiveData<Boolean>(false)
-
     // DO not modify this list in any other places than the coroutine started in submitQuery() function
     private val doujinList = mutableListOf<Doujin>()
 
-    fun searchedResult(): LiveData<List<Doujin>> = searchedResult
+    private val searchResult = MutableLiveData<List<Doujin>>()
+
+    private val isLoading = MutableLiveData<Boolean>(false)
+
+    private var filterJob: Job? = null
+
+    fun searchedResult(): LiveData<List<Doujin>> = searchResult
 
     fun isLoading(): LiveData<Boolean> = isLoading
 
@@ -69,11 +74,10 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
         isLoading.value = true
 
         withContext(Dispatchers.IO) {
+
             searchFromDatabase(keyword, tags)
 
-            /* Only search from directory instead of database
-               when user queries using keyword and did not specify tags
-            */
+            // If tags are not specified in the query, then we have to search from file explorer too
             if (tags.isBlank()) {
                 val existingList = (app as MyApplication).fullDoujinList
                 if (existingList != null) {
@@ -176,17 +180,34 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
                         postResult(doujin)
                     }
                 }
-
                 Log.d("cursor", "Full Path: ${fullPath}, Parent index: ${parentId}")
             }
         }
     }
 
-    fun searchFromExistingList(doujinList: List<Doujin>, keyword: String) {
+    private fun searchFromExistingList(doujinList: List<Doujin>, keyword: String) {
         for (doujin in doujinList) {
             if (doujin.title.toLowerCase(Locale.ROOT).contains(keyword)) {
                 postResult(doujin)
             }
+        }
+    }
+
+    /*  Filters the search result with keyword (again).
+        User can only filter the list once the system has finished loading all items.
+        (SearchView in the toolbar is hidden until all the items have finished loading)
+    */
+    fun filterList(keyword: String) {
+        // Resets search result to full list if query is blank
+        if (keyword.isBlank()) {
+            searchResult.value = doujinList
+        }
+
+        filterJob?.cancel() // Cancels the job triggered by previous keyword
+        filterJob = viewModelScope.launch {
+            val filteredList = doujinList
+                .filter { doujin -> doujin.title.toLowerCase(Locale.ROOT).contains(keyword) }
+            searchResult.value = filteredList
         }
     }
 
@@ -248,7 +269,7 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
     private fun postResult(doujin: Doujin) {
         if (!doujinList.contains(doujin)) {
             doujinList.add(doujin)
-            searchedResult.postValue(doujinList)
+            searchResult.postValue(doujinList)
         }
     }
 
@@ -258,7 +279,7 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
             val doujin = dir.toDoujin()
             if (doujin != null) {
                 doujinList.add(doujin)
-                searchedResult.postValue(doujinList)
+                searchResult.postValue(doujinList)
             }
         }
     }
@@ -279,5 +300,4 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
         )
         return doujin
     }
-
 }

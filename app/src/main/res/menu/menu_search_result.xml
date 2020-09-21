@@ -2,10 +2,18 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item android:id="@+id/progress_bar_loading"
-        android:title="Progress bar"
+    <item
+        android:id="@+id/progress_bar_loading"
         android:orderInCategory="100"
-        app:showAsAction="always"
-        app:actionLayout="@layout/view_progress_bar"/>
+        android:title="Progress bar"
+        app:actionLayout="@layout/view_progress_bar"
+        app:showAsAction="always" />
 
+    <item
+        android:id="@+id/action_search"
+        android:icon="@drawable/ic_search_white_24dp"
+        android:orderInCategory="101"
+        android:title="Search"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:showAsAction="always|collapseActionView" />
 </menu>

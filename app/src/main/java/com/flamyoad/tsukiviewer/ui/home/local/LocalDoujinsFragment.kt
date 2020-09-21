@@ -154,7 +154,7 @@ class LocalDoujinsFragment : BaseFragment(), TransitionAnimationListener {
     }
 
     private fun initRecyclerView() {
-        adapter = LocalDoujinsAdapter(this)
+        adapter = LocalDoujinsAdapter()
         adapter.setHasStableIds(true)
 
         // StateRestorationPolicy is in alpha stage. It may crash the app
