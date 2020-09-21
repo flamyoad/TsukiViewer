@@ -5,13 +5,11 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import androidx.core.app.ActivityOptionsCompat
-import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter.ItemType
@@ -21,9 +19,9 @@ import kotlinx.android.synthetic.main.fragment_grid_images.*
 
 class FragmentGridImages : Fragment() {
 
-    private val GRID_ITEM_COUNT = 1
-    private val SCALED_ITEM_COUNT = 2
-    private val ROW_ITEM_COUNT = 3
+    private val GRID_ITEM_SPAN = 3
+    private val SCALED_ITEM_SPAN = 2
+    private val ROW_ITEM_SPAN = 1
 
     private val viewModel by activityViewModels<DoujinViewModel>()
 
@@ -48,10 +46,6 @@ class FragmentGridImages : Fragment() {
             .intent
             .getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
 
-        viewModel.imageList().observe(viewLifecycleOwner, Observer {
-             adapter.setList(it)
-        })
-
         setListToScaled(dirPath)
     }
 
@@ -70,15 +64,15 @@ class FragmentGridImages : Fragment() {
     }
 
     private fun setListToGrid(dirPath: String) {
-        setupRecyclerview(dirPath, ItemType.Grid, GRID_ITEM_COUNT)
+        setupRecyclerview(dirPath, ItemType.Grid, GRID_ITEM_SPAN)
     }
 
     private fun setListToScaled(dirPath: String) {
-        setupRecyclerview(dirPath, ItemType.Scaled, SCALED_ITEM_COUNT)
+        setupRecyclerview(dirPath, ItemType.Scaled, SCALED_ITEM_SPAN)
     }
 
     private fun setListToRow(dirPath: String) {
-        setupRecyclerview(dirPath, ItemType.Row, ROW_ITEM_COUNT)
+        setupRecyclerview(dirPath, ItemType.Row, ROW_ITEM_SPAN)
     }
 
     private fun setupRecyclerview(dirPath: String, type: ItemType, spanCount: Int) {
@@ -88,7 +82,6 @@ class FragmentGridImages : Fragment() {
 
         listImages.adapter = adapter
         listImages.layoutManager = gridLayoutManager
-
         /*
            Since this method is called each time the view type is changed,
            We have to clear the item decorations added previously.
@@ -101,6 +94,10 @@ class FragmentGridImages : Fragment() {
         val itemDecoration = GridItemDecoration(spanCount, 4, includeEdge = false)
 
         listImages.addItemDecoration(itemDecoration)
+
+        viewModel.imageList().observe(viewLifecycleOwner, Observer {
+            adapter.setList(it)
+        })
     }
 
     companion object {

@@ -9,6 +9,8 @@ import androidx.appcompat.view.ActionMode
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.Adapter.StateRestorationPolicy
 import com.flamyoad.tsukiviewer.BaseFragment
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinCollectionAdapter
@@ -68,6 +70,9 @@ class CollectionDoujinFragment : BaseFragment(), ActionMode.Callback, ActionMode
 
     private fun initRecyclerView() {
         adapter.setHasStableIds(true)
+
+        // StateRestorationPolicy is in alpha stage. It may crash the app
+        adapter.stateRestorationPolicy = StateRestorationPolicy.PREVENT_WHEN_EMPTY
 
         val gridLayoutManager = GridLayoutManager(requireContext(), 2)
         gridLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {

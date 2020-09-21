@@ -2,103 +2,33 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/tagRoot"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:paddingBottom="32dp"
-    >
-
-    <ImageView
-        android:id="@+id/imgBackground"
-        android:layout_width="match_parent"
-        android:layout_height="210dp"
-        android:alpha="0.3"
-        android:scaleType="centerCrop"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:srcCompat="@drawable/himekawa" />
-
-    <ImageView
-        android:id="@+id/imgCover"
-        android:layout_width="150dp"
-        android:layout_height="0dp"
-        android:layout_marginVertical="8dp"
-        app:layout_constraintBottom_toBottomOf="@+id/imgBackground"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:srcCompat="@drawable/himekawa"/>
-
-    <androidx.core.widget.NestedScrollView
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginRight="4dp"
-        app:layout_constraintBottom_toBottomOf="@+id/imgCover"
-        app:layout_constraintEnd_toEndOf="@+id/imgBackground"
-        app:layout_constraintStart_toEndOf="@+id/imgCover"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:paddingBottom="48dp">
-
-            <TextView
-                android:id="@+id/txtTitleEng"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:textColor="@android:color/black"
-                android:textSize="14sp"
-                tools:text="@string/doujin_name_en" />
-
-            <TextView
-                android:id="@+id/txtTitleJap"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textColor="#333333"
-                tools:text="@string/doujin_name_jp" />
-
-        </LinearLayout>
-
-    </androidx.core.widget.NestedScrollView>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        app:tint="@android:color/white"
-        app:backgroundTint="@color/nh_favourite_button_pink"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/lblParodies"
-        app:srcCompat="@drawable/ic_favorite_gray_24dp"
-        android:translationY="-40dp"/>
+    android:layout_height="wrap_content">
 
     <TextView
         android:id="@+id/lblParodies"
+        style="@style/doujin_tag_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:text="Parodies"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imgBackground" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/listParodies"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:minHeight="@dimen/tag_group_min_height"
         android:layout_marginStart="8dp"
+        android:minHeight="@dimen/tag_group_min_height"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/lblParodies"
-        app:layout_constraintTop_toTopOf="@+id/lblParodies" />
+        app:layout_constraintTop_toTopOf="@+id/lblParodies"
+        tools:listitem="@layout/doujin_tags_item" />
 
     <TextView
         android:id="@+id/lblCharacters"
+        style="@style/doujin_tag_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
@@ -110,14 +40,15 @@
         android:id="@+id/listCharacters"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:minHeight="@dimen/tag_group_min_height"
         android:layout_marginStart="8dp"
+        android:minHeight="@dimen/tag_group_min_height"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/lblCharacters"
         app:layout_constraintTop_toTopOf="@+id/lblCharacters" />
 
     <TextView
         android:id="@+id/lblTags"
+        style="@style/doujin_tag_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
@@ -129,14 +60,15 @@
         android:id="@+id/listTags"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:minHeight="@dimen/tag_group_min_height"
         android:layout_marginStart="8dp"
+        android:minHeight="@dimen/tag_group_min_height"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/lblTags"
         app:layout_constraintTop_toTopOf="@+id/lblTags" />
 
     <TextView
         android:id="@+id/textView8"
+        style="@style/doujin_tag_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
@@ -148,14 +80,15 @@
         android:id="@+id/listArtists"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:minHeight="@dimen/tag_group_min_height"
         android:layout_marginStart="8dp"
+        android:minHeight="@dimen/tag_group_min_height"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/textView8"
         app:layout_constraintTop_toTopOf="@+id/textView8" />
 
     <TextView
         android:id="@+id/textView9"
+        style="@style/doujin_tag_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
@@ -167,14 +100,15 @@
         android:id="@+id/listGroups"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:minHeight="@dimen/tag_group_min_height"
         android:layout_marginStart="8dp"
+        android:minHeight="@dimen/tag_group_min_height"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/textView9"
         app:layout_constraintTop_toTopOf="@+id/textView9" />
 
     <TextView
         android:id="@+id/textView10"
+        style="@style/doujin_tag_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
@@ -186,14 +120,15 @@
         android:id="@+id/listLanguages"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:minHeight="@dimen/tag_group_min_height"
         android:layout_marginStart="8dp"
+        android:minHeight="@dimen/tag_group_min_height"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/textView10"
         app:layout_constraintTop_toTopOf="@+id/textView10" />
 
     <TextView
         android:id="@+id/textView11"
+        style="@style/doujin_tag_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
@@ -205,10 +140,12 @@
         android:id="@+id/listCategories"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:minHeight="@dimen/tag_group_min_height"
         android:layout_marginStart="8dp"
+        android:minHeight="@dimen/tag_group_min_height"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/textView11"
         app:layout_constraintTop_toTopOf="@+id/textView11" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+

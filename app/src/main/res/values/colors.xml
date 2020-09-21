@@ -23,4 +23,5 @@
     <color name="nh_favourite_button_pink">#ed2553</color>
     <color name="wine_red">#b33e5c</color>
     <color name="transparent">#00000000</color>
+    <color name="material_500_orange">#FF5722</color>
 </resources>

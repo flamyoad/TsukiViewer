@@ -7,6 +7,8 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
+    <string name="fetch_prompt">No tags found :( \n Click here to fetch from server</string>
+
     <string name="doujin_name_en">(CiNDERELLA ☆ STAGE 7 STEP) [Hoshiyukicha (Yukihoshi Kokoro, Hoshicha)] Himekawa Yuki ga Mukashi no Bukatsu Nakama ni Suikan Sarechau Hon (THE IDOLM@STER CINDERELLA GIRLS) [English] [Naxusnl]</string>
     <string name="doujin_name_jp">(シンデレラ☆ステージ7STEP) [干し雪茶 (雪星こころ、星茶)] 姫川友紀が昔の部活仲間に睡姦されちゃう本 (アイドルマスター シンデレラガールズ) [英訳]</string>
 </resources>

@@ -4,9 +4,233 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fillViewport="true"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context=".ui.doujinpage.FragmentDoujinDetails">
 
-    <include layout="@layout/doujin_details_tags_group" />
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="32dp">
+
+        <ImageView
+            android:id="@+id/imgBackground"
+            android:layout_width="match_parent"
+            android:layout_height="210dp"
+            android:alpha="0.3"
+            android:scaleType="centerCrop"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:srcCompat="@drawable/himekawa" />
+
+        <ImageView
+            android:id="@+id/imgCover"
+            android:layout_width="150dp"
+            android:layout_height="0dp"
+            android:layout_marginVertical="8dp"
+            app:layout_constraintBottom_toBottomOf="@+id/imgBackground"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:srcCompat="@drawable/himekawa" />
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginRight="4dp"
+            app:layout_constraintBottom_toBottomOf="@+id/imgCover"
+            app:layout_constraintEnd_toEndOf="@+id/imgBackground"
+            app:layout_constraintStart_toEndOf="@+id/imgCover"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:paddingBottom="48dp">
+
+                <TextView
+                    android:id="@+id/txtTitleEng"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:textColor="@android:color/black"
+                    android:textSize="14sp"
+                    tools:text="@string/doujin_name_en" />
+
+                <TextView
+                    android:id="@+id/txtTitleJap"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textColor="#333333"
+                    tools:text="@string/doujin_name_jp" />
+
+            </LinearLayout>
+
+        </androidx.core.widget.NestedScrollView>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:translationY="-40dp"
+            app:backgroundTint="@color/nh_favourite_button_pink"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/lblTag"
+            app:srcCompat="@drawable/ic_favorite_gray_24dp"
+            app:tint="@android:color/white" />
+
+        <TextView
+            android:id="@+id/lblTag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:text="TAGS"
+            android:typeface="monospace"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/imgBackground" />
+
+        <FrameLayout
+            android:id="@+id/tagLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/lblTag"
+            app:layout_constraintTop_toBottomOf="@+id/lblTag">
+
+            <include
+                android:id="@+id/tagGroup"
+                layout="@layout/doujin_details_tags_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/imgBackground"
+                tools:layout_height="200dp" />
+
+            <include
+                android:id="@+id/tagsNotFoundIndicator"
+                layout="@layout/empty"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="invisible"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:visibility="visible" />
+        </FrameLayout>
+
+        <View
+            android:id="@+id/verticalDivider"
+            android:layout_width="0dp"
+            android:layout_height="12dp"
+            android:layout_marginTop="16dp"
+            android:background="@color/subLightTextColor"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tagLayout" />
+
+        <TextView
+            android:id="@+id/lblFolderDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="16dp"
+            android:text="FOLDER DETAILS"
+            android:typeface="monospace"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/verticalDivider" />
+
+        <ImageView
+            android:id="@+id/imgDirectory"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginTop="16dp"
+            android:src="@drawable/ic_folder"
+            app:layout_constraintStart_toStartOf="@+id/lblFolderDetails"
+            app:layout_constraintTop_toBottomOf="@+id/lblFolderDetails" />
+
+        <TextView
+            android:id="@+id/txtDirectory"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:textColor="@color/mainTextColor"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/imgDirectory"
+            app:layout_constraintTop_toTopOf="@+id/imgDirectory"
+            tools:text="0/emulated/AE71-322/doujintemps/0/emulated/AE71-322/doujintemps/0/emulated/AE71-322/doujintemps/" />
+
+        <View
+            android:id="@+id/horizontalDivider"
+            android:layout_width="1dp"
+            android:layout_height="0dp"
+            android:background="@android:color/transparent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/txtDateModified"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="16dp"
+            android:gravity="center_horizontal"
+            android:text="21/9/2020"
+            android:textColor="@color/material_500_orange"
+            app:layout_constraintEnd_toStartOf="@+id/horizontalDivider"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/txtDirectory" />
+
+        <TextView
+            android:id="@+id/txtImageCount"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:gravity="center"
+            android:textColor="@color/material_500_orange"
+            app:layout_constraintBottom_toBottomOf="@+id/txtDateModified"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/horizontalDivider"
+            app:layout_constraintTop_toTopOf="@+id/txtDateModified"
+            tools:text="31" />
+
+        <TextView
+            android:id="@+id/lblDate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_horizontal"
+            android:text="Date Modified"
+            android:textSize="12sp"
+            app:layout_constraintEnd_toStartOf="@+id/horizontalDivider"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/txtDateModified" />
+
+        <TextView
+            android:id="@+id/lblPages"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_horizontal"
+            android:text="Pages"
+            android:textSize="12sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/horizontalDivider"
+            app:layout_constraintTop_toBottomOf="@+id/txtImageCount" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.core.widget.NestedScrollView>

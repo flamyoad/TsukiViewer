@@ -87,4 +87,8 @@
         <item name="background">@color/colorPrimaryLight</item>
     </style>
 
+    <style name="doujin_tag_label">
+        <item name="android:textColor">@color/colorPrimaryLight</item>
+    </style>
+
 </resources>

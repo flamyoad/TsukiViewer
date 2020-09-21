@@ -1,39 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><!--<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
-<!--    xmlns:tools="http://schemas.android.com/tools"-->
-<!--    android:layout_width="wrap_content"-->
-<!--    android:layout_height="wrap_content"-->
-<!--    android:minHeight="@dimen/tag_group_min_height"-->
-<!--    android:orientation="horizontal">-->
+<?xml version="1.0" encoding="utf-8"?>
 
-<!--    <TextView-->
-<!--        android:id="@+id/txtName"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="match_parent"-->
-<!--        android:background="@drawable/doujin_tag_left_part"-->
-<!--        android:gravity="center_vertical"-->
-<!--        android:maxLines="2"-->
-<!--        android:paddingHorizontal="4dp"-->
-<!--        android:paddingVertical="4dp"-->
-<!--        android:textColor="#C7C1BE"-->
-<!--        android:textSize="16sp"-->
-<!--        android:textStyle="bold"-->
-<!--        tools:text="sole female" />-->
-
-<!--    <TextView-->
-<!--        android:id="@+id/txtCount"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="match_parent"-->
-<!--        android:background="@drawable/doujin_tag_right_part"-->
-<!--        android:gravity="center_vertical"-->
-<!--        android:maxLines="2"-->
-<!--        android:minWidth="24dp"-->
-<!--        android:paddingHorizontal="4dp"-->
-<!--        android:paddingVertical="4dp"-->
-<!--        android:textColor="#808080"-->
-<!--        android:textSize="14sp"-->
-<!--        tools:text="30" />-->
-
-<!--</LinearLayout>-->
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"

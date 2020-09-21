@@ -9,6 +9,7 @@ import com.flamyoad.tsukiviewer.model.TagSortingMode
 @Dao
 @TypeConverters(TagSortingModeConverter::class)
 interface TagDao {
+
     @Insert
     suspend fun insert(tag: Tag): Long
 
@@ -18,14 +19,13 @@ interface TagDao {
     @Query("""
         SELECT * FROM tags 
         WHERE name LIKE '%' || :keyword || '%'
-        ORDER BY name
         """)
     fun getAllWithFilter(keyword: String): LiveData<List<Tag>>
 
     /*
-    You can't use bind variables (parameters) to reference columns in the ORDER BY clause.
-    https://stackoverflow.com/questions/48172807/room-database-full-dynamic-query
- */
+        You can't use bind variables (parameters) to reference columns in the ORDER BY clause.
+        https://stackoverflow.com/questions/48172807/room-database-full-dynamic-query
+    */
     @Query("""
         SELECT * FROM tags 
         WHERE name LIKE '%' || :keyword || '%'

@@ -45,8 +45,14 @@ class DoujinTagsFragment : BaseFragment(), SearchView.OnQueryTextListener {
         inflater.inflate(R.menu.menu_tags_fragment, menu)
         val searchItem: MenuItem? = menu.findItem(R.id.action_search)
         searchView = searchItem?.actionView as SearchView
-
         searchView?.setOnQueryTextListener(this)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.action_sort -> openSortDialog()
+        }
+        return false
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -63,6 +69,11 @@ class DoujinTagsFragment : BaseFragment(), SearchView.OnQueryTextListener {
         viewpager.isUserInputEnabled = false
 
         viewModel.searchTerms().observe(viewLifecycleOwner, Observer {  })
+    }
+
+    fun openSortDialog() {
+        val dialog = TagSortingDialog()
+        dialog.show(childFragmentManager, "sortDialog")
     }
 
     override fun getTitle(): String {

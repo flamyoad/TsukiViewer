@@ -1,6 +1,5 @@
 package com.flamyoad.tsukiviewer.ui.doujinpage
 
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,10 +10,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.target.Target
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinTagsAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
@@ -25,7 +20,9 @@ import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxItemDecoration
 import com.google.android.flexbox.FlexboxLayoutManager
 import kotlinx.android.synthetic.main.doujin_details_tags_group.*
+import kotlinx.android.synthetic.main.fragment_doujin_details.*
 import java.io.File
+import java.util.*
 
 class FragmentDoujinDetails : Fragment(), TransitionAnimationListener {
     private val COLLECTION_DIALOG_TAG = "collection_dialog"
@@ -41,15 +38,7 @@ class FragmentDoujinDetails : Fragment(), TransitionAnimationListener {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        initTransition()
         initUi()
-    }
-
-    private fun initTransition() {
-        val bundle = requireActivity().intent.extras
-
-        val imageTransitionName = bundle?.getString(LocalDoujinsAdapter.TRANSITION_NAME) ?: ""
-        imgCover.transitionName = imageTransitionName
     }
 
     private fun initUi() {
@@ -65,11 +54,26 @@ class FragmentDoujinDetails : Fragment(), TransitionAnimationListener {
         })
 
         viewModel.detailWithTags.observe(viewLifecycleOwner, Observer {
+            val currentPath = requireActivity()
+                .intent
+                .getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
+
+            val dir = File(currentPath)
+
+            txtDirectory.text = dir.absolutePath
+            txtDateModified.text = Date(dir.lastModified()).toString()
+
             if (it == null) {
-                setDefaultToolbarText()
+                setDefaultToolbarText(dir)
+                tagsNotFoundIndicator.visibility = View.VISIBLE
             } else {
+                tagGroup.visibility = View.VISIBLE
                 initDoujinDetails(it)
             }
+        })
+
+        viewModel.imageList().observe(viewLifecycleOwner, Observer {
+            txtImageCount.text = it.size.toString()
         })
 
         fab.setOnClickListener {
@@ -78,12 +82,7 @@ class FragmentDoujinDetails : Fragment(), TransitionAnimationListener {
     }
 
     // Show directory name if metadata not yet obtained from API
-    private fun setDefaultToolbarText() {
-        val currentPath = requireActivity()
-            .intent
-            .getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
-
-        val dir = File(currentPath)
+    private fun setDefaultToolbarText(dir: File) {
         txtTitleEng.text = dir.name
     }
 

@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.*
 import android.widget.CheckBox
-import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -14,6 +13,7 @@ import androidx.core.view.ViewCompat
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView.Adapter.StateRestorationPolicy
 import com.flamyoad.tsukiviewer.BaseFragment
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
@@ -154,6 +154,10 @@ class LocalDoujinsFragment : BaseFragment(), TransitionAnimationListener {
     private fun initRecyclerView() {
         adapter = LocalDoujinsAdapter(this)
         adapter.setHasStableIds(true)
+
+        // StateRestorationPolicy is in alpha stage. It may crash the app
+        adapter.stateRestorationPolicy = StateRestorationPolicy.PREVENT_WHEN_EMPTY
+
         val gridLayoutManager = GridLayoutManager(context, 2)
 
         listLocalDoujins.adapter = adapter
