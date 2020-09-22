@@ -30,4 +30,10 @@
                 android:title="Row"/>
         </menu>
     </item>
+
+    <item android:id="@+id/action_clear_metadata"
+        android:title="Clear metadata"
+        app:showAsAction="never"
+        android:orderInCategory="103"/>
+
 </menu>

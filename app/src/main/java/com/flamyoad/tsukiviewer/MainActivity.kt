@@ -59,8 +59,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         setTitle(fragmentTag)
     }
 
-    // Note to self: The onOptionsItemSelected() event actually bubbles up from Activity to Fragment
-    // I thought it was the other way round.
+    // Note to self: onOptionsItemSelected() event actually bubbles up from Activity to Fragment
+    // So we have to return false here to allow menu processing to proceed.
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
             R.id.action_search_local -> {
@@ -71,6 +71,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 drawerLayout.closeDrawer(GravityCompat.START, false)
                 return false
             }
+
             else -> {
                 drawerLayout.closeDrawer(GravityCompat.START)
                 return false

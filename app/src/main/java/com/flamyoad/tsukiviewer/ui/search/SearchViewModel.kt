@@ -3,9 +3,11 @@ package com.flamyoad.tsukiviewer.ui.search
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.liveData
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.TagDao
 import com.flamyoad.tsukiviewer.model.Tag
+import kotlinx.coroutines.Dispatchers
 
 class SearchViewModel(application: Application) : AndroidViewModel(application) {
 

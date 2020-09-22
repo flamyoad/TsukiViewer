@@ -1,11 +1,14 @@
 package com.flamyoad.tsukiviewer.ui.doujinpage
 
+import android.app.Activity
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.app.ActivityOptionsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
@@ -25,6 +28,8 @@ const val SCALED_ITEM_SPAN_LANDSCAPE = 3
 
 const val ROW_ITEM_SPAN = 1
 
+const val IMAGE_POSITION_REQUEST_CODE = 100
+
 class FragmentGridImages : Fragment() {
 
     private val viewModel by activityViewModels<DoujinViewModel>()
@@ -33,9 +38,16 @@ class FragmentGridImages : Fragment() {
 
     private lateinit var gridLayoutManager: GridLayoutManager
 
+    private var readerPosition: Int = -1
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        syncGridPositionWithReader() // Called after onActivityCreated()
     }
 
     override fun onCreateView(
@@ -53,6 +65,23 @@ class FragmentGridImages : Fragment() {
             .getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
 
         setListToScaled(dirPath)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == IMAGE_POSITION_REQUEST_CODE) {
+            when (resultCode) {
+                Activity.RESULT_OK -> data?.let {
+                    readerPosition =
+                        it.getIntExtra(DoujinImagesAdapter.POSITION_AFTER_EXITING_READER, -1)
+                }
+
+                // Clears the old position in case the reader and grid have the same position
+                // If we do not clear this, then the grid will jump back to previous location
+                Activity.RESULT_CANCELED -> {
+                    readerPosition = -1
+                }
+            }
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -106,7 +135,9 @@ class FragmentGridImages : Fragment() {
     }
 
     private fun setupRecyclerview(dirPath: String, type: ItemType, spanCount: Int) {
-        adapter = DoujinImagesAdapter(type, dirPath)
+        adapter = DoujinImagesAdapter(type, dirPath) {
+            startActivityForResult(it, IMAGE_POSITION_REQUEST_CODE)
+        }
 
         gridLayoutManager = GridLayoutManager(context, spanCount)
 
@@ -128,6 +159,28 @@ class FragmentGridImages : Fragment() {
         viewModel.imageList().observe(viewLifecycleOwner, Observer {
             adapter.setList(it)
         })
+    }
+
+    // Scrolls the list to the last seen item in the ViewPager in the ReaderActivity after user presses the back button
+    private fun syncGridPositionWithReader() {
+        if (!this::gridLayoutManager.isInitialized) {
+            return
+        }
+
+        // -1 means there is no need to readjust position in grid
+        if (readerPosition == -1) {
+            return
+        }
+
+        val firstVisiblePosition = gridLayoutManager.findFirstVisibleItemPosition()
+        val lastVisiblePosition = gridLayoutManager.findLastVisibleItemPosition()
+
+        // If the item viewed in reader is not visible in the grid
+        // (eg. The user started reading from Page 1 until Page 43)
+        // Page 43 would be not visible in the grid when the user first clicked on it. So, we have to readjust the position
+        if (readerPosition !in firstVisiblePosition..lastVisiblePosition) {
+            gridLayoutManager.scrollToPosition(readerPosition)
+        }
     }
 
     companion object {

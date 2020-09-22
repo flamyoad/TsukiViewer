@@ -17,7 +17,9 @@ import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter
 import kotlinx.android.synthetic.main.reader_image_item.*
 import java.io.File
 
-class ImageFragment(private val image: File): Fragment() {
+private const val IMAGE_PATH = "imagepath"
+
+class ImageFragment: Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -30,10 +32,9 @@ class ImageFragment(private val image: File): Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        val bundle = requireActivity().intent.extras
-        val imageTransitionName = bundle?.getString(DoujinImagesAdapter.TRANSITION_NAME) ?: ""
+        val imagePath = arguments?.getString(IMAGE_PATH)
 
-        photoView.transitionName = imageTransitionName
+        val image = File(imagePath)
 
         Glide.with(this)
             .load(image.toUri())
@@ -54,7 +55,11 @@ class ImageFragment(private val image: File): Fragment() {
 
     companion object {
         fun newInstance(image: File): Fragment {
-            return ImageFragment(image)
+            return ImageFragment().apply {
+                arguments = Bundle().apply {
+                    putString(IMAGE_PATH, image.path)
+                }
+            }
         }
     }
 }

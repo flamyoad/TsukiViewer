@@ -7,6 +7,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.LiveData
 import com.flamyoad.tsukiviewer.model.DoujinCollection
 
+// todo: dont put argument in fragment constructor
 class DialogMoveItems(private val collectionList: LiveData<List<DoujinCollection>>)
     : DialogFragment() {
 

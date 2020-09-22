@@ -4,6 +4,7 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.transition.Explode
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.Window
@@ -16,6 +17,7 @@ import com.flamyoad.tsukiviewer.adapter.DoujinPagerAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.network.FetchMetadataService
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
+import com.flamyoad.tsukiviewer.utils.SimpleDialog
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_doujin_details.*
 
@@ -58,6 +60,10 @@ class DoujinDetailsActivity : AppCompatActivity() {
                 syncMetadata()
             }
 
+            R.id.action_clear_metadata -> {
+                openClearDataDialog()
+            }
+
             R.id.action_edit -> {
                 val dirPath = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
                 val doujinTitle = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_NAME)
@@ -70,6 +76,10 @@ class DoujinDetailsActivity : AppCompatActivity() {
             }
         }
         return false
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
     }
 
     private fun handleIntent() {
@@ -121,5 +131,12 @@ class DoujinDetailsActivity : AppCompatActivity() {
             .create()
 
         dialog.show()
+    }
+
+    private fun openClearDataDialog() {
+        val dialog = SimpleDialog.newInstance {
+            Log.d("testingonly", "it works")
+        }
+        dialog.show(supportFragmentManager, "clearDataDialog")
     }
 }

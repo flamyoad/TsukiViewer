@@ -1,5 +1,7 @@
 package com.flamyoad.tsukiviewer.ui.reader
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
@@ -39,24 +41,40 @@ import java.io.File
  */
 class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickListener {
 
-    private lateinit var viewmodel: ReaderViewModel
+    private lateinit var viewModel: ReaderViewModel
 
-    private var imagePositionInList = 0
+    private var positionFromImageGrid = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reader)
-        supportPostponeEnterTransition()
 
-        viewmodel = ViewModelProvider(this).get(ReaderViewModel::class.java)
+        viewModel = ViewModelProvider(this).get(ReaderViewModel::class.java)
 
-        imagePositionInList = intent.getIntExtra(DoujinImagesAdapter.ADAPTER_POSITION, 0)
+        positionFromImageGrid = intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
 
         initToolbar()
         initReaderScreen()
         initBottomThumbnails()
         initPageIndicator()
         hideStatusBar()
+    }
+
+    override fun onBackPressed() {
+        val positionInImageGrid = intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
+
+        val positionInViewPager = viewpager.currentItem
+
+        if (positionInImageGrid == positionInViewPager) {
+            setResult(Activity.RESULT_CANCELED)
+
+        } else {
+            val intent = Intent()
+            intent.putExtra(DoujinImagesAdapter.POSITION_AFTER_EXITING_READER, positionInViewPager)
+            setResult(Activity.RESULT_OK, intent)
+        }
+
+        super.onBackPressed()
     }
 
     private fun initToolbar() {
@@ -77,17 +95,17 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
     private fun initReaderScreen() {
         val currentDir = intent.getStringExtra(DoujinImagesAdapter.DIRECTORY_PATH)
 
-        viewmodel.scanForImages(currentDir)
+        viewModel.scanForImages(currentDir)
 
         val imageAdapter = ImageFragmentStateAdapter(supportFragmentManager)
         viewpager.adapter = imageAdapter
 
-        viewmodel.imageList().observe(this, Observer {
+        viewModel.imageList().observe(this, Observer {
             imageAdapter.setList(it)
-            viewpager.currentItem = imagePositionInList
+            viewpager.currentItem = positionFromImageGrid
         })
 
-        viewmodel.totalImageCount().observe(this, Observer {
+        viewModel.totalImageCount().observe(this, Observer {
             setPageIndicatorNumber(1)
         })
     }
@@ -103,15 +121,14 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
         bottomListThumbnails.layoutManager = linearLayoutManager
         snapHelper.attachToRecyclerView(bottomListThumbnails)
 
-        viewmodel.imageList().observe(this, Observer {
+        viewModel.imageList().observe(this, Observer {
             adapter.setList(it)
-            linearLayoutManager.scrollToPosition(imagePositionInList)
+            linearLayoutManager.scrollToPosition(positionFromImageGrid)
         })
     }
 
     private fun hideStatusBar() {
         window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
-
         supportActionBar?.hide()
     }
 
@@ -137,7 +154,7 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
     }
 
     private fun setPageIndicatorNumber(number: Int) {
-        val pageNumber = "Page: ${number} / ${viewmodel.totalImageCount().value}"
+        val pageNumber = "Page: ${number} / ${viewModel.totalImageCount().value}"
         txtCurrentPageNumber.text = pageNumber
     }
 

@@ -20,14 +20,15 @@ import java.io.File
 
 class DoujinImagesAdapter(
     private val itemType: ItemType,
-    private val currentDir: String
+    private val currentDir: String,
+    private val startActivityForResult: (Intent) -> Unit // Function is passed from Activity to here since startActivityForResult() can only be called from Activity
 ) :
     RecyclerView.Adapter<DoujinImagesAdapter.ImageViewHolder>() {
 
     companion object {
-        const val ADAPTER_POSITION = "DoujinImagesAdapter.ADAPTER_POSITION"
+        const val POSITION_BEFORE_OPENING_READER = "DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER"
+        const val POSITION_AFTER_EXITING_READER = "DoujinImagesAdapter.POSITION_AFTER_EXITING_READER"
         const val DIRECTORY_PATH = "DoujinImagesAdapter.DIRECTORY_PATH"
-        const val TRANSITION_NAME = "DoujinImagesAdapter.TRANSITION_NAME"
     }
 
     private var imageList: List<File> = emptyList()
@@ -59,10 +60,10 @@ class DoujinImagesAdapter(
                 launchExternalGallery(context, image)
             } else {
                 val intent = Intent(context, ReaderActivity::class.java)
-                intent.putExtra(ADAPTER_POSITION, holder.adapterPosition)
+                intent.putExtra(POSITION_BEFORE_OPENING_READER, holder.adapterPosition)
                 intent.putExtra(DIRECTORY_PATH, currentDir)
 
-                context.startActivity(intent)
+                startActivityForResult(intent) // This is a lambda function in parameter
             }
         }
 

@@ -9,6 +9,8 @@
         <item name="android:dialogTheme">@style/CustomDialog</item>
         <item name="windowActionModeOverlay">true</item>
         <item name="actionModeStyle">@style/myActionModeStyle</item>
+
+        <item name="android:windowContentTransitions">true</item>
         <item name="android:windowSharedElementsUseOverlay">false</item>
     </style>
 
@@ -85,6 +87,7 @@
 
     <style name="myActionModeStyle" parent="@style/Widget.AppCompat.ActionMode">
         <item name="background">@color/colorPrimaryLight</item>
+        <item name="android:statusBarColor">@color/colorPrimaryLight</item>
     </style>
 
     <style name="doujin_tag_label">
