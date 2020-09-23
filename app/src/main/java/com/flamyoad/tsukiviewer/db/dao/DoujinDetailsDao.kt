@@ -34,6 +34,9 @@ interface DoujinDetailsDao {
     @Query("SELECT * FROM doujin_details WHERE absolutePath = :absolutePath")
     suspend fun findByAbsolutePath(absolutePath: String): List<DoujinDetails>
 
+    @Query("SELECT shortTitleEnglish FROM doujin_details WHERE absolutePath = :absolutePath")
+    fun findShortTitleByPath(absolutePath: String): List<String>
+
     //    SELECT * FROM doujin_tags as dt
     //    INNER JOIN doujin_details ON doujin_details.id = dt.doujinId
     //    INNER JOIN tags ON tags.tagId = dt.tagId

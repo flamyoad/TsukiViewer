@@ -1,5 +1,6 @@
 package com.flamyoad.tsukiviewer.ui.home.local
 
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.Configuration
@@ -9,8 +10,6 @@ import android.widget.CheckBox
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.core.app.ActivityOptionsCompat
-import androidx.core.view.ViewCompat
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
@@ -21,15 +20,14 @@ import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.ui.search.SearchActivity
 import com.flamyoad.tsukiviewer.utils.GridItemDecoration
 import kotlinx.android.synthetic.main.fragment_local_doujins.*
-import java.lang.IllegalArgumentException
 
-class LocalDoujinsFragment : BaseFragment(), TransitionAnimationListener {
+class LocalDoujinsFragment : BaseFragment() {
 
     private val viewModel: LocalDoujinViewModel by activityViewModels()
 
     private lateinit var adapter: LocalDoujinsAdapter
 
-    private lateinit var syncProgressBar: ProgressBar
+    private lateinit var progressBar: ProgressBar
 
     private lateinit var toast: Toast
 
@@ -49,17 +47,20 @@ class LocalDoujinsFragment : BaseFragment(), TransitionAnimationListener {
     // onPrepareOptionsMenu() is called after onActivityCreated()
     override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu)
-        val menuItem = menu.findItem(R.id.progress_bar_sync)
-        val view = menuItem.actionView
 
-        syncProgressBar = view.findViewById(R.id.progressBarSync)
-        syncProgressBar.visibility = View.GONE
+        val progressMenuItem = menu.findItem(R.id.progress_bar_sync)
+        val progressActionView = progressMenuItem.actionView
+        progressBar = progressActionView.findViewById(R.id.progressBarSync)
+        progressBar.visibility = View.GONE
 
-        viewModel.isSyncing().observe(viewLifecycleOwner, Observer { stillSynchronizing ->
-            if (stillSynchronizing) {
-                syncProgressBar.visibility = View.VISIBLE
+        val sortMenuItem = menu.findItem(R.id.action_sort_dialog)
+
+        viewModel.isLoading().observe(viewLifecycleOwner, Observer { stillLoading ->
+            if (stillLoading) {
+                progressBar.visibility = View.VISIBLE
             } else {
-                syncProgressBar.visibility = View.GONE
+                progressBar.visibility = View.GONE
+                sortMenuItem.isVisible = true
             }
         })
     }
@@ -72,17 +73,6 @@ class LocalDoujinsFragment : BaseFragment(), TransitionAnimationListener {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.action_sort_by_name -> {
-                adapter.sortByName()
-            }
-
-            R.id.action_sort_by_date -> {
-                adapter.sortByDate()
-            }
-
-            R.id.action_sort_by_path -> {
-                adapter.sortByPath()
-            }
             R.id.action_search_local -> {
                 openSearchActivity()
             }
@@ -94,12 +84,12 @@ class LocalDoujinsFragment : BaseFragment(), TransitionAnimationListener {
                     viewModel.fetchMetadataAll()
                 }
             }
+
+            R.id.action_sort_dialog -> {
+                openSortDialog()
+            }
         }
         return false
-    }
-
-    override fun onResume() {
-        super.onResume()
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -111,6 +101,18 @@ class LocalDoujinsFragment : BaseFragment(), TransitionAnimationListener {
             if (it != null) {
                 toast.setText(it)
                 toast.show()
+            }
+        })
+
+        viewModel.isSorting().observe(viewLifecycleOwner, Observer { stillSorting ->
+            if (stillSorting) {
+                listLocalDoujins.alpha = 0.6f
+                listLocalDoujins.isEnabled = false
+                sortingIndicator.visibility = View.VISIBLE
+            } else {
+                listLocalDoujins.alpha = 1f
+                listLocalDoujins.isEnabled = true
+                sortingIndicator.visibility = View.GONE
             }
         })
     }
@@ -140,24 +142,24 @@ class LocalDoujinsFragment : BaseFragment(), TransitionAnimationListener {
     }
 
     private fun storeSyncDialogPreference(status: Boolean) {
-        val sharedPreferences = requireContext().getSharedPreferences("showSyncDialog", 0)
+        val sharedPreferences = requireContext().getSharedPreferences("com.flamyoad.tsukiviewer", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
 
-        editor.putBoolean("status", status)
+        editor.putBoolean("show_dialog_before_sync", status)
         editor.apply()
     }
 
     private fun shouldShowSyncDialog(): Boolean {
-        val sharedPreferences = requireContext().getSharedPreferences("showSyncDialog", 0)
+        val sharedPreferences = requireContext().getSharedPreferences("com.flamyoad.tsukiviewer", Context.MODE_PRIVATE)
 //        PreferenceManager.getDefaultSharedPreferences(requireContext())
-        return sharedPreferences.getBoolean("status", true)
+        return sharedPreferences.getBoolean("show_dialog_before_sync", true)
     }
 
     private fun initRecyclerView() {
         adapter = LocalDoujinsAdapter()
         adapter.setHasStableIds(true)
 
-        // StateRestorationPolicy is in alpha stage. It may crash the app
+        // StateRestorationPolicy is in alpha stage
         adapter.stateRestorationPolicy = StateRestorationPolicy.PREVENT_WHEN_EMPTY
 
         val spanCount = when (resources.configuration.orientation) {
@@ -177,9 +179,16 @@ class LocalDoujinsFragment : BaseFragment(), TransitionAnimationListener {
 
         listLocalDoujins.setHasFixedSize(true)
 
+        listLocalDoujins.itemAnimator = null
+
         viewModel.doujinList().observe(viewLifecycleOwner, Observer { newList ->
             adapter.setList(newList)
         })
+    }
+
+    private fun openSortDialog() {
+        val dialog = SortDoujinDialog()
+        dialog.show(childFragmentManager, "sortdialog")
     }
 
     private fun openSearchActivity() {
@@ -187,14 +196,14 @@ class LocalDoujinsFragment : BaseFragment(), TransitionAnimationListener {
         startActivity(intent)
     }
 
-    override fun makeSceneTransitionAnimation(view: View): ActivityOptionsCompat {
-        val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
-            requireActivity(),
-            view,
-            ViewCompat.getTransitionName(view) ?: ""
-        )
-        return options
-    }
+//    override fun makeSceneTransitionAnimation(view: View): ActivityOptionsCompat {
+//        val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+//            requireActivity(),
+//            view,
+//            ViewCompat.getTransitionName(view) ?: ""
+//        )
+//        return options
+//    }
 
     override fun getTitle(): String {
         return APPBAR_TITLE

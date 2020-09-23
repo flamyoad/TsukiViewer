@@ -25,7 +25,7 @@ class SimpleDialog: DialogFragment() {
     companion object {
         fun newInstance(positiveAction: () -> Unit): SimpleDialog {
             val dialog = SimpleDialog().apply {
-                this.positiveAction = positiveAction
+                this.positiveAction = positiveAction // wrong fix it later
             }
             return dialog
         }

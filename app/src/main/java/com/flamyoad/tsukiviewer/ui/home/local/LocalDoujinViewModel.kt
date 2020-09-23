@@ -5,10 +5,7 @@ import android.content.*
 import android.os.IBinder
 import android.util.Log
 import androidx.core.net.toUri
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.network.FetchMetadataService
@@ -28,10 +25,21 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
     private var doujinListBuffer = mutableListOf<Doujin>()
 
     private var doujinList = MutableLiveData<MutableList<Doujin>>()
+    fun doujinList(): LiveData<MutableList<Doujin>> = doujinList
 
-    private val isSyncing = MutableLiveData<Boolean>(false)
+    private val isLoading = MutableLiveData<Boolean>(false)
+    fun isLoading(): LiveData<Boolean> = isLoading
+
+    private val isSorting = MutableLiveData<Boolean>(false)
+    fun isSorting(): LiveData<Boolean> = isSorting
 
     private val toastText = MutableLiveData<String?>(null)
+    fun toastText(): LiveData<String?> = toastText
+
+    private val sortMode = MutableLiveData<DoujinSortingMode>(DoujinSortingMode.NONE)
+
+    fun sortMode(): LiveData<DoujinSortingMode> = Transformations
+        .distinctUntilChanged(sortMode)
 
     private val imageExtensions = arrayOf("jpg", "png", "gif", "jpeg", "webp", "jpe", "bmp")
 
@@ -39,11 +47,6 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 
     private var serviceConnection: ServiceConnection? = null
 
-    fun doujinList(): LiveData<MutableList<Doujin>> = doujinList
-
-    fun isSyncing(): LiveData<Boolean> = isSyncing
-
-    fun toastText(): LiveData<String?> = toastText
 
     init {
         contentResolver = app.contentResolver
@@ -73,7 +76,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 
     private fun fetchDoujinsFromDir() {
         viewModelScope.launch {
-            isSyncing.value = true
+            isLoading.value = true
 
             withContext(Dispatchers.IO) {
                 val includedPaths = repo.pathDao.getAllBlocking()
@@ -83,7 +86,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
             }
 
             (app as MyApplication).fullDoujinList = doujinListBuffer
-            isSyncing.value = false
+            isLoading.value = false
 
             fetchService?.ongoingQueue = false
         }
@@ -160,6 +163,43 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 
         val bindIntent = Intent(context, FetchMetadataService::class.java)
         context.bindService(bindIntent, serviceConnection!!, Context.BIND_AUTO_CREATE)
+    }
+
+    fun setSortMode(mode: DoujinSortingMode) {
+        sortMode.value = mode
+    }
+
+    fun startSorting() {
+        sortMode.value?.let {
+            isSorting.value = true
+
+            viewModelScope.launch {
+                withContext(Dispatchers.Default) {
+
+                    // Todo: Try replacing with natural sort for strings
+                    when (it) {
+                        DoujinSortingMode.TITLE_ASC -> doujinListBuffer.sortBy { x -> x.title }
+
+                        DoujinSortingMode.TITLE_DESC -> doujinListBuffer.sortByDescending { x -> x.title }
+
+                        DoujinSortingMode.DATE_ASC -> doujinListBuffer.sortBy { x -> x.lastModified }
+
+                        DoujinSortingMode.DATE_DESC -> doujinListBuffer.sortByDescending { x -> x.lastModified }
+
+                        DoujinSortingMode.NUM_ITEMS_ASC -> doujinListBuffer.sortBy { x -> x.numberOfItems }
+
+                        DoujinSortingMode.NUM_ITEMS_DESC -> doujinListBuffer.sortByDescending { x -> x.numberOfItems }
+
+                        DoujinSortingMode.PATH_ASC -> doujinListBuffer.sortBy { x -> x.path }
+
+                        DoujinSortingMode.PATH_DESC -> doujinListBuffer.sortByDescending { x -> x.path }
+                    }
+                }
+
+                doujinList.value = doujinListBuffer
+                isSorting.value = false
+            }
+        }
     }
 
     override fun onCleared() {

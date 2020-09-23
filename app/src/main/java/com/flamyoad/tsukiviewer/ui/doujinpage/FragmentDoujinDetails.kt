@@ -14,7 +14,6 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinTagsAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.model.DoujinDetailsWithTags
-import com.flamyoad.tsukiviewer.ui.home.local.TransitionAnimationListener
 import com.flamyoad.tsukiviewer.utils.TimeUtils
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
@@ -27,7 +26,7 @@ import org.threeten.bp.ZoneId
 import java.io.File
 import java.util.*
 
-class FragmentDoujinDetails : Fragment(), TransitionAnimationListener {
+class FragmentDoujinDetails : Fragment() {
     private val COLLECTION_DIALOG_TAG = "collection_dialog"
 
     private val viewModel by activityViewModels<DoujinViewModel>()
@@ -136,7 +135,7 @@ class FragmentDoujinDetails : Fragment(), TransitionAnimationListener {
             recyclerView?.adapter = adapter
             recyclerView?.layoutManager = flexLayoutManager
 
-            // Disable scrolling of the recyclerviews
+            // Disables scrolling of the recyclerviews
             recyclerView?.suppressLayout(true)
 
             recyclerView?.addItemDecoration(itemDecoration)
@@ -146,15 +145,6 @@ class FragmentDoujinDetails : Fragment(), TransitionAnimationListener {
     private fun openCollectionDialog() {
         val dialog = CollectionListDialog()
         dialog.show(childFragmentManager, COLLECTION_DIALOG_TAG)
-    }
-
-    override fun makeSceneTransitionAnimation(view: View): ActivityOptionsCompat {
-        val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
-            requireActivity(),
-            view,
-            ViewCompat.getTransitionName(view) ?: ""
-        )
-        return options
     }
 
     companion object {

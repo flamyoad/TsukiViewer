@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:baselineAligned="false">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/doujin_sort_label_style"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Title"/>
+
+            <ImageView
+                android:id="@+id/btnSortTitleAsc"
+                style="@style/doujin_sort_item_style"
+                android:src="@drawable/ic_sort_alpha_up_alt_solid"
+                tools:background="@drawable/doujin_sort_dialog_item_border"/>
+
+            <ImageView
+                android:id="@+id/btnSortTitleDesc"
+                style="@style/doujin_sort_item_style"
+                android:src="@drawable/ic_sort_alpha_down_alt_solid" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/doujin_sort_label_style"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Date" />
+
+            <ImageView
+                android:id="@+id/btnSortDateDesc"
+                style="@style/doujin_sort_item_style"
+                android:src="@drawable/ic_sort_amount_up_alt_solid" />
+
+
+            <ImageView
+                android:id="@+id/btnSortDateAsc"
+                style="@style/doujin_sort_item_style"
+                android:src="@drawable/ic_sort_amount_down_alt_solid" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/doujin_sort_label_style"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Num Pages" />
+
+            <ImageView
+                android:id="@+id/btnPagesDesc"
+                style="@style/doujin_sort_item_style"
+                android:src="@drawable/ic_sort_numeric_up_solid" />
+
+
+            <ImageView
+                android:id="@+id/btnPagesAsc"
+                style="@style/doujin_sort_item_style"
+                android:src="@drawable/ic_sort_numeric_down_solid" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/doujin_sort_label_style"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Path" />
+
+            <ImageView
+                android:id="@+id/btnPathAsc"
+                style="@style/doujin_sort_item_style"
+                android:src="@drawable/ic_sort_alpha_up_alt_solid" />
+
+
+            <ImageView
+                android:id="@+id/btnPathDesc"
+                style="@style/doujin_sort_item_style"
+                android:src="@drawable/ic_sort_alpha_down_alt_solid" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

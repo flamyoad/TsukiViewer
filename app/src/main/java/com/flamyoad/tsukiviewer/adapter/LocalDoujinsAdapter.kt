@@ -14,9 +14,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.model.Doujin
-import com.flamyoad.tsukiviewer.model.DoujinSortingMode
 import com.flamyoad.tsukiviewer.ui.doujinpage.DoujinDetailsActivity
-import com.flamyoad.tsukiviewer.ui.home.local.TransitionAnimationListener
 import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
 import java.util.*
 
@@ -32,8 +30,6 @@ class LocalDoujinsAdapter :
     }
 
     private var doujinList: List<Doujin> = emptyList()
-
-    private var currentSort = DoujinSortingMode.NONE
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DoujinViewHolder {
         val layout = LayoutInflater.from(parent.context)
@@ -82,56 +78,6 @@ class LocalDoujinsAdapter :
         return pathName.hashCode().toLong()
     }
 
-    fun sortByName() {
-        if (currentSort == DoujinSortingMode.TITLE_ASCENDING) {
-            doujinList = doujinList.sortedByDescending {
-                it.title.toLowerCase(Locale.ROOT)
-            }
-            currentSort = DoujinSortingMode.TITLE_DESCENDING
-
-        } else {
-            doujinList = doujinList.sortedBy {
-                it.title.toLowerCase(Locale.ROOT)
-            }
-            currentSort = DoujinSortingMode.TITLE_ASCENDING
-        }
-        notifyDataSetChanged()
-    }
-
-
-    fun sortByDate() {
-        if (currentSort == DoujinSortingMode.DATE_ASCENDING) {
-            doujinList = doujinList.sortedByDescending {
-                it.lastModified
-            }
-            currentSort = DoujinSortingMode.DATE_DESCENDING
-
-        } else {
-            doujinList = doujinList.sortedBy {
-                it.lastModified
-            }
-            currentSort = DoujinSortingMode.DATE_ASCENDING
-        }
-        notifyDataSetChanged()
-    }
-
-    fun sortByPath() {
-        if (currentSort == DoujinSortingMode.PATH_ASCENDING) {
-            doujinList = doujinList.sortedByDescending {
-                it.path.toString().toLowerCase(Locale.ROOT)
-            }
-            currentSort = DoujinSortingMode.PATH_DESCENDING
-
-        } else {
-            doujinList = doujinList.sortedBy {
-                it.path.toString().toLowerCase(Locale.ROOT)
-            }
-            currentSort = DoujinSortingMode.PATH_ASCENDING
-        }
-
-        notifyDataSetChanged()
-    }
-
     inner class DoujinViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val coverImg: ImageView = itemView.findViewById(R.id.imgCover)
         private val txtTitle: TextView = itemView.findViewById(R.id.txtTitleEng)
@@ -152,37 +98,6 @@ class LocalDoujinsAdapter :
 
     override fun onChange(position: Int): CharSequence {
         val doujin = doujinList[position]
-
-        return when (currentSort) {
-            DoujinSortingMode.TITLE_ASCENDING -> {
-                doujin.title
-            }
-
-            DoujinSortingMode.TITLE_DESCENDING -> {
-                doujin.title
-            }
-
-            DoujinSortingMode.DATE_ASCENDING -> {
-                val datetime = Date(doujin.lastModified)
-                return datetime.toString()
-            }
-
-            DoujinSortingMode.DATE_DESCENDING -> {
-                val datetime = Date(doujin.lastModified)
-                return datetime.toString()
-            }
-
-            DoujinSortingMode.PATH_ASCENDING -> {
-                doujin.path.absolutePath
-            }
-
-            DoujinSortingMode.PATH_DESCENDING -> {
-                doujin.path.absolutePath
-            }
-
-            else -> {
-                doujin.title
-            }
-        }
+        return doujin.title
     }
 }
