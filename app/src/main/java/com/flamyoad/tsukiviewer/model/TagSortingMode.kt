@@ -6,5 +6,16 @@ enum class TagSortingMode(private val description: String) {
     COUNT_ASCENDING("By count ascending"),
     COUNT_DESCENDING("By count descending");
 
-    fun getDescription() = description
+    fun getDescription(): String {
+        return description
+    }
+
+    companion object {
+        private val modeByDescription =
+            TagSortingMode.values().associateBy(TagSortingMode::description)
+
+        fun fromDescription(desc: String): TagSortingMode {
+            return modeByDescription[desc] ?: NAME_ASCENDING
+        }
+    }
 }

@@ -1,7 +1,10 @@
 package com.flamyoad.tsukiviewer.ui.home.tags
 
 import android.app.Application
-import androidx.lifecycle.*
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.switchMap
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.TagDao
 import com.flamyoad.tsukiviewer.model.Tag
@@ -10,12 +13,14 @@ import com.flamyoad.tsukiviewer.model.TagType
 
 class DoujinTagsViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val db: AppDatabase
+    private val db: AppDatabase = AppDatabase.getInstance(application)
+
     private val tagDao: TagDao
 
     // First object in the Pair : Keyword of the search
     // Second object in the Pair: The sorting mode (e.g. Sort by number of items ascending)
     private val searchTerms = MutableLiveData<Pair<String, TagSortingMode>>()
+
     fun searchTerms(): LiveData<Pair<String, TagSortingMode>> = searchTerms
 
     private val allTags: LiveData<List<Tag>>
@@ -28,7 +33,6 @@ class DoujinTagsViewModel(application: Application) : AndroidViewModel(applicati
     private val categories: LiveData<List<Tag>>
 
     init {
-        db = AppDatabase.getInstance(application)
         tagDao = db.tagsDao()
 
         searchTerms.value = Pair("", TagSortingMode.NAME_ASCENDING)
@@ -66,7 +70,10 @@ class DoujinTagsViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    private fun findFilteredItems(tagType: TagType, searchTerm: Pair<String, TagSortingMode>): LiveData<List<Tag>> {
+    private fun findFilteredItems(
+        tagType: TagType,
+        searchTerm: Pair<String, TagSortingMode>
+    ): LiveData<List<Tag>> {
         val keyword = searchTerm.first
         val sortingMode = searchTerm.second
 
@@ -77,7 +84,7 @@ class DoujinTagsViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun getTagItems(type: TagType): LiveData<List<Tag>> {
-        return when(type) {
+        return when (type) {
             TagType.All -> allTags
             TagType.Parodies -> parodies
             TagType.Characters -> characters
@@ -87,6 +94,11 @@ class DoujinTagsViewModel(application: Application) : AndroidViewModel(applicati
             TagType.Languages -> languages
             TagType.Categories -> categories
         }
+    }
+
+    fun getCurrentMode(): TagSortingMode {
+        return searchTerms.value?.second
+            ?: TagSortingMode.NAME_ASCENDING
     }
 
     fun setQuery(keyword: String) {
