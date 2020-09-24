@@ -11,14 +11,15 @@ import androidx.lifecycle.ViewModelProvider
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.model.Tag
+import com.flamyoad.tsukiviewer.utils.toast
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import kotlinx.android.synthetic.main.activity_editor.*
 
-class EditorActivity : AppCompatActivity(), CreateTagListener {
+private const val BACKMOST_POSITION = -1
 
-    private val BACKMOST_POSITION = -1
+class EditorActivity : AppCompatActivity(), CreateTagListener {
 
     private lateinit var viewModel: EditorViewModel
 
@@ -33,7 +34,7 @@ class EditorActivity : AppCompatActivity(), CreateTagListener {
 
         viewModel.hasCompletedSaving().observe(this, Observer { hasCompleted ->
             if (hasCompleted) {
-                Toast.makeText(this, "Data is saved", Toast.LENGTH_SHORT).show()
+                toast("Data is saved")
                 finish()
             } else {
                 contentLayout.isEnabled = false
@@ -124,9 +125,9 @@ class EditorActivity : AppCompatActivity(), CreateTagListener {
     }
 
     private fun ChipGroup.insertTag(tag: Tag, position: Int) {
-        // Check for duplicates. If found, then return
         val chips = this.children as Sequence<Chip>
 
+        // Check for duplicates. If yes, then return
         for (chip in chips) {
             if (tag.name == chip.text) {
                 return

@@ -1,5 +1,6 @@
 package com.flamyoad.tsukiviewer
 
+import android.animation.AnimatorInflater
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
@@ -9,12 +10,14 @@ import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
+import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import com.flamyoad.tsukiviewer.ui.home.collection.CollectionDoujinFragment
 import com.flamyoad.tsukiviewer.ui.home.local.LocalDoujinsFragment
 import com.flamyoad.tsukiviewer.ui.home.tags.DoujinTagsFragment
 import com.flamyoad.tsukiviewer.ui.settings.SettingsActivity
+import com.google.android.material.internal.StateListAnimator
 import com.google.android.material.navigation.NavigationView
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -24,6 +27,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
         setSupportActionBar(toolbar)
 
         val toggle = ActionBarDrawerToggle(
@@ -38,11 +42,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         nav_view.setNavigationItemSelectedListener(this)
 
-        Log.d("localdoujins", "MainActivity's onCreate() is called")
-
         if (savedInstanceState == null) {
             addFragment(LocalDoujinsFragment.newInstance(), LocalDoujinsFragment.APPBAR_TITLE)
-            Log.d("localdoujins", "addFragment(LocalDoujinsFragment.newInstance())")
         }
     }
 
@@ -149,11 +150,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun removeAppBarShadow() {
-        appbarLayout.elevation = 0f
+        appbarLayout.stateListAnimator = AnimatorInflater.loadStateListAnimator(this, R.animator.appbar_elevation_off)
     }
 
     private fun showAppBarShadow() {
-        appbarLayout.elevation = 8f
+        appbarLayout.stateListAnimator = AnimatorInflater.loadStateListAnimator(this, R.animator.appbar_elevation_on)
     }
 
     override fun onBackPressed() {

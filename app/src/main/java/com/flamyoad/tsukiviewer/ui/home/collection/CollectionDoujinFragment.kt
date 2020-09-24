@@ -49,10 +49,6 @@ class CollectionDoujinFragment : BaseFragment(), ActionMode.Callback, ActionMode
 
         registerForContextMenu(listCollectionDoujins)
 
-        viewmodel.headers.observe(viewLifecycleOwner, Observer {
-            viewmodel.refreshList()
-        })
-
         viewmodel.itemsNoHeaders.observe(viewLifecycleOwner, Observer {
             viewmodel.refreshList()
         })
@@ -153,9 +149,9 @@ class CollectionDoujinFragment : BaseFragment(), ActionMode.Callback, ActionMode
         builder.apply {
             setTitle("Delete ${adapter.getSelectedItemCount()} items?")
             setPositiveButton("Delete", DialogInterface.OnClickListener { dialog, which ->
-                // toList() is required.
-                // This is because the referenced list is cleared automatically in destruction of dialog
-                // If toList() is not called, delete will not work because the referenced list is already empty
+                //  toList() is required.
+                //  This is because the referenced list is cleared automatically in destruction of dialog
+                //  If toList() is not called, delete will not work because the referenced list is already empty
                 viewmodel.deleteItems(adapter.selectedItems.toList())
                 mode?.finish()
             })

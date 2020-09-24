@@ -18,7 +18,7 @@ class CollectionDoujinViewModel(app: Application) : AndroidViewModel(app) {
 
     private val tempItems: MutableList<CollectionItem> = mutableListOf()
 
-    private val existingList: List<Doujin>
+    private val fullDoujinList: List<Doujin>
 
     private val imageExtensions = arrayOf("jpg", "png", "gif", "jpeg", "webp", "jpe", "bmp")
 
@@ -31,15 +31,11 @@ class CollectionDoujinViewModel(app: Application) : AndroidViewModel(app) {
         return@switchMap collectionRepo.collectionNameExists(name)
     }
 
-    val headers: LiveData<List<DoujinCollection>>
-
     val itemsNoHeaders: LiveData<List<CollectionItem>>
 
     init {
-        headers = collectionRepo.getAllCollections()
         itemsNoHeaders = collectionRepo.getAllItems()
-
-        existingList = (app as MyApplication).fullDoujinList ?: emptyList()
+        fullDoujinList = (app as MyApplication).fullDoujinList ?: emptyList()
     }
 
     fun refreshList() {
@@ -84,15 +80,15 @@ class CollectionDoujinViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun getDoujin(dir: File): Doujin {
-        // Find from existing list first before scanning from directory
-        if (existingList.isNotEmpty()) {
-            val doujin = existingList.find { doujin -> doujin.path == dir }
+        //  Find from existing list first before scanning from directory
+        if (fullDoujinList.isNotEmpty()) {
+            val doujin = fullDoujinList.find { doujin -> doujin.path == dir }
             if (doujin != null) {
                 return doujin
             }
         }
 
-        // If not found, then we have to use Java File api
+        //  If not found, then we have to use Java File api
         val fileList = dir.listFiles()
 
         val imageList = fileList.filter { f -> f.extension in imageExtensions }

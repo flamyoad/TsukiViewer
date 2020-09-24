@@ -66,8 +66,7 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
             withContext(Dispatchers.Main) {
                 parody.value = details?.tags?.filter { x -> x.type == "parody" } ?: mutableListOf()
 
-                character.value =
-                    details?.tags?.filter { x -> x.type == "character" } ?: mutableListOf()
+                character.value = details?.tags?.filter { x -> x.type == "character" } ?: mutableListOf()
 
                 tags.value = details?.tags?.filter { x -> x.type == "tag" } ?: mutableListOf()
 
@@ -75,11 +74,9 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
 
                 group.value = details?.tags?.filter { x -> x.type == "group" } ?: mutableListOf()
 
-                language.value =
-                    details?.tags?.filter { x -> x.type == "language" } ?: mutableListOf()
+                language.value = details?.tags?.filter { x -> x.type == "language" } ?: mutableListOf()
 
-                category.value =
-                    details?.tags?.filter { x -> x.type == "category" } ?: mutableListOf()
+                category.value = details?.tags?.filter { x -> x.type == "category" } ?: mutableListOf()
             }
         }
     }
@@ -110,8 +107,8 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun removeTag(name: String, category: String) {
-        val tagsLiveData = findTagListByCategory(category)
-        val prevItems = tagsLiveData.value?.toMutableList() ?: mutableListOf()
+        val tagList = findTagListByCategory(category)
+        val prevItems = tagList.value?.toMutableList() ?: mutableListOf()
 
         var index = -1
         for (i in prevItems.indices) {
@@ -123,7 +120,7 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
         val itemToBeRemoved = prevItems[index]
 
         prevItems.removeAt(index)
-        tagsLiveData.value = prevItems
+        tagList.value = prevItems
 
         // Push changes made to undo stack
         pushUndo(

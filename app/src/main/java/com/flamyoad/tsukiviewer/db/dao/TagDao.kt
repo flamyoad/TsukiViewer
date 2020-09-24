@@ -19,6 +19,7 @@ interface TagDao {
     @Query("""
         SELECT * FROM tags 
         WHERE name LIKE '%' || :keyword || '%'
+        ORDER BY name 
         """)
     fun getAllWithFilter(keyword: String): LiveData<List<Tag>>
 

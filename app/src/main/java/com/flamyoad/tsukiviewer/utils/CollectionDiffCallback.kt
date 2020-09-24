@@ -12,5 +12,4 @@ class CollectionDiffCallback: DiffUtil.ItemCallback<CollectionItem>() {
     override fun areContentsTheSame(oldItem: CollectionItem, newItem: CollectionItem): Boolean {
         return oldItem == newItem
     }
-
 }

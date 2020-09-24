@@ -141,6 +141,7 @@ class DoujinCollectionAdapter(private val listener: ActionModeListener) :
         context.startActivity(intent)
     }
 
+    //  TODO: Move this logic into ViewModel
     private fun toggleHeader(header: CollectionItem, headerPosition: Int) {
         when (header.isCollapsed) {
             true -> show(header.collectionName, headerPosition)
@@ -149,6 +150,7 @@ class DoujinCollectionAdapter(private val listener: ActionModeListener) :
         header.isCollapsed = !header.isCollapsed
     }
 
+    //  TODO: Move this logic into ViewModel
     private fun collapse(collectionName: String, headerPosition: Int) {
         val currentItems = currentList.toMutableList()
 
