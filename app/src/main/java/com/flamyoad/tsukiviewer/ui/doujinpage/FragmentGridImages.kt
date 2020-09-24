@@ -176,11 +176,14 @@ class FragmentGridImages : Fragment() {
         val lastVisiblePosition = gridLayoutManager.findLastVisibleItemPosition()
 
         // If the item viewed in reader is not visible in the grid
-        // (eg. The user started reading from Page 1 until Page 43)
+        // (For example, when a user started reading from Page 1 until Page 43)
         // Page 43 would be not visible in the grid when the user first clicked on it. So, we have to readjust the position
         if (readerPosition !in firstVisiblePosition..lastVisiblePosition) {
             gridLayoutManager.scrollToPosition(readerPosition)
         }
+
+        // Clears the last position given
+        readerPosition = -1
     }
 
     companion object {

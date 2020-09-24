@@ -3,6 +3,7 @@ package com.flamyoad.tsukiviewer.ui.home.collection
 import android.app.Application
 import androidx.core.net.toUri
 import androidx.lifecycle.*
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.model.CollectionItem
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.DoujinCollection
@@ -11,16 +12,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 
-class CollectionDoujinViewModel(application: Application) : AndroidViewModel(application) {
+class CollectionDoujinViewModel(app: Application) : AndroidViewModel(app) {
 
-    private val collectionRepo = CollectionRepository(application)
+    private val collectionRepo = CollectionRepository(app)
 
     private val tempItems: MutableList<CollectionItem> = mutableListOf()
+
+    private val existingList: List<Doujin>
 
     private val imageExtensions = arrayOf("jpg", "png", "gif", "jpeg", "webp", "jpe", "bmp")
 
     private val itemsWithHeaders = MutableLiveData<List<CollectionItem>>()
-
     fun itemsWithHeaders(): LiveData<List<CollectionItem>> = itemsWithHeaders
 
     val newCollectionName = MutableLiveData<String>()
@@ -36,6 +38,8 @@ class CollectionDoujinViewModel(application: Application) : AndroidViewModel(app
     init {
         headers = collectionRepo.getAllCollections()
         itemsNoHeaders = collectionRepo.getAllItems()
+
+        existingList = (app as MyApplication).fullDoujinList ?: emptyList()
     }
 
     fun refreshList() {
@@ -79,17 +83,26 @@ class CollectionDoujinViewModel(application: Application) : AndroidViewModel(app
         )
     }
 
-    private fun getDoujin(currentDir: File): Doujin {
-        val fileList = currentDir.listFiles()
+    private fun getDoujin(dir: File): Doujin {
+        // Find from existing list first before scanning from directory
+        if (existingList.isNotEmpty()) {
+            val doujin = existingList.find { doujin -> doujin.path == dir }
+            if (doujin != null) {
+                return doujin
+            }
+        }
+
+        // If not found, then we have to use Java File api
+        val fileList = dir.listFiles()
 
         val imageList = fileList.filter { f -> f.extension in imageExtensions }
 
         val coverImage = imageList.first().toUri()
-        val title = currentDir.name
+        val title = dir.name
         val numberOfImages = imageList.size
-        val lastModified = currentDir.lastModified()
+        val lastModified = dir.lastModified()
 
-        val doujin = Doujin(coverImage, title, numberOfImages, lastModified, currentDir)
+        val doujin = Doujin(coverImage, title, numberOfImages, lastModified, dir)
 
         return doujin
     }

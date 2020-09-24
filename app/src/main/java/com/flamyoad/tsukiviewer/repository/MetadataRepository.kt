@@ -240,11 +240,6 @@ class MetadataRepository(private val context: Context) {
         return null
     }
 
-    fun getDoujinShortName(dirPath: File): String {
-        val results = doujinDetailsDao.findShortTitleByPath(dirPath.absolutePath)
-        return results.firstOrNull() ?: ""
-    }
-
     // Need this because we are running in non-UI thread
     private fun showToast(message: String) {
         val handler = Handler(Looper.getMainLooper())

@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.Window
 import android.widget.ImageView
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
@@ -19,7 +20,7 @@ class SortDoujinDialog : DialogFragment() {
         val builder = AlertDialog.Builder(requireContext())
 
         val view = LayoutInflater.from(requireContext())
-            .inflate(R.layout.doujin_sort_dialog, null, false)
+            .inflate(R.layout.dialog_sort_doujin, null, false)
 
         builder.apply {
             setView(view)
@@ -28,23 +29,13 @@ class SortDoujinDialog : DialogFragment() {
         val dialog = builder.create()
         dialog.window?.requestFeature(Window.FEATURE_NO_TITLE) // Removes the unused white title bar
 
-        val buttonIdList = listOf(
-            R.id.btnSortTitleAsc,
-            R.id.btnSortTitleDesc,
-            R.id.btnSortDateAsc,
-            R.id.btnSortDateDesc,
-            R.id.btnPagesAsc,
-            R.id.btnPagesDesc,
-            R.id.btnPathAsc,
-            R.id.btnPathDesc
-        )
+        val buttonIdList = DoujinSortingMode.getAllLayoutId()
 
         for (buttonId in buttonIdList) {
             val button = view.findViewById<ImageView>(buttonId)
             button.setOnClickListener {
                 val mode = DoujinSortingMode.fromLayout(buttonId)
                 viewModel.setSortMode(mode)
-                viewModel.startSorting()
                 dialog.dismiss()
             }
         }
@@ -61,7 +52,10 @@ class SortDoujinDialog : DialogFragment() {
             }
 
             val button = dialog?.findViewById<ImageView>(it.getLayoutId())
-            button?.setBackgroundResource(R.drawable.doujin_sort_dialog_item_border)
+            val gray = ContextCompat.getColor(requireContext(), R.color.subtleGray)
+
+            button?.setBackgroundColor(gray)
+//            button?.setBackgroundResource(R.drawable.doujin_sort_dialog_item_border)
         })
     }
 

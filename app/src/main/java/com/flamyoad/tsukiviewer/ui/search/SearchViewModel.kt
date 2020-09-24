@@ -1,26 +1,34 @@
 package com.flamyoad.tsukiviewer.ui.search
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.liveData
+import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.TagDao
 import com.flamyoad.tsukiviewer.model.Tag
-import kotlinx.coroutines.Dispatchers
 
 class SearchViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val db: AppDatabase
+    private val db: AppDatabase = AppDatabase.getInstance(application)
 
     private val tagDao: TagDao
+
+    private val tagQuery = MutableLiveData<String>("")
 
     val tagList: LiveData<List<Tag>>
 
     init {
-        db = AppDatabase.getInstance(application)
         tagDao = db.tagsDao()
 
-        tagList = tagDao.getAll()
+        tagList = Transformations.switchMap(tagQuery) {
+            return@switchMap tagDao.getAllWithFilter(it)
+        }
+    }
+
+    fun setQuery(query: String) {
+        tagQuery.value = query
+    }
+
+    fun clearQuery() {
+        tagQuery.value = ""
     }
 }

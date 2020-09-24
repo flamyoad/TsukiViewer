@@ -19,6 +19,7 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.ui.search.SearchActivity
 import com.flamyoad.tsukiviewer.utils.GridItemDecoration
+import com.flamyoad.tsukiviewer.utils.snackbar
 import kotlinx.android.synthetic.main.fragment_local_doujins.*
 
 class LocalDoujinsFragment : BaseFragment() {
@@ -85,6 +86,10 @@ class LocalDoujinsFragment : BaseFragment() {
                 }
             }
 
+            R.id.action_refresh -> {
+
+            }
+
             R.id.action_sort_dialog -> {
                 openSortDialog()
             }
@@ -107,12 +112,18 @@ class LocalDoujinsFragment : BaseFragment() {
         viewModel.isSorting().observe(viewLifecycleOwner, Observer { stillSorting ->
             if (stillSorting) {
                 listLocalDoujins.alpha = 0.6f
-                listLocalDoujins.isEnabled = false
+                fastScroller.isEnabled = false
                 sortingIndicator.visibility = View.VISIBLE
             } else {
                 listLocalDoujins.alpha = 1f
-                listLocalDoujins.isEnabled = true
+                fastScroller.isEnabled = true
                 sortingIndicator.visibility = View.GONE
+            }
+        })
+
+        viewModel.refreshResult().observe(viewLifecycleOwner, Observer {
+            if (it != null) {
+                snackbar(it)
             }
         })
     }

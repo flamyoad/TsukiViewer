@@ -23,25 +23,28 @@
         android:orderInCategory="101"
         app:showAsAction="always"/>
 
-    <item android:id="@+id/action_sort"
-        android:title="Sort"
+    <item android:id="@+id/action_view_mode"
+        android:title="View mode"
         android:orderInCategory="102" >
 
         <menu>
-            <item android:id="@+id/action_sort_by_name"
-                android:title="By name" />
+            <item android:id="@+id/action_view_grid"
+                android:title="Grid"/>
 
-            <item android:id="@+id/action_sort_by_date"
-                android:title="By date"/>
-
-            <item android:id="@+id/action_sort_by_path"
-                android:title="By path"/>
+            <item android:id="@+id/action_view_scaled"
+                android:title="Scaled" />
         </menu>
+
     </item>
+
+    <item android:id="@+id/action_refresh"
+        android:title="Refresh"
+        app:showAsAction="never"
+        android:orderInCategory="103"/>
 
     <item android:id="@+id/action_sync"
         android:title="Sync metadata"
         app:showAsAction="never"
-        android:orderInCategory="103"/>
+        android:orderInCategory="104"/>
 
 </menu>

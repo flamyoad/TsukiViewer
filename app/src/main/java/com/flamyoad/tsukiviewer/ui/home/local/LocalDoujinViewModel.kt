@@ -18,7 +18,7 @@ import java.io.File
 
 class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app) {
 
-    val repo = MetadataRepository(app)
+    private val repo = MetadataRepository(app)
 
     private val contentResolver: ContentResolver
 
@@ -35,6 +35,9 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 
     private val toastText = MutableLiveData<String?>(null)
     fun toastText(): LiveData<String?> = toastText
+
+    private val refreshResult = MutableLiveData<String?>(null)
+    fun refreshResult(): LiveData<String?> = refreshResult
 
     private val sortMode = MutableLiveData<DoujinSortingMode>(DoujinSortingMode.NONE)
 
@@ -78,6 +81,8 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
         viewModelScope.launch {
             isLoading.value = true
 
+            val prevListSize = doujinListBuffer.size
+
             withContext(Dispatchers.IO) {
                 val includedPaths = repo.pathDao.getAllBlocking()
                 for (folder in includedPaths) {
@@ -85,8 +90,13 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
                 }
             }
 
+
             (app as MyApplication).fullDoujinList = doujinListBuffer
             isLoading.value = false
+
+            val newListSize = doujinListBuffer.size
+            val difference = newListSize - prevListSize
+            postRefreshResult(difference)
 
             fetchService?.ongoingQueue = false
         }
@@ -113,22 +123,6 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
             for (f in fileList) {
                 walk(f, parentDir)
             }
-        }
-    }
-
-    suspend fun fetchMetadataAll(dirList: List<File>) {
-        val amountFetched = repo.fetchMetadataAll(dirList)
-
-        if (amountFetched == 0) {
-            toastText.value = "All items are already synced"
-
-        } else {
-            val noun = if (amountFetched > 1)
-                "items"
-            else
-                "item"
-
-            toastText.value = "Sync done for $amountFetched $noun"
         }
     }
 
@@ -167,38 +161,88 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 
     fun setSortMode(mode: DoujinSortingMode) {
         sortMode.value = mode
+        startSorting()
     }
 
-    fun startSorting() {
+    private fun startSorting() {
         sortMode.value?.let {
             isSorting.value = true
 
             viewModelScope.launch {
                 withContext(Dispatchers.Default) {
-
                     // Todo: Try replacing with natural sort for strings
                     when (it) {
                         DoujinSortingMode.TITLE_ASC -> doujinListBuffer.sortBy { x -> x.title }
-
                         DoujinSortingMode.TITLE_DESC -> doujinListBuffer.sortByDescending { x -> x.title }
-
                         DoujinSortingMode.DATE_ASC -> doujinListBuffer.sortBy { x -> x.lastModified }
-
                         DoujinSortingMode.DATE_DESC -> doujinListBuffer.sortByDescending { x -> x.lastModified }
-
                         DoujinSortingMode.NUM_ITEMS_ASC -> doujinListBuffer.sortBy { x -> x.numberOfItems }
-
                         DoujinSortingMode.NUM_ITEMS_DESC -> doujinListBuffer.sortByDescending { x -> x.numberOfItems }
-
                         DoujinSortingMode.PATH_ASC -> doujinListBuffer.sortBy { x -> x.path }
-
                         DoujinSortingMode.PATH_DESC -> doujinListBuffer.sortByDescending { x -> x.path }
+
+                        DoujinSortingMode.SHORT_TITLE_ASC -> {
+                            doujinListBuffer = sortByShortName(ascending = true)
+                        }
+                        DoujinSortingMode.SHORT_TITLE_DESC -> {
+                            doujinListBuffer = sortByShortName(ascending = false)
+                        }
+
+                        DoujinSortingMode.NONE -> {
+                        }
                     }
                 }
 
                 doujinList.value = doujinListBuffer
                 isSorting.value = false
             }
+        }
+    }
+
+    suspend fun sortByShortName(ascending: Boolean): MutableList<Doujin> {
+        val shortTitles = repo.doujinDetailsDao.getAllShortTitles()
+
+        val doujinList = doujinListBuffer.toMutableList()
+        for (doujin in doujinList) {
+            val found = shortTitles.find { x -> x.path == doujin.path }
+            if (found != null) {
+                doujin.shortTitle = found.shortTitleEnglish
+            } else {
+                doujin.shortTitle = doujin.title
+            }
+        }
+
+        val naturalSort =
+            compareBy<Doujin> { it.shortTitle.length } // If you don't first compare by length, it won't work
+                .then(naturalOrder())
+
+        when (ascending) {
+            true -> {
+                doujinList.sortWith(naturalSort)
+            }
+            false -> {
+                val naturalSortDesc = naturalSort.then(reverseOrder()) // doesnt reverse the list lul TODO: FIX IT
+                doujinList.sortWith(naturalSortDesc)
+            }
+        }
+
+        return doujinList
+    }
+
+    fun refreshList() {
+        if (isLoading.value == true) {
+            return
+        }
+//        fetchDoujinsFromDir()
+    }
+
+    private fun postRefreshResult(amountNewItems: Int) {
+        val message = if (amountNewItems < 0) {
+            "No new items found!"
+        } else if (amountNewItems > 1) {
+            "${amountNewItems} items are found!"
+        } else {
+            "${amountNewItems} item is found!"
         }
     }
 

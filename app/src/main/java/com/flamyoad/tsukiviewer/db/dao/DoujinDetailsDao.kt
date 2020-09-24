@@ -2,12 +2,15 @@ package com.flamyoad.tsukiviewer.db.dao
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
+import com.flamyoad.tsukiviewer.db.typeconverter.FolderConverter
 import com.flamyoad.tsukiviewer.model.DoujinDetails
 import com.flamyoad.tsukiviewer.model.DoujinDetailsWithTags
+import com.flamyoad.tsukiviewer.model.ShortTitle
 
 // TODO: Refactor this class to two - DoujinDetailsDao and DoujinLongDetailsDao
 
 @Dao
+@TypeConverters(FolderConverter::class)
 interface DoujinDetailsDao {
 
     // Compile time error will occur if we change the return type to int instead of long
@@ -23,6 +26,9 @@ interface DoujinDetailsDao {
 
     @Query("SELECT EXISTS(SELECT * FROM doujin_details WHERE absolutePath = :absolutePath)")
     suspend fun existsByAbsolutePath(absolutePath: String): Boolean
+
+    @Query("SELECT shortTitleEnglish, absolutePath FROM doujin_details")
+    suspend fun getAllShortTitles(): List<ShortTitle>
 
     @Query("""
         SELECT * FROM doujin_details 

@@ -102,7 +102,7 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
 
         viewModel.imageList().observe(this, Observer {
             imageAdapter.setList(it)
-            viewpager.currentItem = positionFromImageGrid
+            viewpager.setCurrentItem(positionFromImageGrid, false)
         })
 
         viewModel.totalImageCount().observe(this, Observer {

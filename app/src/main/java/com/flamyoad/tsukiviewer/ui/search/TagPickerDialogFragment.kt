@@ -1,15 +1,10 @@
 package com.flamyoad.tsukiviewer.ui.search
 
 import android.app.Dialog
-import android.content.Context
 import android.content.DialogInterface
-import android.graphics.Point
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.Display
-import android.view.Gravity
-import android.view.Window
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
@@ -24,7 +19,7 @@ import com.flamyoad.tsukiviewer.adapter.TagPickerAdapter
 class TagPickerDialogFragment()
     : DialogFragment() {
 
-    private lateinit var viewmodel: SearchViewModel
+    private lateinit var viewModel: SearchViewModel
 
     private lateinit var listTags: RecyclerView
 
@@ -54,7 +49,7 @@ class TagPickerDialogFragment()
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        viewmodel = ViewModelProvider(requireActivity()).get(SearchViewModel::class.java)
+        viewModel = ViewModelProvider(requireActivity()).get(SearchViewModel::class.java)
 
         val tagSelectedListener = requireActivity() as TagSelectedListener
 
@@ -71,11 +66,11 @@ class TagPickerDialogFragment()
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
             override fun onTextChanged(text: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                adapter.addFilter(text.toString())
+                viewModel.setQuery(text.toString())
             }
         })
 
-        viewmodel.tagList.observe(this, Observer {
+        viewModel.tagList.observe(this, Observer {
             adapter.setList(it)
         })
     }

@@ -16,7 +16,7 @@ import kotlinx.android.synthetic.main.search_bar.*
 
 class SearchActivity : AppCompatActivity(), TagSelectedListener {
 
-    private lateinit var viewmodel: SearchViewModel
+    private lateinit var viewModel: SearchViewModel
 
     companion object {
         const val SEARCH_TITLE = "SearchActivity.SEARCH_TITLE"
@@ -28,7 +28,7 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search)
 
-        viewmodel = ViewModelProvider(this).get(SearchViewModel::class.java)
+        viewModel = ViewModelProvider(this).get(SearchViewModel::class.java)
 
         initSearchView()
         initSearchHistory()
@@ -48,6 +48,8 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
 
         val dialog = supportFragmentManager.findFragmentByTag(DIALOG_FRAGMENT_TAG) as DialogFragment
         dialog.dismiss()
+
+        viewModel.clearQuery()
     }
 
     private fun addChip(text: String) {
@@ -76,7 +78,7 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
             return
         }
 
-        val intent = Intent(this@SearchActivity, SearchResultActivity::class.java)
+        val intent = Intent(this, SearchResultActivity::class.java)
         intent.putExtra(SEARCH_TITLE, title)
         intent.putExtra(SEARCH_TAGS, tags)
         startActivity(intent)
