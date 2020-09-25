@@ -16,7 +16,7 @@ interface IncludedPathDao {
     @Query("SELECT dir FROM included_path")
     suspend fun getAllBlocking(): List<File>
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(path: IncludedPath)
 
     @Delete

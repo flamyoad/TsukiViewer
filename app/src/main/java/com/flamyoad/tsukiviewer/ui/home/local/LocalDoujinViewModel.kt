@@ -1,14 +1,16 @@
 package com.flamyoad.tsukiviewer.ui.home.local
 
 import android.app.Application
-import android.content.*
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.os.IBinder
 import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.model.Doujin
-import com.flamyoad.tsukiviewer.model.IncludedPath
 import com.flamyoad.tsukiviewer.network.FetchMetadataService
 import com.flamyoad.tsukiviewer.repository.MetadataRepository
 import kotlinx.coroutines.Dispatchers
@@ -22,14 +24,12 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 
     private val repo = MetadataRepository(app)
 
-    private val contentResolver: ContentResolver = app.contentResolver
+    private var includedDirectories = listOf<File>()
 
     private var doujinListBuffer = mutableListOf<Doujin>()
 
     private var doujinList = MutableLiveData<MutableList<Doujin>>()
     fun doujinList(): LiveData<MutableList<Doujin>> = doujinList
-
-    val includedDirectories: LiveData<List<IncludedPath>>
 
     private val isLoading = MutableLiveData<Boolean>(false)
     fun isLoading(): LiveData<Boolean> = isLoading
@@ -55,7 +55,6 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
     private var loadingJob: Job? = null
 
     init {
-        includedDirectories = repo.pathDao.getAll().distinctUntilChanged()
         initDoujinList()
     }
 
@@ -63,7 +62,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
         val fullList = (app as MyApplication).fullDoujinList
 
         if (fullList != null) {
-//            doujinListBuffer = fullList
+            doujinListBuffer = fullList
             doujinList.value = fullList
         } else {
             doujinListBuffer.clear()
@@ -72,8 +71,17 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
     }
 
     fun reloadDoujins() {
-        loadingJob?.cancel()
-        loadDoujinsFromDir()
+        viewModelScope.launch(Dispatchers.IO) {
+            val directoriesFromDb = repo.pathDao.getAllBlocking()
+
+            if (includedDirectories == directoriesFromDb) {
+                return@launch
+
+            } else {
+                loadingJob?.cancel()
+                loadDoujinsFromDir()
+            }
+        }
     }
 
     private fun loadDoujinsFromDir() {
@@ -83,12 +91,12 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
             val prevListSize = doujinListBuffer.size
 
             withContext(Dispatchers.IO) {
-                val includedDirs = repo.pathDao.getAllBlocking()
+                includedDirectories = repo.pathDao.getAllBlocking()
 
                 // Clears doujins from directories previously included, but are now removed by the user
                 if (doujinListBuffer.isNotEmpty()) {
                     val filteredList = doujinListBuffer
-                        .filter { x -> x.parentDir in includedDirs }
+                        .filter { x -> x.parentDir in includedDirectories }
                         .toMutableList()
 
                     withContext(Dispatchers.Main) {
@@ -98,18 +106,20 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
                 }
 
                 // Re-fetch a new list from the included directories
-                for (dir in includedDirs) {
+                for (dir in includedDirectories) {
                     walk(dir, dir)
                 }
+
+                withContext(Dispatchers.Main) {
+                    (app as MyApplication).fullDoujinList = doujinListBuffer
+                    isLoading.value = false
+
+                    val newListSize = doujinListBuffer.size
+                    postRefreshResult(newListSize - prevListSize)
+
+                    fetchService?.ongoingQueue = false
+                }
             }
-
-            (app as MyApplication).fullDoujinList = doujinListBuffer
-            isLoading.value = false
-
-            val newListSize = doujinListBuffer.size
-            postRefreshResult(newListSize - prevListSize)
-
-            fetchService?.ongoingQueue = false
         }
     }
 
@@ -133,9 +143,8 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
                     numberOfImages,
                     lastModified,
                     currentDir,
-                    parentDir = parentDir
+                    parentDir
                 )
-
                 setResult(doujin, parentDir)
             }
 
@@ -146,14 +155,20 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
     }
 
     private suspend fun setResult(doujin: Doujin, parentDir: File) {
-        withContext(Dispatchers.Default) {
-            val item = doujinListBuffer.find { x -> x.path == doujin.path }
+        val list = doujinListBuffer
 
+        withContext(Dispatchers.Default) {
+            /*
+            If the same folder is found twice during the recursive scanning, the new item is not added to the list.
+            Instead, the parent directory of the item is changed to make it easier to be removed, when the included directories are modified by user
+            */
+            val item = list.find { x -> x.path == doujin.path }
             if (item != null) {
                 item.parentDir = parentDir
             } else {
                 doujinListBuffer.add(doujin)
             }
+
 
             withContext(Dispatchers.Main) {
                 doujinList.value = doujinListBuffer

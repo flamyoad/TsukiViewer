@@ -47,6 +47,11 @@ class LocalDoujinsFragment : BaseFragment() {
         setHasOptionsMenu(true)
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.reloadDoujins()
+    }
+
     // onPrepareOptionsMenu() is called after onActivityCreated()
     override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu)
@@ -61,6 +66,7 @@ class LocalDoujinsFragment : BaseFragment() {
         viewModel.isLoading().observe(viewLifecycleOwner, Observer { stillLoading ->
             if (stillLoading) {
                 progressBar.visibility = View.VISIBLE
+                sortMenuItem.isVisible = false
             } else {
                 progressBar.visibility = View.GONE
                 sortMenuItem.isVisible = true
@@ -110,10 +116,6 @@ class LocalDoujinsFragment : BaseFragment() {
                 toast.setText(it)
                 toast.show()
             }
-        })
-
-        viewModel.includedDirectories.observe(viewLifecycleOwner, Observer {
-            viewModel.reloadDoujins()
         })
 
         viewModel.isSorting().observe(viewLifecycleOwner, Observer { stillSorting ->
