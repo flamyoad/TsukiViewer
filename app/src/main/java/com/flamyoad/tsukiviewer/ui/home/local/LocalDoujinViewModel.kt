@@ -8,9 +8,11 @@ import androidx.core.net.toUri
 import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.model.Doujin
+import com.flamyoad.tsukiviewer.model.IncludedPath
 import com.flamyoad.tsukiviewer.network.FetchMetadataService
 import com.flamyoad.tsukiviewer.repository.MetadataRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -20,12 +22,14 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 
     private val repo = MetadataRepository(app)
 
-    private val contentResolver: ContentResolver
+    private val contentResolver: ContentResolver = app.contentResolver
 
     private var doujinListBuffer = mutableListOf<Doujin>()
 
     private var doujinList = MutableLiveData<MutableList<Doujin>>()
     fun doujinList(): LiveData<MutableList<Doujin>> = doujinList
+
+    val includedDirectories: LiveData<List<IncludedPath>>
 
     private val isLoading = MutableLiveData<Boolean>(false)
     fun isLoading(): LiveData<Boolean> = isLoading
@@ -40,9 +44,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
     fun refreshResult(): LiveData<String?> = refreshResult
 
     private val sortMode = MutableLiveData<DoujinSortingMode>(DoujinSortingMode.NONE)
-
-    fun sortMode(): LiveData<DoujinSortingMode> = Transformations
-        .distinctUntilChanged(sortMode)
+    fun sortMode(): LiveData<DoujinSortingMode> = sortMode.distinctUntilChanged()
 
     private val imageExtensions = arrayOf("jpg", "png", "gif", "jpeg", "webp", "jpe", "bmp")
 
@@ -50,9 +52,10 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 
     private var serviceConnection: ServiceConnection? = null
 
+    private var loadingJob: Job? = null
 
     init {
-        contentResolver = app.contentResolver
+        includedDirectories = repo.pathDao.getAll().distinctUntilChanged()
         initDoujinList()
     }
 
@@ -64,39 +67,47 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
             doujinList.value = fullList
         } else {
             doujinListBuffer.clear()
-            fetchDoujinsFromDir()
+            loadDoujinsFromDir()
         }
     }
 
-    private suspend fun setResult(doujin: Doujin) {
-        withContext(Dispatchers.Main) {
-            doujinListBuffer.add(doujin)
-            doujinList.value = doujinListBuffer
-
-            fetchService?.enqueue(doujin.path, onlyOneItem = false)
-        }
+    fun reloadDoujins() {
+        loadingJob?.cancel()
+        loadDoujinsFromDir()
     }
 
-    private fun fetchDoujinsFromDir() {
-        viewModelScope.launch {
+    private fun loadDoujinsFromDir() {
+        loadingJob = viewModelScope.launch {
             isLoading.value = true
 
             val prevListSize = doujinListBuffer.size
 
             withContext(Dispatchers.IO) {
-                val includedPaths = repo.pathDao.getAllBlocking()
-                for (folder in includedPaths) {
-                    walk(folder.dir, folder.dir)
+                val includedDirs = repo.pathDao.getAllBlocking()
+
+                // Clears doujins from directories previously included, but are now removed by the user
+                if (doujinListBuffer.isNotEmpty()) {
+                    val filteredList = doujinListBuffer
+                        .filter { x -> x.parentDir in includedDirs }
+                        .toMutableList()
+
+                    withContext(Dispatchers.Main) {
+                        doujinListBuffer = filteredList
+                        doujinList.value = filteredList
+                    }
+                }
+
+                // Re-fetch a new list from the included directories
+                for (dir in includedDirs) {
+                    walk(dir, dir)
                 }
             }
-
 
             (app as MyApplication).fullDoujinList = doujinListBuffer
             isLoading.value = false
 
             val newListSize = doujinListBuffer.size
-            val difference = newListSize - prevListSize
-            postRefreshResult(difference)
+            postRefreshResult(newListSize - prevListSize)
 
             fetchService?.ongoingQueue = false
         }
@@ -116,12 +127,37 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
                 val numberOfImages = imageList.size
                 val lastModified = currentDir.lastModified()
 
-                val doujin = Doujin(coverImage, title, numberOfImages, lastModified, currentDir)
-                setResult(doujin)
+                val doujin = Doujin(
+                    coverImage,
+                    title,
+                    numberOfImages,
+                    lastModified,
+                    currentDir,
+                    parentDir = parentDir
+                )
+
+                setResult(doujin, parentDir)
             }
 
             for (f in fileList) {
                 walk(f, parentDir)
+            }
+        }
+    }
+
+    private suspend fun setResult(doujin: Doujin, parentDir: File) {
+        withContext(Dispatchers.Default) {
+            val item = doujinListBuffer.find { x -> x.path == doujin.path }
+
+            if (item != null) {
+                item.parentDir = parentDir
+            } else {
+                doujinListBuffer.add(doujin)
+            }
+
+            withContext(Dispatchers.Main) {
+                doujinList.value = doujinListBuffer
+                fetchService?.enqueue(doujin.path, onlyOneItem = false)
             }
         }
     }
@@ -221,7 +257,8 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
                 doujinList.sortWith(naturalSort)
             }
             false -> {
-                val naturalSortDesc = naturalSort.then(reverseOrder()) // doesnt reverse the list lul TODO: FIX IT
+                val naturalSortDesc =
+                    naturalSort.then(reverseOrder()) // doesnt reverse the list lul TODO: FIX IT
                 doujinList.sortWith(naturalSortDesc)
             }
         }

@@ -7,10 +7,10 @@ import android.view.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.Adapter.StateRestorationPolicy
 import com.flamyoad.tsukiviewer.BaseFragment
 import com.flamyoad.tsukiviewer.R
@@ -21,7 +21,10 @@ import com.flamyoad.tsukiviewer.ui.doujinpage.DialogNewCollection
 import com.flamyoad.tsukiviewer.utils.GridItemDecoration
 import kotlinx.android.synthetic.main.fragment_favourite_doujin.*
 
-class CollectionDoujinFragment : BaseFragment(), ActionMode.Callback, ActionModeListener {
+class CollectionDoujinFragment : BaseFragment(),
+    ActionMode.Callback,
+    ActionModeListener,
+    SearchView.OnQueryTextListener {
 
     private val viewmodel: CollectionDoujinViewModel by activityViewModels()
 
@@ -29,8 +32,19 @@ class CollectionDoujinFragment : BaseFragment(), ActionMode.Callback, ActionMode
 
     private var actionMode: ActionMode? = null
 
+    private var searchView: SearchView? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.menu_doujin_collection, menu)
+        val searchItem: MenuItem? = menu.findItem(R.id.action_search)
+        searchView = searchItem?.actionView as SearchView
+        searchView?.setOnQueryTextListener(this)
     }
 
     override fun onCreateView(
@@ -168,8 +182,8 @@ class CollectionDoujinFragment : BaseFragment(), ActionMode.Callback, ActionMode
         val dialog = builder.create()
 
         dialog.listView.setOnItemClickListener { adapterView, view, i, l ->
-            // Does nothing. Replaces the default listener just to prevent
-            // the dialog from closing itself when clicking on one of the items
+            // Does nothing. Replaces the default listener just to prevent the
+            // dialog from closing itself when clicking on one of the items
         }
 
         dialog.show()
@@ -205,7 +219,7 @@ class CollectionDoujinFragment : BaseFragment(), ActionMode.Callback, ActionMode
         mode: ActionMode?,
         menu: Menu?
     ): Boolean {
-        requireActivity().menuInflater.inflate(R.menu.menu_contextual_collection, menu)
+        requireActivity().menuInflater.inflate(R.menu.menu_doujin_collection_contextual, menu)
         return true
     }
 
@@ -223,6 +237,14 @@ class CollectionDoujinFragment : BaseFragment(), ActionMode.Callback, ActionMode
 
     override fun getTitle(): String {
         return APPBAR_TITLE
+    }
+
+    override fun onQueryTextSubmit(query: String?): Boolean {
+        return true
+    }
+
+    override fun onQueryTextChange(newText: String?): Boolean {
+        return true
     }
 
     companion object {

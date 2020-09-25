@@ -130,9 +130,9 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
     }
 
     private suspend fun searchFromFileExplorer(keyword: String) {
-        val includedPaths = pathDao.getAllBlocking()
-        for (path in includedPaths) {
-            val pathName = path.dir.toString()
+        val includedDirs = pathDao.getAllBlocking()
+        for (dir in includedDirs) {
+            val pathName = dir.toString()
 
             val uri = MediaStore.Files.getContentUri("external")
 

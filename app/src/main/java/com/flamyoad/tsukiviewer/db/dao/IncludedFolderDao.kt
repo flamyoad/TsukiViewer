@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.flamyoad.tsukiviewer.model.IncludedFolder
 
+// Not used anymore
 @Dao
 interface IncludedFolderDao {
 

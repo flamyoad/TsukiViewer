@@ -5,6 +5,7 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.widget.CheckBox
 import android.widget.ProgressBar
@@ -22,6 +23,7 @@ import com.flamyoad.tsukiviewer.utils.GridItemDecoration
 import com.flamyoad.tsukiviewer.utils.snackbar
 import kotlinx.android.synthetic.main.fragment_local_doujins.*
 
+// onResume() is called after onActivityCreated() in Fragment
 class LocalDoujinsFragment : BaseFragment() {
 
     private val viewModel: LocalDoujinViewModel by activityViewModels()
@@ -69,7 +71,7 @@ class LocalDoujinsFragment : BaseFragment() {
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         menu.clear()
-        inflater.inflate(R.menu.menu_local_doujins_fragment, menu)
+        inflater.inflate(R.menu.menu_local_doujins, menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -98,6 +100,7 @@ class LocalDoujinsFragment : BaseFragment() {
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
+        Log.d("debugz", "onActivityCreated() is called")
         super.onActivityCreated(savedInstanceState)
         initRecyclerView()
         toast = Toast.makeText(context, "", Toast.LENGTH_LONG)
@@ -107,6 +110,10 @@ class LocalDoujinsFragment : BaseFragment() {
                 toast.setText(it)
                 toast.show()
             }
+        })
+
+        viewModel.includedDirectories.observe(viewLifecycleOwner, Observer {
+            viewModel.reloadDoujins()
         })
 
         viewModel.isSorting().observe(viewLifecycleOwner, Observer { stillSorting ->

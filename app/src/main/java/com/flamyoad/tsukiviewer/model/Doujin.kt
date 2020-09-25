@@ -10,7 +10,8 @@ data class Doujin(
     val lastModified: Long,
     val path: File,
 
-    var shortTitle: String = ""
+    var shortTitle: String = "",
+    var parentDir: File = File("")
 
 ): Comparable<Doujin> { // Comparable<T> interface needs to be implemented to use fun <T> compareBy()
     
