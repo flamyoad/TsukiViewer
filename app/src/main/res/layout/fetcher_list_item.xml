@@ -11,15 +11,16 @@
 
     <ImageView
         android:id="@+id/imgStatus"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
         android:layout_marginStart="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/txtDoujinName"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_check_green_24dp" />
+        tools:srcCompat="@drawable/ic_check_green" />
 
     <TextView
-        android:id="@+id/txtFolderName"
+        android:id="@+id/txtDoujinName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -29,7 +30,7 @@
         android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/imgStatus"
-        app:layout_constraintTop_toTopOf="@+id/imgStatus"
+        app:layout_constraintTop_toTopOf="parent"
         tools:text="@string/doujin_name_jp" />
 
     <TextView
@@ -40,8 +41,8 @@
         android:ellipsize="end"
         android:lines="1"
         android:textSize="12sp"
-        app:layout_constraintEnd_toEndOf="@+id/txtFolderName"
-        app:layout_constraintStart_toStartOf="@+id/txtFolderName"
-        app:layout_constraintTop_toBottomOf="@+id/txtFolderName"
+        app:layout_constraintEnd_toEndOf="@+id/txtDoujinName"
+        app:layout_constraintStart_toStartOf="@+id/txtDoujinName"
+        app:layout_constraintTop_toBottomOf="@+id/txtDoujinName"
         tools:text="0/emulated/AE85-1111/temp/doujin" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
-import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyApplication
@@ -117,7 +116,9 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
                     val newListSize = doujinListBuffer.size
                     postRefreshResult(newListSize - prevListSize)
 
-                    fetchService?.ongoingQueue = false
+                    if (fetchService != null) {
+                        enqueueDirs()
+                    }
                 }
             }
         }
@@ -127,6 +128,10 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
     private suspend fun walk(currentDir: File, parentDir: File) {
         if (currentDir.isDirectory) {
             val fileList = currentDir.listFiles()
+
+            if (fileList == null) {
+                return // Invalid directory
+            }
 
             val imageList = fileList.filter { f -> f.extension in imageExtensions }
 
@@ -172,7 +177,6 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 
             withContext(Dispatchers.Main) {
                 doujinList.value = doujinListBuffer
-                fetchService?.enqueue(doujin.path, onlyOneItem = false)
             }
         }
     }
@@ -180,34 +184,36 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
     // Todo: check which method inside is blocking UI thread
     fun fetchMetadataAll() {
         val context = app.applicationContext
+
         FetchMetadataService.startService(context)
 
         serviceConnection = object : ServiceConnection {
             override fun onServiceConnected(className: ComponentName?, service: IBinder?) {
                 fetchService = (service as FetchMetadataService.FetchBinder).getService()
 
-//                java.util.ConcurrentModificationException
-//                at java.util.ArrayList$Itr.next(ArrayList.java:831)
-                val tempList = doujinListBuffer.toMutableList()
-
-                viewModelScope.launch(Dispatchers.Default) {
-                    val dirs = tempList.map { doujin -> doujin.path }
-
-                    withContext(Dispatchers.Main) {
-                        fetchService?.enqueue(dirs)
-                        fetchService?.startFetching()
-                    }
+                // If all doujins have been loaded
+                if (isLoading.value == false) {
+                    enqueueDirs()
                 }
             }
 
             override fun onServiceDisconnected(className: ComponentName?) {
-                Log.d("fetchService", "onServiceDisconnected() is called")
                 fetchService = null
             }
         }
 
         val bindIntent = Intent(context, FetchMetadataService::class.java)
         context.bindService(bindIntent, serviceConnection!!, Context.BIND_AUTO_CREATE)
+    }
+
+    private fun enqueueDirs() {
+        viewModelScope.launch(Dispatchers.Default) {
+            val dirList = doujinListBuffer.map { x -> x.path }
+
+            withContext(Dispatchers.Main) {
+                fetchService?.enqueueList(dirList)
+            }
+        }
     }
 
     fun setSortMode(mode: DoujinSortingMode) {

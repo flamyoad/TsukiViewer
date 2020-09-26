@@ -4,15 +4,14 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.IBinder
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
-import com.flamyoad.tsukiviewer.adapter.FetchItemAdapter
+import com.flamyoad.tsukiviewer.adapter.FetchHistoryAdapter
 import com.flamyoad.tsukiviewer.network.FetchMetadataService
 import kotlinx.android.synthetic.main.activity_fetcher_status.*
 
@@ -20,7 +19,7 @@ class FetcherStatusActivity : AppCompatActivity() {
 
     private var fetchService: FetchMetadataService? = null
 
-    private val adapter = FetchItemAdapter()
+    private val adapter = FetchHistoryAdapter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,7 +29,7 @@ class FetcherStatusActivity : AppCompatActivity() {
     }
 
     private fun doBindService() {
-        val connection = object: ServiceConnection {
+        val connection = object : ServiceConnection {
             override fun onServiceConnected(className: ComponentName?, service: IBinder?) {
                 fetchService = (service as FetchMetadataService.FetchBinder).getService()
                 observeChanges()
@@ -48,6 +47,8 @@ class FetcherStatusActivity : AppCompatActivity() {
     }
 
     private fun initList() {
+        adapter.setHasStableIds(true)
+
         listItems.adapter = adapter
         listItems.layoutManager = LinearLayoutManager(this)
         listItems.addItemDecoration(DividerItemDecoration(this, LinearLayoutManager.VERTICAL))
@@ -57,14 +58,24 @@ class FetcherStatusActivity : AppCompatActivity() {
         val service = fetchService
 
         if (service != null) {
-            service.itemHistory().observe(this, Observer {
+            service.fetchPercentage.observe(this, Observer {
+                if (it != null) {
+                    txtProgress.text = it.getProgress()
+                    txtPercentage.text = it.getPercentString()
+                    progressBar.progress = it.getPercent()
+                }
+            })
+
+            service.fetchHistories().observe(this, Observer {
                 adapter.setList(it)
-                txtItemQueued.text = "Item Queued " + it.size
+                txtProcessed.text = getString(R.string.processed_item_text, it.size)
             })
 
             service.currentItem().observe(this, Observer {
                 txtCurrentItem.text = it.name
             })
+
+            service.dirList().observe(this, Observer {})
         }
     }
 

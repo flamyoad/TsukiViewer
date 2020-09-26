@@ -165,16 +165,16 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
                 val parentId = cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.PARENT))
 
                 if (idSet.add(parentId)) {
-                    val dir = File(fullPath)
+                    val doujinDir = File(fullPath)
 
-                    val imageList = dir.listFiles(ImageFileFilter())
+                    val imageList = doujinDir.listFiles(ImageFileFilter())
 
                     if (!imageList.isNullOrEmpty()) {
                         val doujin = Doujin(
                             pic = imageList.first().toUri(),
-                            title = dir.name,
-                            path = dir,
-                            lastModified = dir.lastModified(),
+                            title = doujinDir.name,
+                            path = doujinDir,
+                            lastModified = doujinDir.lastModified(),
                             numberOfItems = imageList.size
                         )
                         postResult(doujin)

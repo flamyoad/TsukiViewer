@@ -3,6 +3,7 @@ package com.flamyoad.tsukiviewer.ui.home.collection
 import android.content.DialogInterface
 import android.content.res.Configuration
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -21,14 +22,17 @@ import com.flamyoad.tsukiviewer.ui.doujinpage.DialogNewCollection
 import com.flamyoad.tsukiviewer.utils.GridItemDecoration
 import kotlinx.android.synthetic.main.fragment_favourite_doujin.*
 
+private const val ACTION_MODE = "actionmode"
+
 class CollectionDoujinFragment : BaseFragment(),
     ActionMode.Callback,
     ActionModeListener,
+    ToggleHeaderListener,
     SearchView.OnQueryTextListener {
 
-    private val viewmodel: CollectionDoujinViewModel by activityViewModels()
+    private val viewModel: CollectionDoujinViewModel by activityViewModels()
 
-    private val adapter: DoujinCollectionAdapter = DoujinCollectionAdapter(this)
+    private val adapter: DoujinCollectionAdapter = DoujinCollectionAdapter(this, this, false)
 
     private var actionMode: ActionMode? = null
 
@@ -55,19 +59,33 @@ class CollectionDoujinFragment : BaseFragment(),
         return inflater.inflate(R.layout.fragment_favourite_doujin, container, false)
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        val isInActionMode = actionMode != null
+        outState.putBoolean(ACTION_MODE, isInActionMode)
+    }
+
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
+        if (savedInstanceState != null) {
+            val shouldRestartActionMode = savedInstanceState.getBoolean(ACTION_MODE, false)
+            if (shouldRestartActionMode) {
+                startActionMode()
+                actionMode?.title = viewModel.selectedItemsList.size.toString()
+            }
+        }
+        
         initUi()
         initRecyclerView()
 
         registerForContextMenu(listCollectionDoujins)
 
-        viewmodel.itemsNoHeaders.observe(viewLifecycleOwner, Observer {
-            viewmodel.refreshList()
+        viewModel.allItems.observe(viewLifecycleOwner, Observer {
+            viewModel.initList()
         })
 
-        viewmodel.itemsWithHeaders().observe(viewLifecycleOwner, Observer {
+        viewModel.itemsWithHeaders().observe(viewLifecycleOwner, Observer {
             adapter.submitList(it)
         })
     }
@@ -128,28 +146,27 @@ class CollectionDoujinFragment : BaseFragment(),
         val selectedCollection = adapter.onLongClickItem ?: return true
 
         when (item.title) {
-            MENU_CHANGE_NAME -> openChangeNameDialog(selectedCollection)
-            MENU_DELETE_COLLECTION -> openDeleteCollectionDialog(selectedCollection)
+            MENU_CHANGE_NAME -> showChangeNameDialog(selectedCollection)
+            MENU_DELETE_COLLECTION -> showDeleteCollectionDialog(selectedCollection)
         }
         return true
     }
 
-    private fun openChangeNameDialog(item: CollectionItem) {
+    private fun showChangeNameDialog(item: CollectionItem) {
         val dialog = DialogChangeName.newInstance(item.collectionName)
         dialog.show(parentFragmentManager, CHANGE_NAME_DIALOG)
     }
 
-    private fun openDeleteCollectionDialog(item: CollectionItem) {
+    private fun showDeleteCollectionDialog(item: CollectionItem) {
         val builder = AlertDialog.Builder(requireContext())
 
         builder.apply {
             setTitle(item.collectionName)
             setMessage("Are you sure you want to delete this collection? Existing items will be lost")
             setPositiveButton("Delete", DialogInterface.OnClickListener { dialogInterface, i ->
-                viewmodel.deleteCollection(item.collectionName)
+                viewModel.deleteCollection(item.collectionName)
             })
             setNegativeButton("Return", DialogInterface.OnClickListener { dialogInterface, i ->
-
             })
         }
 
@@ -157,26 +174,24 @@ class CollectionDoujinFragment : BaseFragment(),
         dialog.show()
     }
 
-    private fun showDeleteDialog(mode: ActionMode?) {
+    private fun showDeleteItemsDialog(mode: ActionMode?) {
         val builder = AlertDialog.Builder(requireContext())
 
         builder.apply {
-            setTitle("Delete ${adapter.getSelectedItemCount()} items?")
+            setTitle("Delete ${viewModel.getSelectedItemCount()} items?")
             setPositiveButton("Delete", DialogInterface.OnClickListener { dialog, which ->
                 //  toList() is required.
                 //  This is because the referenced list is cleared automatically in destruction of dialog
                 //  If toList() is not called, delete will not work because the referenced list is already empty
-                viewmodel.deleteItems(adapter.selectedItems.toList())
+                viewModel.deleteItems()
                 mode?.finish()
             })
             setNegativeButton("Return", DialogInterface.OnClickListener { dialogInterface, i ->
 
             })
             setItems(
-                adapter.getSelectedItemNames(),
-                DialogInterface.OnClickListener { dialogInterface, i ->
-
-                })
+                viewModel.getSelectedItemNames(),
+                DialogInterface.OnClickListener { dialogInterface, i -> })
         }
 
         val dialog = builder.create()
@@ -189,20 +204,26 @@ class CollectionDoujinFragment : BaseFragment(),
         dialog.show()
     }
 
-    override fun openActionMode() {
+    override fun startActionMode() {
         if (requireActivity() is AppCompatActivity) {
             val appCompat = requireActivity() as AppCompatActivity
             actionMode = appCompat.startSupportActionMode(this)
-            adapter.setActionMode(true)
+            adapter.actionModeEnabled = true
         }
     }
 
-    override fun onItemCountChange(count: Int) {
+    override fun onMultiSelectionClick(item: CollectionItem) {
+        viewModel.onItemSelected(item)
+
+        val count = viewModel.selectedItemsList.size
         if (count == 0) {
             actionMode?.finish()
         }
-        actionMode?.setTitle(count.toString())
+
+        actionMode?.title = count.toString()
         actionMode?.invalidate()
+
+        Log.d("Debugz", "Item name: ${item.doujin?.title ?: ""} Selected items count: ${count}")
     }
 
     override fun onActionItemClicked(
@@ -210,7 +231,7 @@ class CollectionDoujinFragment : BaseFragment(),
         item: MenuItem?
     ): Boolean {
         when (item?.itemId) {
-            R.id.action_delete -> showDeleteDialog(mode)
+            R.id.action_delete -> showDeleteItemsDialog(mode)
         }
         return true
     }
@@ -232,7 +253,12 @@ class CollectionDoujinFragment : BaseFragment(),
 
     override fun onDestroyActionMode(mode: ActionMode?) {
         actionMode = null
-        adapter.setActionMode(false)
+        viewModel.clearActionModeData()
+        adapter.actionModeEnabled = false
+    }
+
+    override fun toggleHeader(header: CollectionItem, headerPosition: Int) {
+        viewModel.toggleHeader(header, headerPosition)
     }
 
     override fun getTitle(): String {

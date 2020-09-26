@@ -3,11 +3,9 @@ package com.flamyoad.tsukiviewer.ui.doujinpage
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
-import android.transition.Explode
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.view.Window
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -112,11 +110,11 @@ class DoujinDetailsActivity : AppCompatActivity() {
             val dirPath = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
             FetchMetadataService.startService(this, dirPath)
         } else {
-            showConfirmSyncDialog()
+            showConfirmResyncDialog()
         }
     }
 
-    private fun showConfirmSyncDialog() {
+    private fun showConfirmResyncDialog() {
         val dialog = AlertDialog.Builder(this)
             .setTitle("Reset to original tags")
             .setMessage("Previous tags that have been added manually will be erased. Continue?")

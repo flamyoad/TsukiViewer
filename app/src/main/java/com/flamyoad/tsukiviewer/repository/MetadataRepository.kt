@@ -11,10 +11,10 @@ import com.flamyoad.tsukiviewer.db.dao.*
 import com.flamyoad.tsukiviewer.model.DoujinDetails
 import com.flamyoad.tsukiviewer.model.DoujinTag
 import com.flamyoad.tsukiviewer.model.Tag
+import com.flamyoad.tsukiviewer.network.FetchStatus
 import com.flamyoad.tsukiviewer.network.Metadata
 import com.flamyoad.tsukiviewer.network.NHService
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import okhttp3.Dispatcher
 import okhttp3.Interceptor
@@ -79,40 +79,30 @@ class MetadataRepository(private val context: Context) {
         nhService = retrofit.create(NHService::class.java)
     }
 
-    suspend fun fetchMetadata(dir: File) {
+    suspend fun fetchMetadata(dir: File): Pair<FetchStatus, String> {
+        var status = FetchStatus.NONE
+        var doujinName = dir.name // Gets replaced by real doujin name if fetched successfully
+
         withContext(Dispatchers.IO) {
-            if (doujinDetailsDao.existsByTitle(dir.name) ||
-                doujinDetailsDao.existsByAbsolutePath(dir.toString())
-            ) {
+            if (doujinDetailsDao.existsByTitle(dir.name) || doujinDetailsDao.existsByAbsolutePath(dir.toString())) {
                 // Should be updating existing instead of just doing nothing
+                status = FetchStatus.ALREADY_EXISTS
                 return@withContext
             }
 
             val response = getDataFromApi(dir.name)
 
             if (response != null && response.result.isNotEmpty()) {
-                storeMetadata(response, dir)
+                doujinName = storeMetadata(response, dir)
+                status = FetchStatus.SUCCESS
             } else {
-                Log.d("retrofit", "Can't find this sauce in NH.net")
+                status = FetchStatus.NO_MATCH
             }
-
         }
+        return Pair(status, doujinName)
     }
 
-    suspend fun fetchMetadataAll(dirList: List<File>): Int {
-        var itemsFetched = 0
-
-        for (dir in dirList) {
-            fetchMetadata(dir)
-
-            itemsFetched++
-
-            delay(1000)
-        }
-        return itemsFetched
-    }
-
-    private suspend fun storeMetadata(metadata: Metadata, dir: File) {
+    private suspend fun storeMetadata(metadata: Metadata, dir: File): String {
         // Api might return a list of duplicate results. We only want the first one
         val item = metadata.result.first()
 
@@ -150,6 +140,8 @@ class MetadataRepository(private val context: Context) {
                 DoujinTag(doujinId, tagId)
             )
         }
+
+        return item.title.english
     }
 
     // Erases previous existing tags and adds new ones

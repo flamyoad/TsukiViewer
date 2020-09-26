@@ -16,10 +16,15 @@ import com.flamyoad.tsukiviewer.model.CollectionItem
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.ui.doujinpage.DoujinDetailsActivity
 import com.flamyoad.tsukiviewer.ui.home.collection.ActionModeListener
+import com.flamyoad.tsukiviewer.ui.home.collection.ToggleHeaderListener
 import com.flamyoad.tsukiviewer.utils.CollectionDiffCallback
 
-class DoujinCollectionAdapter(private val listener: ActionModeListener) :
-    ListAdapter<CollectionItem, RecyclerView.ViewHolder>(CollectionDiffCallback()) {
+class DoujinCollectionAdapter(
+    private val actionListener: ActionModeListener,
+    private val headerListener: ToggleHeaderListener,
+    var actionModeEnabled: Boolean
+
+) : ListAdapter<CollectionItem, RecyclerView.ViewHolder>(CollectionDiffCallback()) {
 
     companion object {
         const val HEADER_TYPE = 0
@@ -27,14 +32,8 @@ class DoujinCollectionAdapter(private val listener: ActionModeListener) :
         const val EMPTY = 2
     }
 
-    private val itemsByHeader = hashMapOf<String, List<CollectionItem>>()
-
     var onLongClickItem: CollectionItem? = null
         private set
-
-    private var actionModeEnabled: Boolean = false
-
-    val selectedItems = mutableListOf<CollectionItem>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
@@ -46,7 +45,7 @@ class DoujinCollectionAdapter(private val listener: ActionModeListener) :
 
                 view.setOnClickListener {
                     val header = getItem(holder.adapterPosition)
-                    toggleHeader(header, holder.adapterPosition)
+                    headerListener.toggleHeader(header, holder.adapterPosition)
                 }
 
                 // https://stackoverflow.com/questions/49234423/full-screen-floating-context-menu-in-android-8-0-api-26
@@ -72,7 +71,7 @@ class DoujinCollectionAdapter(private val listener: ActionModeListener) :
 
                     when (actionModeEnabled) {
                         true -> {
-                            onMultiSelectionClick(item, itemIndex)
+                            actionListener.onMultiSelectionClick(item)
                         }
 
                         false -> {
@@ -88,13 +87,12 @@ class DoujinCollectionAdapter(private val listener: ActionModeListener) :
                 }
 
                 view.setOnLongClickListener {
-                    listener.openActionMode()
+                    actionListener.startActionMode()
 
                     val itemIndex = holder.adapterPosition
                     val item = getItem(itemIndex)
 
-                    onMultiSelectionClick(item, itemIndex)
-
+                    actionListener.onMultiSelectionClick(item)
                     return@setOnLongClickListener true
                 }
 
@@ -139,91 +137,6 @@ class DoujinCollectionAdapter(private val listener: ActionModeListener) :
         intent.putExtra(LocalDoujinsAdapter.DOUJIN_NAME, doujin.title)
 
         context.startActivity(intent)
-    }
-
-    //  TODO: Move this logic into ViewModel
-    private fun toggleHeader(header: CollectionItem, headerPosition: Int) {
-        when (header.isCollapsed) {
-            true -> show(header.collectionName, headerPosition)
-            false -> collapse(header.collectionName, headerPosition)
-        }
-        header.isCollapsed = !header.isCollapsed
-    }
-
-    //  TODO: Move this logic into ViewModel
-    private fun collapse(collectionName: String, headerPosition: Int) {
-        val currentItems = currentList.toMutableList()
-
-        val lastItem = currentItems.findLast { item -> item.collectionName == collectionName }
-
-        val lastItemIndex = currentItems.indexOf(lastItem)
-
-        // fromIndex (inclusive) and toIndex (exclusive)
-        val collapsedItems = currentItems.subList(headerPosition + 1, lastItemIndex + 1).toList()
-
-        itemsByHeader.put(collectionName, collapsedItems)
-
-        currentItems.removeAll { item -> !item.isHeader && item.collectionName == collectionName }
-
-        submitList(currentItems)
-    }
-
-    private fun show(collectionName: String, headerPosition: Int) {
-        val collapsedItems = itemsByHeader[collectionName]
-
-        if (collapsedItems != null) {
-            val currentItems = currentList.toMutableList()
-            currentItems.addAll(headerPosition + 1, collapsedItems)
-            submitList(currentItems)
-        }
-    }
-
-    fun setActionMode(status: Boolean) {
-        actionModeEnabled = status
-
-        if (!status) {
-            selectedItems.clear()
-
-            val currentList = currentList.toList()
-
-            itemsByHeader.forEach { (header, items) ->
-                for (item in items) {
-                    item.isSelected = false
-                }
-            }
-
-            for (item in currentList) {
-                item.isSelected = false
-            }
-
-            submitList(currentList)
-
-            // Removes all the circle indicator
-            notifyItemRangeChanged(0, itemCount)
-        }
-    }
-
-    private fun onMultiSelectionClick(item: CollectionItem, index: Int) {
-        if (selectedItems.contains(item)) {
-            selectedItems.remove(item)
-            item.isSelected = false
-
-        } else {
-            selectedItems.add(item)
-            item.isSelected = true
-        }
-        notifyItemChanged(index)
-        listener.onItemCountChange(selectedItems.size)
-    }
-
-    fun getSelectedItemCount(): Int {
-        return selectedItems.size
-    }
-
-    fun getSelectedItemNames(): Array<CharSequence> {
-        return selectedItems
-            .map { item -> item.doujin?.title ?: "" }
-            .toTypedArray()
     }
 
     inner class HeaderViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

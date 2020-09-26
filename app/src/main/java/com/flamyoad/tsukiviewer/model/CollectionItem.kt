@@ -28,20 +28,16 @@ data class CollectionItem(
 
     @Ignore val isHeader: Boolean = false,
 
-    @Ignore val doujin: Doujin? = null,
-
-    @Ignore var isCollapsed: Boolean = false,
-
-    @Ignore var isSelected: Boolean = false)
-
+    @Ignore val doujin: Doujin? = null)
 {
     constructor(id: Long, absolutePath: File, collectionName: String) : this(
         id,
         absolutePath,
         collectionName,
         false,
-        null,
-        false,
-        false
+        null
     )
+
+    @Ignore var isCollapsed: Boolean = false
+    @Ignore var isSelected: Boolean = false
 }

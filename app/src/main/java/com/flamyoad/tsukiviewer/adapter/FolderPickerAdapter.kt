@@ -88,7 +88,7 @@ class FolderPickerAdapter(private val listener: FolderPickerListener) :
     }
 
     inner class FileViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val txtFolderName = itemView.findViewById<TextView>(R.id.txtFolderName)
+        private val txtFolderName = itemView.findViewById<TextView>(R.id.txtDoujinName)
 
         fun bind(file: File) {
             if (currentDir!!.parentFile.name == file.name) {

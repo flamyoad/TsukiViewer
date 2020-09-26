@@ -20,7 +20,7 @@
         app:srcCompat="@drawable/ic_folder_black_24dp" />
 
     <TextView
-        android:id="@+id/txtFolderName"
+        android:id="@+id/txtDoujinName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"

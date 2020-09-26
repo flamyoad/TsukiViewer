@@ -48,7 +48,7 @@ class DialogNewCollection: DialogFragment() {
 
         val dialog = builder.create()
 
-        viewmodel.collectionNameExists.observe(this, Observer { alreadyExists ->
+        viewmodel.collectionNameIsUsed.observe(this, Observer { alreadyExists ->
             when (alreadyExists) {
                 true ->  {
                     fieldLayout.error = "The name is already used!"

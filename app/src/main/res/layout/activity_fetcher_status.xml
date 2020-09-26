@@ -46,7 +46,7 @@
         app:layout_constraintTop_toBottomOf="@+id/txtCurrentItem" />
 
     <TextView
-        android:id="@+id/txtNumber"
+        android:id="@+id/txtProgress"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -79,7 +79,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:progress="33"
+        tools:progress="33"
         android:progressBackgroundTint="@color/white"
         android:progressTint="@color/wine_red"
         app:layout_constraintEnd_toEndOf="@+id/txtPercentage"
@@ -98,14 +98,14 @@
         app:layout_constraintTop_toBottomOf="@id/progressBar">
 
         <TextView
-            android:id="@+id/txtItemQueued"
+            android:id="@+id/txtProcessed"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/wine_red"
             android:gravity="center|left"
             android:paddingHorizontal="10dp"
             android:paddingVertical="10dp"
-            android:text="Item Queued (1892)"
+            tools:text="Processed Items (1892)"
             android:textColor="@color/white" />
 
     </LinearLayout>

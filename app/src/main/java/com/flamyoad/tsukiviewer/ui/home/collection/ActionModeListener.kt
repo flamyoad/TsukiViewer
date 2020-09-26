@@ -1,6 +1,8 @@
 package com.flamyoad.tsukiviewer.ui.home.collection
 
+import com.flamyoad.tsukiviewer.model.CollectionItem
+
 interface ActionModeListener {
-    fun openActionMode()
-    fun onItemCountChange(count: Int)
+    fun startActionMode()
+    fun onMultiSelectionClick(item: CollectionItem)
 }
