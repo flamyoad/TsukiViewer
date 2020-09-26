@@ -1,6 +1,7 @@
 package com.flamyoad.tsukiviewer.ui.home.collection
 
 import android.app.Application
+import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyApplication
@@ -234,9 +235,8 @@ class CollectionDoujinViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun clearActionModeData() {
+        Log.d("debugz", "clearActionModeData() is called")
         selectedItemsList.clear()
-
-        val currentList = getExpandedItems()
 
         collapsedItemsByHeader.forEach { (header, items) ->
             for (item in items) {
@@ -290,10 +290,10 @@ class CollectionDoujinViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun deleteItems() {
+        Log.d("debugz", "deleteItems() is called")
         viewModelScope.launch(Dispatchers.IO) {
-            collectionRepo.itemDao.delete(selectedItemsList)
+            collectionRepo.itemDao.delete(selectedItemsList.toList())
         }
-        selectedItemsList.clear()
     }
 
     /*

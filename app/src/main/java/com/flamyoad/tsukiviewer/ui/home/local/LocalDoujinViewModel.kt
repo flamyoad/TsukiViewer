@@ -27,7 +27,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 
     private var doujinListBuffer = mutableListOf<Doujin>()
 
-    private var doujinList = MutableLiveData<MutableList<Doujin>>()
+    private var doujinList = MutableLiveData<MutableList<Doujin>>(mutableListOf())
     fun doujinList(): LiveData<MutableList<Doujin>> = doujinList
 
     private val isLoading = MutableLiveData<Boolean>(false)

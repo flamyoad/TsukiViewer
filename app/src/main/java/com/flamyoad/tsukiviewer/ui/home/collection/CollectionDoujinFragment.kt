@@ -75,7 +75,7 @@ class CollectionDoujinFragment : BaseFragment(),
                 actionMode?.title = viewModel.selectedItemsList.size.toString()
             }
         }
-        
+
         initUi()
         initRecyclerView()
 
@@ -180,9 +180,6 @@ class CollectionDoujinFragment : BaseFragment(),
         builder.apply {
             setTitle("Delete ${viewModel.getSelectedItemCount()} items?")
             setPositiveButton("Delete", DialogInterface.OnClickListener { dialog, which ->
-                //  toList() is required.
-                //  This is because the referenced list is cleared automatically in destruction of dialog
-                //  If toList() is not called, delete will not work because the referenced list is already empty
                 viewModel.deleteItems()
                 mode?.finish()
             })
@@ -222,8 +219,6 @@ class CollectionDoujinFragment : BaseFragment(),
 
         actionMode?.title = count.toString()
         actionMode?.invalidate()
-
-        Log.d("Debugz", "Item name: ${item.doujin?.title ?: ""} Selected items count: ${count}")
     }
 
     override fun onActionItemClicked(
