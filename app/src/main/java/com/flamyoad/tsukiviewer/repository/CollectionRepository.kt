@@ -10,7 +10,6 @@ import com.flamyoad.tsukiviewer.db.dao.DoujinCollectionDao
 import com.flamyoad.tsukiviewer.model.CollectionItem
 import com.flamyoad.tsukiviewer.model.DoujinCollection
 import java.io.File
-import java.lang.StringBuilder
 
 class CollectionRepository(private val context: Context) {
 
@@ -87,14 +86,30 @@ class CollectionRepository(private val context: Context) {
         itemDao.insert(item)
     }
 
+    suspend fun moveItemsTo(collection: DoujinCollection, itemsToBeMoved: List<CollectionItem>): Int {
+        val movedItems = db.withTransaction {
+            itemDao.delete(itemsToBeMoved)
+
+            val itemList = itemsToBeMoved.map { x ->
+                CollectionItem(
+                    id = null,
+                    absolutePath = x.absolutePath,
+                    collectionName = collection.name
+                )
+            }
+            return@withTransaction itemDao.insert(itemList)
+        }
+        return movedItems.size
+    }
+
     // Returns: Snackbar message to be shown to user indicating the number of insert and delete
     suspend fun wipeAndInsertNew(absolutePath: File, hashMap: HashMap<String, Boolean>): String {
         val namesOfCollectionsToRemoveFrom = hashMap
-            .filter { kvp -> kvp.value == false   }
+            .filter { kvp -> kvp.value == false }
             .map { kvp -> kvp.key }
 
         val itemsToInsert = hashMap
-            .filter { kvp -> kvp.value == true  }
+            .filter { kvp -> kvp.value == true }
             .map { kvp -> CollectionItem(absolutePath = absolutePath, collectionName = kvp.key) }
 
         return db.withTransaction {

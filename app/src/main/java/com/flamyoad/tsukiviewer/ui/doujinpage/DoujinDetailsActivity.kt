@@ -2,8 +2,8 @@ package com.flamyoad.tsukiviewer.ui.doujinpage
 
 import android.content.DialogInterface
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AlertDialog
@@ -16,7 +16,8 @@ import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.network.FetchMetadataService
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
 import com.flamyoad.tsukiviewer.utils.SimpleDialog
-import com.google.android.material.snackbar.Snackbar
+import com.flamyoad.tsukiviewer.utils.snackbar
+import com.flamyoad.tsukiviewer.utils.toast
 import kotlinx.android.synthetic.main.activity_doujin_details.*
 
 class DoujinDetailsActivity : AppCompatActivity() {
@@ -32,13 +33,13 @@ class DoujinDetailsActivity : AppCompatActivity() {
         initTabLayout()
         initToolbar()
 
-        viewModel.snackbarMsg.observe(this, Observer { msg ->
-            if (msg.isNullOrBlank()) {
+        viewModel.snackbarMsg.observe(this, Observer { message ->
+            if (message.isNullOrBlank()) {
                 return@Observer
             }
 
-            Snackbar.make(rootView, msg, Snackbar.LENGTH_LONG)
-                .show()
+            snackbar(message, lengthLong = true)
+
             viewModel.snackbarMsg.value = ""
         })
     }
@@ -56,6 +57,10 @@ class DoujinDetailsActivity : AppCompatActivity() {
 
             R.id.action_sync -> {
                 syncMetadata()
+            }
+
+            R.id.action_open_in_browser -> {
+                openBrowser()
             }
 
             R.id.action_clear_metadata -> {
@@ -132,9 +137,37 @@ class DoujinDetailsActivity : AppCompatActivity() {
     }
 
     private fun openClearDataDialog() {
-        val dialog = SimpleDialog.newInstance {
-            Log.d("testingonly", "it works")
-        }
+        val dialog = DialogRemoveMetadata.newInstance()
         dialog.show(supportFragmentManager, "clearDataDialog")
+    }
+
+    private fun openBrowser() {
+        val nukeCode = viewModel.getNukeCode()
+
+        val name = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_NAME)
+
+        val uri: Uri
+
+        if (nukeCode != null) {
+            val address = "https://nhentai.net/g/${nukeCode}"
+            uri = Uri.parse(address)
+        } else {
+            // "https://nhentai.net/search/?q=${urlEncodedName}"
+            uri = Uri.parse("https://nhentai.net/search")
+                .buildUpon()
+                .appendQueryParameter("q", name)
+                .build()
+        }
+
+        val browserIntent = Intent().apply {
+            action = Intent.ACTION_VIEW
+            data = uri
+        }
+
+        if (browserIntent.resolveActivity(packageManager) != null) {
+            startActivity(browserIntent)
+        } else {
+            toast("Cannot open browser")
+        }
     }
 }

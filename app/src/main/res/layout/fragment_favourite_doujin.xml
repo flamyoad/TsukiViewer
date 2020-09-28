@@ -6,11 +6,19 @@
     android:layout_height="match_parent"
     tools:context=".ui.home.collection.CollectionDoujinFragment">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/listCollectionDoujins"
+    <com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
+        android:id="@+id/fastScroller"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:listitem="@layout/doujin_list_item" />
+        app:handleHeight="32dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/listCollectionDoujins"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:listitem="@layout/doujin_list_item" />
+
+    </com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/floatingActionButton"

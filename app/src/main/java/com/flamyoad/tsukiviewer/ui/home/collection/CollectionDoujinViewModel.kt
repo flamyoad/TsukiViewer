@@ -30,11 +30,16 @@ class CollectionDoujinViewModel(app: Application) : AndroidViewModel(app) {
     private val isLoading = MutableLiveData<Boolean>(false)
     fun isLoading(): LiveData<Boolean> = isLoading
 
+    private val snackBarText = MutableLiveData<String>()
+    fun snackBarText(): LiveData<String> = snackBarText.distinctUntilChanged()
+
     val newCollectionName = MutableLiveData<String>()
 
     val collectionNameIsUsed: LiveData<Boolean> = newCollectionName.switchMap { name ->
         return@switchMap collectionRepo.collectionNameExists(name)
     }
+
+    val collectionList: LiveData<List<DoujinCollection>>
 
     val allItems: LiveData<List<CollectionItem>>
 
@@ -42,6 +47,7 @@ class CollectionDoujinViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         allItems = collectionRepo.getAllItems().distinctUntilChanged()
+        collectionList = collectionRepo.getAllCollections()
         fullDoujinList = (app as MyApplication).fullDoujinList ?: emptyList()
     }
 
@@ -269,6 +275,23 @@ class CollectionDoujinViewModel(app: Application) : AndroidViewModel(app) {
         return selectedItemsList
             .map { item -> item.doujin?.title ?: "" }
             .toTypedArray()
+    }
+
+    fun moveItemsTo(collection: DoujinCollection) {
+        val selectedItems = selectedItemsList.toList()
+
+        viewModelScope.launch(Dispatchers.IO) {
+            val amountMoved = collectionRepo.moveItemsTo(collection, selectedItems)
+
+            withContext(Dispatchers.Main) {
+                snackBarText.value = when {
+                    amountMoved == 1 -> "$amountMoved item has been moved to ${collection.name}"
+                    amountMoved > 1 -> "$amountMoved items have been moved to ${collection.name}"
+                    else -> ""
+                }
+            }
+
+        }
     }
 
     /*

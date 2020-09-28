@@ -6,9 +6,11 @@ import android.os.Looper
 import android.util.Log
 import android.webkit.WebSettings
 import android.widget.Toast
+import androidx.room.withTransaction
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.*
 import com.flamyoad.tsukiviewer.model.DoujinDetails
+import com.flamyoad.tsukiviewer.model.DoujinDetailsWithTags
 import com.flamyoad.tsukiviewer.model.DoujinTag
 import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.network.FetchStatus
@@ -208,6 +210,16 @@ class MetadataRepository(private val context: Context) {
                 doujinTagDao.insert(
                     DoujinTag(doujinId, tagId)
                 )
+            }
+        }
+    }
+
+    suspend fun removeMetadata(doujinDetails: DoujinDetails) {
+        withContext(Dispatchers.IO) {
+            db.withTransaction {
+                doujinDetailsDao.delete(doujinDetails)
+                doujinTagDao.deleteAll(doujinDetails.id!!)
+                doujinTagDao.decrementTagCount(doujinDetails.id)
             }
         }
     }

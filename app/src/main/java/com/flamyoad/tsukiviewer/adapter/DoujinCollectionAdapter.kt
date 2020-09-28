@@ -18,13 +18,15 @@ import com.flamyoad.tsukiviewer.ui.doujinpage.DoujinDetailsActivity
 import com.flamyoad.tsukiviewer.ui.home.collection.ActionModeListener
 import com.flamyoad.tsukiviewer.ui.home.collection.ToggleHeaderListener
 import com.flamyoad.tsukiviewer.utils.CollectionDiffCallback
+import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
 
 class DoujinCollectionAdapter(
     private val actionListener: ActionModeListener,
     private val headerListener: ToggleHeaderListener,
     var actionModeEnabled: Boolean
 
-) : ListAdapter<CollectionItem, RecyclerView.ViewHolder>(CollectionDiffCallback()) {
+) : ListAdapter<CollectionItem, RecyclerView.ViewHolder>(CollectionDiffCallback()),
+    RecyclerViewFastScroller.OnPopupTextUpdate {
 
     companion object {
         const val HEADER_TYPE = 0
@@ -124,6 +126,10 @@ class DoujinCollectionAdapter(
             true -> HEADER_TYPE
             false -> ITEM_TYPE
         }
+    }
+
+    override fun onChange(position: Int): CharSequence {
+        return getItem(position).collectionName
     }
 
     private fun openDoujin(context: Context, doujin: Doujin?) {

@@ -26,10 +26,10 @@ import org.threeten.bp.ZoneId
 import java.io.File
 import java.util.*
 
-class FragmentDoujinDetails : Fragment() {
-    private val COLLECTION_DIALOG_TAG = "collection_dialog"
+private const val COLLECTION_DIALOG_TAG = "collection_dialog"
 
-    private val viewModel by activityViewModels<DoujinViewModel>()
+class FragmentDoujinDetails : Fragment() {
+    private val viewModel: DoujinViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -43,7 +43,6 @@ class FragmentDoujinDetails : Fragment() {
         initUi()
     }
 
-    // Todo: This method is getting too cluttered. Consider refactoring
     private fun initUi() {
         viewModel.coverImage().observe(viewLifecycleOwner, Observer { image ->
             Glide.with(this)
@@ -57,8 +56,7 @@ class FragmentDoujinDetails : Fragment() {
         })
 
         viewModel.detailWithTags.observe(viewLifecycleOwner, Observer {
-            val currentPath = requireActivity()
-                .intent
+            val currentPath = requireActivity().intent
                 .getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
 
             val dir = File(currentPath)
@@ -68,8 +66,12 @@ class FragmentDoujinDetails : Fragment() {
 
             if (it == null) {
                 setDefaultToolbarText(dir)
+
+                // Hides the tag group in case the user deletes the title & tags
+                tagGroup.visibility = View.GONE
                 tagsNotFoundIndicator.visibility = View.VISIBLE
             } else {
+                // Shows the tag group if data is found in database
                 tagGroup.visibility = View.VISIBLE
                 tagsNotFoundIndicator.visibility = View.INVISIBLE
                 initDoujinDetails(it)
@@ -113,13 +115,11 @@ class FragmentDoujinDetails : Fragment() {
             val adapter = DoujinTagsAdapter(useLargerView = false)
             adapter.setList(group)
 
-            val flexLayoutManager = FlexboxLayoutManager(context, FlexDirection.ROW)
+            val flexLayoutManager = FlexboxLayoutManager(context)
             flexLayoutManager.apply {
+                flexDirection = FlexDirection.ROW
                 flexWrap = FlexWrap.WRAP
             }
-
-            val itemDecoration = FlexboxItemDecoration(context)
-            itemDecoration.setOrientation(FlexboxItemDecoration.BOTH)
 
             val recyclerView = when (i) {
                 0 -> listParodies
@@ -137,8 +137,6 @@ class FragmentDoujinDetails : Fragment() {
 
             // Disables scrolling of the recyclerviews
             recyclerView?.suppressLayout(true)
-
-            recyclerView?.addItemDecoration(itemDecoration)
         }
     }
 

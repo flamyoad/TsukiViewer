@@ -31,9 +31,14 @@
         </menu>
     </item>
 
+    <item android:id="@+id/action_open_in_browser"
+        android:title="Open in browser"
+        app:showAsAction="never"
+        android:orderInCategory="103"/>
+
     <item android:id="@+id/action_clear_metadata"
         android:title="Clear metadata"
         app:showAsAction="never"
-        android:orderInCategory="103"/>
+        android:orderInCategory="104"/>
 
 </menu>

@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:clickable="true"
-    android:foreground="?android:selectableItemBackground"
+    android:focusable="true"
+    android:background="?android:selectableItemBackground"
     android:paddingHorizontal="16dp"
     android:paddingVertical="8dp">
 
@@ -41,19 +42,9 @@
         android:ellipsize="end"
         android:lines="1"
         app:layout_constraintBottom_toBottomOf="@+id/txtIconLayout"
-        app:layout_constraintEnd_toStartOf="@+id/checkBox"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/txtIconLayout"
         app:layout_constraintTop_toTopOf="@+id/txtIconLayout"
         tools:text="Default Collection" />
-
-    <com.google.android.material.checkbox.MaterialCheckBox
-        android:id="@+id/checkBox"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:text=""
-        android:translationX="12dp"
-        app:layout_constraintBottom_toBottomOf="@+id/txtIconLayout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/txtIconLayout" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -89,13 +89,29 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun detailsNotExists(): Boolean {
-        return detailWithTags.value == null
+        return this::detailWithTags.isInitialized
     }
 
     fun resetTags() {
         val dir = File(currentPath)
         viewModelScope.launch {
             metadataRepo.resetTags(dir)
+        }
+    }
+
+    fun removeMetadata() {
+        val data = detailWithTags.value?.doujinDetails
+
+        if (data != null) {
+            viewModelScope.launch {
+                withContext(Dispatchers.IO) {
+                    val doujinDetails =
+                        metadataRepo.removeMetadata(data)
+                }
+            }
+        } else {
+            snackbarMsg.value = "Failed to remove existing title & tags"
+            snackbarMsg.value = "" // Clears the value
         }
     }
 
@@ -114,7 +130,8 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
 
     fun insertItemIntoTickedCollections(collectionWithTickStatus: HashMap<String, Boolean>) {
         viewModelScope.launch(Dispatchers.IO) {
-            val status = collectionRepo.wipeAndInsertNew(File(currentPath), collectionWithTickStatus)
+            val status =
+                collectionRepo.wipeAndInsertNew(File(currentPath), collectionWithTickStatus)
 
             withContext(Dispatchers.Main) {
                 snackbarMsg.value = status
@@ -126,5 +143,13 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch(Dispatchers.IO) {
             collectionRepo.insertCollection(DoujinCollection(name))
         }
+    }
+
+    fun getNukeCode(): String? {
+        val nukeCode = detailWithTags.value?.doujinDetails?.nukeCode.toString()
+        return if (nukeCode == "null") // Room actually returns a null string lul
+            null
+        else
+            nukeCode
     }
 }

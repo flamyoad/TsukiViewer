@@ -21,6 +21,7 @@ import com.flamyoad.tsukiviewer.model.CollectionItem
 import com.flamyoad.tsukiviewer.ui.doujinpage.CollectionListDialog
 import com.flamyoad.tsukiviewer.ui.doujinpage.DialogNewCollection
 import com.flamyoad.tsukiviewer.utils.GridItemDecoration
+import com.flamyoad.tsukiviewer.utils.snackbar
 import kotlinx.android.synthetic.main.fragment_favourite_doujin.*
 
 private const val ACTION_MODE = "actionmode"
@@ -45,6 +46,15 @@ class CollectionDoujinFragment : BaseFragment(),
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
     }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        // Inflate the layout for this fragment
+        return inflater.inflate(R.layout.fragment_favourite_doujin, container, false)
+    }
+
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
@@ -77,14 +87,6 @@ class CollectionDoujinFragment : BaseFragment(),
         })
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_favourite_doujin, container, false)
-    }
-
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
@@ -107,6 +109,12 @@ class CollectionDoujinFragment : BaseFragment(),
 
         viewModel.itemsWithHeaders().observe(viewLifecycleOwner, Observer {
             adapter.submitList(it)
+        })
+
+        viewModel.snackBarText().observe(viewLifecycleOwner, Observer {
+            if (!it.isNullOrBlank()) {
+                snackbar(it)
+            }
         })
     }
 

@@ -47,15 +47,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         if (savedInstanceState == null) {
             addFragment(LocalDoujinsFragment.newInstance(), LocalDoujinsFragment.APPBAR_TITLE)
         }
-
-//        val intent = Intent().apply {
-//            action = Intent.ACTION_VIEW
-//            setType("image/*")
-//        }
-//
-//        val pm = packageManager
-//        val info = pm.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
-//        Log.d("Debugz", pm.getApplicationLabel(info.activityInfo.applicationInfo).toString())
     }
 
     override fun onResume() {

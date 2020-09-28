@@ -14,7 +14,7 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 
 class DialogNewCollection: DialogFragment() {
-    private val viewmodel: CollectionDoujinViewModel by activityViewModels()
+    private val viewModel: CollectionDoujinViewModel by activityViewModels()
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val builder = AlertDialog.Builder(requireContext())
@@ -30,25 +30,25 @@ class DialogNewCollection: DialogFragment() {
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
             override fun onTextChanged(text: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                viewmodel.newCollectionName.value = text.toString()
+                viewModel.newCollectionName.value = text.toString()
             }
         })
 
         builder.setTitle("Create new collection")
         builder.setView(view)
         builder.setNegativeButton("Return", DialogInterface.OnClickListener { dialogInterface, i ->
-            viewmodel.newCollectionName.value = ""
+            viewModel.newCollectionName.value = ""
         })
 
         builder.setPositiveButton("Ok", DialogInterface.OnClickListener { dialogInterface, i ->
             val name = fieldName.text.toString()
-            viewmodel.createCollection(name)
-            viewmodel.newCollectionName.value = ""
+            viewModel.createCollection(name)
+            viewModel.newCollectionName.value = ""
         })
 
         val dialog = builder.create()
 
-        viewmodel.collectionNameIsUsed.observe(this, Observer { alreadyExists ->
+        viewModel.collectionNameIsUsed.observe(this, Observer { alreadyExists ->
             when (alreadyExists) {
                 true ->  {
                     fieldLayout.error = "The name is already used!"
@@ -62,5 +62,14 @@ class DialogNewCollection: DialogFragment() {
         })
 
         return dialog
+    }
+
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        viewModel.newCollectionName.value = ""
+    }
+
+    companion object {
+        fun newInstance() = DialogNewCollection()
     }
 }
