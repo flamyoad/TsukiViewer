@@ -10,9 +10,7 @@ import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.DoujinCollection
 import com.flamyoad.tsukiviewer.repository.CollectionRepository
 import com.flamyoad.tsukiviewer.utils.forceRefresh
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.io.File
 
 class CollectionDoujinViewModel(app: Application) : AndroidViewModel(app) {
@@ -28,6 +26,9 @@ class CollectionDoujinViewModel(app: Application) : AndroidViewModel(app) {
 
     private val itemsAndHeaders = MutableLiveData<List<CollectionItem>>()
     fun itemsWithHeaders(): LiveData<List<CollectionItem>> = itemsAndHeaders
+
+    private val isLoading = MutableLiveData<Boolean>(false)
+    fun isLoading(): LiveData<Boolean> = isLoading
 
     val newCollectionName = MutableLiveData<String>()
 
@@ -45,6 +46,8 @@ class CollectionDoujinViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun initList() {
+        isLoading.value = true
+
         if (hasBeenInitialized) {
             reloadList()
 
@@ -55,9 +58,9 @@ class CollectionDoujinViewModel(app: Application) : AndroidViewModel(app) {
                 val list = mutableListOf<CollectionItem>()
 
                 for (collection in collections) {
-                    list.add(getHeaderItem(collection.name))
-
                     val itemsInCollection = collectionRepo.getAllItemsFrom(collection)
+
+                    list.add(getHeaderItem(collection.name))
 
                     withContext(Dispatchers.Main) {
                         itemsAndHeaders.value = list
@@ -79,8 +82,11 @@ class CollectionDoujinViewModel(app: Application) : AndroidViewModel(app) {
                         }
                     }
                 }
+                withContext(Dispatchers.Main) {
+                    hasBeenInitialized = true
+                    isLoading.value = false
+                }
             }
-            hasBeenInitialized = true
         }
     }
 
@@ -117,7 +123,8 @@ class CollectionDoujinViewModel(app: Application) : AndroidViewModel(app) {
                             collectionName = item.collectionName,
                             isHeader = false,
                             absolutePath = item.absolutePath,
-                            doujin = getDoujin(item.absolutePath))
+                            doujin = getDoujin(item.absolutePath)
+                        )
 
                         newList.add(newItem)
                     }
@@ -126,6 +133,7 @@ class CollectionDoujinViewModel(app: Application) : AndroidViewModel(app) {
 
             withContext(Dispatchers.Main) {
                 itemsAndHeaders.value = newList
+                isLoading.value = false
             }
         }
     }
@@ -198,6 +206,7 @@ class CollectionDoujinViewModel(app: Application) : AndroidViewModel(app) {
 
         if (collapsedItems != null) {
             val itemList = getExpandedItems()
+
             itemList.addAll(headerPosition + 1, collapsedItems)
             itemsAndHeaders.value = itemList
         }

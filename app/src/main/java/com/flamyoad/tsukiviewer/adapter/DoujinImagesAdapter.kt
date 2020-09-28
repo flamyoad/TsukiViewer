@@ -2,6 +2,7 @@ package com.flamyoad.tsukiviewer.adapter
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -26,8 +27,10 @@ class DoujinImagesAdapter(
     RecyclerView.Adapter<DoujinImagesAdapter.ImageViewHolder>() {
 
     companion object {
-        const val POSITION_BEFORE_OPENING_READER = "DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER"
-        const val POSITION_AFTER_EXITING_READER = "DoujinImagesAdapter.POSITION_AFTER_EXITING_READER"
+        const val POSITION_BEFORE_OPENING_READER =
+            "DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER"
+        const val POSITION_AFTER_EXITING_READER =
+            "DoujinImagesAdapter.POSITION_AFTER_EXITING_READER"
         const val DIRECTORY_PATH = "DoujinImagesAdapter.DIRECTORY_PATH"
     }
 
@@ -87,19 +90,19 @@ class DoujinImagesAdapter(
 
     private fun launchExternalGallery(context: Context, file: File) {
         val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
-        val pkgName = prefs.getString(FolderPreferences.EXTERNAL_GALLERY_PKG_NAME, "")
+        val packageName = prefs.getString(FolderPreferences.EXTERNAL_GALLERY_PKG_NAME, "")
 
         try {
-            val intent = context.packageManager.getLaunchIntentForPackage(pkgName ?: "")
+            val intent = Intent()
+            val uri = Uri.fromFile(file)
 
-//            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-
-            intent?.apply {
-                // set flag to give temporary permission to external app to use your FileProvider
+            intent.apply {
                 flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
                 action = Intent.ACTION_VIEW
-                setDataAndType(file.toUri(), context.contentResolver.getType(file.toUri()))
+                setPackage(packageName)
+                setDataAndType(uri, "image/*")
             }
+
             context.startActivity(intent)
 
         } catch (e: Exception) {

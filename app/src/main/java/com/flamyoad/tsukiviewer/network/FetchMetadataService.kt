@@ -21,7 +21,7 @@ import kotlin.random.Random
 private const val CHANNEL_ID = "FetchMetadataService"
 private const val NOTIFICATION_ID = 1010
 private const val ACTION_CLOSE = "action_close"
-private const val DELAY_BETWEEN_REQUEST: Long = 50 // ms
+private const val DELAY_BETWEEN_REQUEST: Long = 0 // ms
 
 class FetchMetadataService : Service() {
 
@@ -120,6 +120,7 @@ class FetchMetadataService : Service() {
         return binder
     }
 
+    // todo: consider making 2nd request without the [] {} all the brackets. if first request is failed
     fun enqueueList(dirList: List<File>) {
         this.dirList.value = dirList
 
@@ -130,8 +131,7 @@ class FetchMetadataService : Service() {
                     createNotification(dir.name, index + 1, dirList.size)
                 }
 
-//                val result: Pair<FetchStatus, String> = metadataRepo!!.fetchMetadata(dir)
-                val result = createMockResult(dir)
+                val result: Pair<FetchStatus, String> = metadataRepo!!.fetchMetadata(dir)
 
                 val history = FetchHistory(
                     dir = dir,
@@ -146,7 +146,7 @@ class FetchMetadataService : Service() {
                 }
 
                 if (fetchStatus != FetchStatus.ALREADY_EXISTS) {
-                    delay(DELAY_BETWEEN_REQUEST) // 50ms between each network request
+                    delay(DELAY_BETWEEN_REQUEST)
                 }
             }
         }
@@ -156,14 +156,6 @@ class FetchMetadataService : Service() {
             stopForeground(false)
             stopSelf()
         }
-    }
-
-    fun createMockResult(dir: File): Pair<FetchStatus, String> {
-        val status = when (Random.nextBoolean()) {
-            true -> FetchStatus.SUCCESS
-            false -> FetchStatus.NO_MATCH
-        }
-        return Pair(status, dir.name)
     }
 
     private fun fetchSingle(dir: File) {

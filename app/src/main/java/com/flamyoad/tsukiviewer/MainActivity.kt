@@ -3,6 +3,8 @@ package com.flamyoad.tsukiviewer
 import android.animation.AnimatorInflater
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
@@ -45,6 +47,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         if (savedInstanceState == null) {
             addFragment(LocalDoujinsFragment.newInstance(), LocalDoujinsFragment.APPBAR_TITLE)
         }
+
+//        val intent = Intent().apply {
+//            action = Intent.ACTION_VIEW
+//            setType("image/*")
+//        }
+//
+//        val pm = packageManager
+//        val info = pm.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+//        Log.d("Debugz", pm.getApplicationLabel(info.activityInfo.applicationInfo).toString())
     }
 
     override fun onResume() {

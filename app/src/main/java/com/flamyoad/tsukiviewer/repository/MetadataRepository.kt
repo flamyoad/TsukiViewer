@@ -30,6 +30,15 @@ class MetadataRepository(private val context: Context) {
 
     private val db: AppDatabase
 
+    /*
+        Regex used to remove text between parentheses and brackets
+        Before : (C97) [Batsu Jirushi (Batsu)] AzuLan Shikoshiko Bokou Seikatsu (Azur Lane) [English] [AntaresNL667]
+        After :  AzuLan Shikoshiko Bokou Seikatsu
+    */
+    private val regex by lazy {
+        "\\[.*?]|\\(.*?\\)".toRegex()
+    }
+
     val pathDao: IncludedPathDao
     val doujinDetailsDao: DoujinDetailsDao
     val tagDao: TagDao
@@ -50,7 +59,6 @@ class MetadataRepository(private val context: Context) {
 
     private fun initializeNetwork() {
         // Nhentai API refuses the requests if the user agent is not attached.
-
         val dispatcher = Dispatcher().apply {
             maxRequests = 3
         }
@@ -84,19 +92,30 @@ class MetadataRepository(private val context: Context) {
         var doujinName = dir.name // Gets replaced by real doujin name if fetched successfully
 
         withContext(Dispatchers.IO) {
-            if (doujinDetailsDao.existsByTitle(dir.name) || doujinDetailsDao.existsByAbsolutePath(dir.toString())) {
+            if (doujinDetailsDao.existsByTitle(dir.name) || doujinDetailsDao.existsByAbsolutePath(
+                    dir.toString())) {
                 // Should be updating existing instead of just doing nothing
                 status = FetchStatus.ALREADY_EXISTS
                 return@withContext
             }
 
-            val response = getDataFromApi(dir.name)
-
-            if (response != null && response.result.isNotEmpty()) {
-                doujinName = storeMetadata(response, dir)
+            // Consider running DB in another coroutine
+            val firstTry = getDataFromApi(dir.name)
+            if (firstTry != null && firstTry.result.isNotEmpty()) {
+                doujinName = storeMetadata(firstTry, dir)
                 status = FetchStatus.SUCCESS
+
             } else {
-                status = FetchStatus.NO_MATCH
+                // Rerun with extracted directory name
+                val extractedName = dir.name.replace(regex, "")
+                val secondTry = getDataFromApi(extractedName)
+
+                if (secondTry != null && secondTry.result.isNotEmpty()) {
+                    doujinName = storeMetadata(secondTry, dir)
+                    status = FetchStatus.SUCCESS
+                } else {
+                    status = FetchStatus.NO_MATCH
+                }
             }
         }
         return Pair(status, doujinName)
@@ -150,7 +169,7 @@ class MetadataRepository(private val context: Context) {
             // todo: Rename this garbage
             val absolutePath = doujinDetails.absolutePath.absolutePath
 
-            var doujinId: Long
+            val doujinId: Long
 
             // Insert into db if a record identified by its absolute path does not exist yet
             if (!doujinDetailsDao.existsByAbsolutePath(absolutePath)) {
@@ -215,8 +234,6 @@ class MetadataRepository(private val context: Context) {
     }
 
     private fun getDataFromApi(fullTitle: String): Metadata? {
-        Log.d("retrofit", "title: $fullTitle")
-
         // Wraps query parameter with double quotes to perform exact search
         try {
             val response = nhService.getMetadata("\"" + fullTitle + "\"")

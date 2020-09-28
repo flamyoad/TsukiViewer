@@ -3,12 +3,13 @@ package com.flamyoad.tsukiviewer.ui.home.collection
 import android.content.DialogInterface
 import android.content.res.Configuration
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
 import androidx.appcompat.widget.SearchView
+import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
@@ -38,17 +39,42 @@ class CollectionDoujinFragment : BaseFragment(),
 
     private var searchView: SearchView? = null
 
+    private var statusBarColor: Int = -1
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        val isInActionMode = actionMode != null
+        outState.putBoolean(ACTION_MODE, isInActionMode)
+    }
+
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         inflater.inflate(R.menu.menu_doujin_collection, menu)
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        super.onPrepareOptionsMenu(menu)
+
         val searchItem: MenuItem? = menu.findItem(R.id.action_search)
         searchView = searchItem?.actionView as SearchView
         searchView?.setOnQueryTextListener(this)
+
+        val progressBar = menu.findItem(R.id.progress_bar_loading)
+
+        viewModel.isLoading().observe(viewLifecycleOwner, Observer {  stillLoading ->
+            if (stillLoading) {
+                progressBar.isVisible = true
+                searchItem.isVisible = false
+            } else {
+                progressBar.isVisible = false
+                searchItem.isVisible = true
+            }
+        })
     }
 
     override fun onCreateView(
@@ -57,12 +83,6 @@ class CollectionDoujinFragment : BaseFragment(),
     ): View? {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_favourite_doujin, container, false)
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        val isInActionMode = actionMode != null
-        outState.putBoolean(ACTION_MODE, isInActionMode)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -99,9 +119,6 @@ class CollectionDoujinFragment : BaseFragment(),
 
     private fun initRecyclerView() {
         adapter.setHasStableIds(true)
-
-        // StateRestorationPolicy is in alpha stage. It may crash the app
-        adapter.stateRestorationPolicy = StateRestorationPolicy.PREVENT_WHEN_EMPTY
 
         val spanCount = when (resources.configuration.orientation) {
             Configuration.ORIENTATION_PORTRAIT -> 2
@@ -228,6 +245,7 @@ class CollectionDoujinFragment : BaseFragment(),
         when (item?.itemId) {
             R.id.action_delete -> showDeleteItemsDialog(mode)
         }
+
         return true
     }
 
@@ -235,7 +253,16 @@ class CollectionDoujinFragment : BaseFragment(),
         mode: ActionMode?,
         menu: Menu?
     ): Boolean {
-        requireActivity().menuInflater.inflate(R.menu.menu_doujin_collection_contextual, menu)
+        val activity = requireActivity()
+
+        activity.let {
+            it.menuInflater.inflate(R.menu.menu_doujin_collection_contextual, menu)
+            statusBarColor = it.window.statusBarColor // Stores the original status bar color
+
+            val colorPrimaryLight = ContextCompat.getColor(it, R.color.colorPrimaryLight)
+            it.window.statusBarColor = colorPrimaryLight // Changes status bar color in action mode
+        }
+
         return true
     }
 
@@ -248,8 +275,11 @@ class CollectionDoujinFragment : BaseFragment(),
 
     override fun onDestroyActionMode(mode: ActionMode?) {
         actionMode = null
+
         viewModel.clearActionModeData()
         adapter.actionModeEnabled = false
+
+        requireActivity().window.statusBarColor = statusBarColor // Restores the original status bar color
     }
 
     override fun toggleHeader(header: CollectionItem, headerPosition: Int) {
