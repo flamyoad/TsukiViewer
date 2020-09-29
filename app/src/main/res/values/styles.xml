@@ -118,5 +118,13 @@
         <item name="android:foreground">?android:selectableItemBackground</item>
         <item name="android:cropToPadding">true</item>
     </style>
+    
+    <style name="doujin_item_cardview">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopRight">4dp</item>
+        <item name="cornerSizeTopLeft">4dp</item>
+        <item name="cornerSizeBottomRight">4dp</item>
+        <item name="cornerSizeBottomLeft">4dp</item>
+    </style>
 
 </resources>

@@ -16,7 +16,6 @@ import com.flamyoad.tsukiviewer.repository.MetadataRepository
 import com.flamyoad.tsukiviewer.ui.fetcher.FetcherStatusActivity
 import kotlinx.coroutines.*
 import java.io.File
-import kotlin.random.Random
 
 private const val CHANNEL_ID = "FetchMetadataService"
 private const val NOTIFICATION_ID = 1010
@@ -43,6 +42,10 @@ class FetchMetadataService : Service() {
     val fetchPercentage = MediatorLiveData<FetchPercentage>()
 
     private var notificationBuilder: NotificationCompat.Builder? = null
+
+    private var batchJob: Job? = null
+
+    private var singleJob: Job? = null
 
     init {
         fetchPercentage.addSource(fetchHistories) { fetched ->
@@ -124,7 +127,7 @@ class FetchMetadataService : Service() {
     fun enqueueList(dirList: List<File>) {
         this.dirList.value = dirList
 
-        val batchJob = coroutineScope.launch {
+        batchJob = coroutineScope.launch {
             for ((index, dir) in dirList.withIndex()) {
                 withContext(Dispatchers.Main) {
                     currentItem.value = dir
@@ -151,7 +154,7 @@ class FetchMetadataService : Service() {
             }
         }
 
-        batchJob.invokeOnCompletion {
+        batchJob?.invokeOnCompletion {
             createNotification("All directories have been processed")
             stopForeground(false)
             stopSelf()
@@ -159,7 +162,7 @@ class FetchMetadataService : Service() {
     }
 
     private fun fetchSingle(dir: File) {
-        val job = coroutineScope.launch {
+        singleJob = coroutineScope.launch {
             val result = metadataRepo!!.fetchMetadata(dir)
 
             val fetchStatus = result.first
@@ -168,8 +171,8 @@ class FetchMetadataService : Service() {
             }
         }
 
-        job.invokeOnCompletion {
-            if (!coroutineScope.isActive) {
+        singleJob?.invokeOnCompletion {
+            if (batchJob == null || batchJob?.isActive == false) {
                 stopForeground(true)
                 stopSelf()
             }

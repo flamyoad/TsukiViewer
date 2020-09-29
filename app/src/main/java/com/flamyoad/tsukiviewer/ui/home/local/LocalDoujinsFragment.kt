@@ -25,7 +25,6 @@ import kotlinx.android.synthetic.main.fragment_local_doujins.*
 
 // onResume() is called after onActivityCreated() in Fragment
 class LocalDoujinsFragment : BaseFragment() {
-
     private val viewModel: LocalDoujinViewModel by activityViewModels()
 
     private lateinit var adapter: LocalDoujinsAdapter
@@ -193,7 +192,7 @@ class LocalDoujinsFragment : BaseFragment() {
         listLocalDoujins.adapter = adapter
         listLocalDoujins.layoutManager = gridLayoutManager
 
-        val itemDecoration = GridItemDecoration(spanCount, 4, includeEdge = true)
+        val itemDecoration = GridItemDecoration(spanCount, 10, includeEdge = true)
 
         listLocalDoujins.addItemDecoration(itemDecoration)
 

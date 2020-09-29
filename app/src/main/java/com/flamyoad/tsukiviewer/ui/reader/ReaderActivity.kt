@@ -93,6 +93,8 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
     }
 
     private fun initReaderScreen() {
+        viewpager.offscreenPageLimit = 3
+
         val currentDir = intent.getStringExtra(DoujinImagesAdapter.DIRECTORY_PATH)
 
         viewModel.scanForImages(currentDir)

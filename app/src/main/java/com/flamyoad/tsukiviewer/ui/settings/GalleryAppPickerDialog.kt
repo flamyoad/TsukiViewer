@@ -10,24 +10,16 @@ import android.view.LayoutInflater
 import android.view.Window
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.GalleryPickerAdapter
-import com.flamyoad.tsukiviewer.ui.settings.preferences.GalleryPickListener
 
-class GalleryAppPickerDialog(private val listener: GalleryPickListener)
-    : DialogFragment() {
+class GalleryAppPickerDialog() : DialogFragment() {
 
-    companion object {
-        @JvmStatic
-        fun newInstance(listener: GalleryPickListener)
-                = GalleryAppPickerDialog(listener)
-    }
-
-    private lateinit var viewmodel: SettingsViewModel
+    private val viewModel: SettingsViewModel by activityViewModels()
 
     private lateinit var listGalleries: RecyclerView
 
@@ -48,9 +40,6 @@ class GalleryAppPickerDialog(private val listener: GalleryPickListener)
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val builder = AlertDialog.Builder(requireContext())
             .setTitle("Pick an application")
-            .setPositiveButton("OK", DialogInterface.OnClickListener { dialogInterface, i ->
-
-            })
             .setNegativeButton("Return", DialogInterface.OnClickListener { dialogInterface, i ->
 
             })
@@ -67,16 +56,25 @@ class GalleryAppPickerDialog(private val listener: GalleryPickListener)
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        viewmodel = ViewModelProvider(requireActivity()).get(SettingsViewModel::class.java)
 
-        val adapter = GalleryPickerAdapter(listener)
-        val linearLayoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+        val adapter = GalleryPickerAdapter {
+            viewModel.setThirdPartyGallery(it)
+            dialog?.dismiss()
+        }
+
+        val linearLayoutManager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
 
         listGalleries.adapter = adapter
         listGalleries.layoutManager = linearLayoutManager
 
-        viewmodel.packageAppList().observe(requireActivity(), Observer {
+        viewModel.packageAppList().observe(requireActivity(), Observer {
             adapter.setList(it)
         })
+    }
+
+    companion object {
+        @JvmStatic
+        fun newInstance() = GalleryAppPickerDialog()
     }
 }

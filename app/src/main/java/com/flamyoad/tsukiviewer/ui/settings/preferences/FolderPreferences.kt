@@ -3,14 +3,16 @@ package com.flamyoad.tsukiviewer.ui.settings.preferences
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
-import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.activityViewModels
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.ui.settings.GalleryAppPickerDialog
+import com.flamyoad.tsukiviewer.ui.settings.SettingsViewModel
 
-class FolderPreferences : PreferenceFragmentCompat(), GalleryPickListener {
+class FolderPreferences : PreferenceFragmentCompat(), SharedPreferences.OnSharedPreferenceChangeListener {
+    private val viewModel: SettingsViewModel by activityViewModels()
 
     private lateinit var prefs: SharedPreferences
 
@@ -27,11 +29,12 @@ class FolderPreferences : PreferenceFragmentCompat(), GalleryPickListener {
 
         prefs = requireContext().getSharedPreferences("settings", Context.MODE_PRIVATE)
 
-        externalGallerySwitch = findPreference("pref_external_gallery_switch")
-        externalGalleryPicker = findPreference("pref_external_img_viewer")
+        prefs.registerOnSharedPreferenceChangeListener(this)
 
+        externalGallerySwitch = findPreference("pref_external_gallery_switch")
         externalGallerySwitch?.isChecked = prefs.getBoolean(USE_EXTERNAL_GALLERY, false)
 
+        externalGalleryPicker = findPreference("pref_external_img_viewer")
         externalGalleryPicker?.isEnabled = prefs.getBoolean(USE_EXTERNAL_GALLERY, false)
 
         externalGallerySwitch?.setOnPreferenceChangeListener { preference, newValue ->
@@ -52,30 +55,22 @@ class FolderPreferences : PreferenceFragmentCompat(), GalleryPickListener {
             showGalleryPicker()
             return@setOnPreferenceClickListener true
         }
+
     }
 
     private fun showGalleryPicker() {
         val fm = requireActivity().supportFragmentManager
         val fragmentTransaction = fm.beginTransaction()
-        val dialog = GalleryAppPickerDialog(this)
+        val dialog = GalleryAppPickerDialog.newInstance()
         dialog.show(fragmentTransaction, "dialog_gallery_picker")
     }
 
-    override fun onGalleryPick(packageName: String) {
-        prefs.edit()
-            .putString(EXTERNAL_GALLERY_PKG_NAME, packageName)
-            .apply()
-
-        externalGalleryPicker?.summary = packageName
-
-        val dialog = requireActivity()
-            .supportFragmentManager
-            .findFragmentByTag("dialog_gallery_picker") as DialogFragment
-
-        dialog.dismiss()
+    override fun onSharedPreferenceChanged(prefs: SharedPreferences?, key: String?) {
+        when (key) {
+            EXTERNAL_GALLERY_PKG_NAME -> {
+                externalGalleryPicker?.summary = prefs?.getString(key, "")
+            }
+        }
     }
 }
 
-interface GalleryPickListener {
-    fun onGalleryPick(packageName: String)
-}

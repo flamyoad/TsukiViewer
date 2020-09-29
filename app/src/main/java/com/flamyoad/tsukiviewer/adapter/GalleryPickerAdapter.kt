@@ -9,9 +9,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.flamyoad.tsukiviewer.R
-import com.flamyoad.tsukiviewer.ui.settings.preferences.GalleryPickListener
 
-class GalleryPickerAdapter(private val listener: GalleryPickListener)
+class GalleryPickerAdapter(val onGalleryPick: (String) -> Unit)
     : RecyclerView.Adapter<GalleryPickerAdapter.GalleryViewHolder>() {
 
     private var list: List<ResolveInfo> = emptyList()
@@ -26,7 +25,7 @@ class GalleryPickerAdapter(private val listener: GalleryPickListener)
             val resolveInfo = list[holder.adapterPosition]
             val pkgName = resolveInfo.activityInfo.packageName
 
-            listener.onGalleryPick(pkgName)
+            onGalleryPick(pkgName)
         }
 
         return holder
