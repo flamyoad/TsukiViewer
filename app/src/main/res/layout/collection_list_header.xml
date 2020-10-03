@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:background="@color/wine_red"
+    android:background="@color/headerGray"
     android:clickable="true"
     android:foreground="?android:selectableItemBackground">
 
@@ -18,7 +18,7 @@
         android:paddingHorizontal="8dp"
         android:paddingVertical="10dp"
         tools:text="Default Collection"
-        android:textColor="@android:color/white"
+        android:textColor="@color/white"
         android:textSize="14sp"
         android:layout_weight="1" />
 
@@ -27,6 +27,6 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:paddingHorizontal="12dp"
-        app:srcCompat="@drawable/ic_keyboard_arrow_down_white_24dp" />
+        app:srcCompat="@drawable/ic_list_white_24dp" />
 
 </LinearLayout>

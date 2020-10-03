@@ -15,7 +15,6 @@ import com.flamyoad.tsukiviewer.adapter.DoujinPagerAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.network.FetchMetadataService
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
-import com.flamyoad.tsukiviewer.utils.SimpleDialog
 import com.flamyoad.tsukiviewer.utils.snackbar
 import com.flamyoad.tsukiviewer.utils.toast
 import kotlinx.android.synthetic.main.activity_doujin_details.*
@@ -33,14 +32,14 @@ class DoujinDetailsActivity : AppCompatActivity() {
         initTabLayout()
         initToolbar()
 
-        viewModel.snackbarMsg.observe(this, Observer { message ->
-            if (message.isNullOrBlank()) {
+        viewModel.snackbarText.observe(this, Observer { text ->
+            if (text.isNullOrBlank()) {
                 return@Observer
             }
 
-            snackbar(message, lengthLong = true)
+            snackbar(rootView, text, lengthLong = true)
 
-            viewModel.snackbarMsg.value = ""
+            viewModel.snackbarText.value = ""
         })
     }
 

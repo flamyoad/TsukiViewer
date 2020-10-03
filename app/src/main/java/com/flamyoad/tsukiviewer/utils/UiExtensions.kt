@@ -41,6 +41,14 @@ fun Activity.snackbar(message: String, lengthLong: Boolean = false) {
     Snackbar.make(findViewById(android.R.id.content), message, length)
 }
 
+fun Activity.snackbar(view: View, message: String, lengthLong: Boolean = false) {
+    val length = when (lengthLong) {
+        true -> Snackbar.LENGTH_LONG
+        false -> Snackbar.LENGTH_SHORT
+    }
+    Snackbar.make(view, message, length)
+}
+
 fun Fragment.snackbar(message: String, lengthLong: Boolean = false) {
     view?.let {
         val length = when (lengthLong) {

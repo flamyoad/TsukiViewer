@@ -37,7 +37,7 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
         return@switchMap collectionRepo.collectionNameExists(name)
     }
 
-    val snackbarMsg = MutableLiveData<String>("")
+    val snackbarText = MutableLiveData<String>("")
 
     var currentPath: String = ""
 
@@ -110,8 +110,8 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
                 }
             }
         } else {
-            snackbarMsg.value = "Failed to remove existing title & tags"
-            snackbarMsg.value = "" // Clears the value
+            snackbarText.value = "Failed to remove existing title & tags"
+            snackbarText.value = "" // Clears the value
         }
     }
 
@@ -134,7 +134,7 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
                 collectionRepo.wipeAndInsertNew(File(currentPath), collectionWithTickStatus)
 
             withContext(Dispatchers.Main) {
-                snackbarMsg.value = status
+                snackbarText.value = status
             }
         }
     }

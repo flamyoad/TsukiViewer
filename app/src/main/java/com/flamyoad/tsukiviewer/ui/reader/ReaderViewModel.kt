@@ -15,13 +15,9 @@ import java.io.File
 class ReaderViewModel(application: Application) : AndroidViewModel(application) {
 
     private val imageList = MutableLiveData<List<File>>()
-
     fun imageList(): LiveData<List<File>> = imageList
 
-//    var totalImageCount: Int = -1
-//        private set
     private val totalImageCount = MutableLiveData<Int>(-1)
-
     fun totalImageCount(): LiveData<Int> = totalImageCount
 
     var currentPath: String = ""

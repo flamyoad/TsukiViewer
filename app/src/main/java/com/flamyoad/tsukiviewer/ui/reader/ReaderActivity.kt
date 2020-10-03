@@ -40,7 +40,6 @@ import java.io.File
     I have no idea why. Perhaps I should post this on StackOverflow someday.
  */
 class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickListener {
-
     private lateinit var viewModel: ReaderViewModel
 
     private var positionFromImageGrid = 0
@@ -104,7 +103,11 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
 
         viewModel.imageList().observe(this, Observer {
             imageAdapter.setList(it)
-            viewpager.setCurrentItem(positionFromImageGrid, false)
+            if (viewModel.currentPath.isBlank()) {
+                viewpager.setCurrentItem(positionFromImageGrid, false)
+            }
+
+            viewModel.currentPath = currentDir
         })
 
         viewModel.totalImageCount().observe(this, Observer {

@@ -31,4 +31,5 @@
     <color name="middleBlueGreen">#94D1BE</color>
     <color name="maximumBlueGreen">#62BBC1</color>
     <color name="subtleGray">#E4E4E4</color>
+    <color name="headerGray">#A0A4B8</color>
 </resources>
