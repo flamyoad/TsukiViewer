@@ -3,23 +3,18 @@ package com.flamyoad.tsukiviewer
 import android.animation.AnimatorInflater
 import android.content.DialogInterface
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.content.pm.ResolveInfo
 import android.os.Bundle
-import android.util.Log
 import android.view.MenuItem
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
-import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import com.flamyoad.tsukiviewer.ui.home.collection.CollectionDoujinFragment
+import com.flamyoad.tsukiviewer.ui.home.bookmarks.BookmarkFragment
 import com.flamyoad.tsukiviewer.ui.home.local.LocalDoujinsFragment
 import com.flamyoad.tsukiviewer.ui.home.tags.DoujinTagsFragment
 import com.flamyoad.tsukiviewer.ui.settings.SettingsActivity
-import com.google.android.material.internal.StateListAnimator
 import com.google.android.material.navigation.NavigationView
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -53,10 +48,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         super.onResume()
         val fragmentTag = supportFragmentManager.findFragmentById(R.id.container)?.tag ?: ""
 
-        if (fragmentTag == DoujinTagsFragment.APPBAR_TITLE) {
-            removeAppBarShadow()
-        } else {
-            showAppBarShadow()
+        when (fragmentTag) {
+            DoujinTagsFragment.APPBAR_TITLE -> removeAppBarShadow()
+            BookmarkFragment.APPBAR_TITLE -> removeAppBarShadow()
+            else -> showAppBarShadow()
         }
 
         setTitle(fragmentTag)
@@ -108,12 +103,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
 
             R.id.nav_favourites -> {
-                if (currentFragmentTag != CollectionDoujinFragment.APPBAR_TITLE) {
-                    val fragment = CollectionDoujinFragment.newInstance()
+                if (currentFragmentTag != BookmarkFragment.APPBAR_TITLE) {
+                    val fragment = BookmarkFragment.newInstance()
                     pushFragment(fragment, fragment.getTitle())
                     item.isChecked = true
 
-                    showAppBarShadow()
+                    removeAppBarShadow()
+
+//                    supportFragmentManager.findFragmentByTag()
                 }
             }
 

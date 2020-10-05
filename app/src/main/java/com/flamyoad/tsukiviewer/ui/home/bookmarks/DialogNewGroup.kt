@@ -1,4 +1,4 @@
-package com.flamyoad.tsukiviewer.ui.home.collection
+package com.flamyoad.tsukiviewer.ui.home.bookmarks
 
 import android.app.Dialog
 import android.content.DialogInterface
@@ -13,8 +13,8 @@ import com.flamyoad.tsukiviewer.R
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 
-class DialogNewCollection: DialogFragment() {
-    private val viewModel: CollectionDoujinViewModel by activityViewModels()
+class DialogNewGroup: DialogFragment() {
+    private val viewModel: BookmarkViewModel by activityViewModels()
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val builder = AlertDialog.Builder(requireContext())
@@ -30,25 +30,25 @@ class DialogNewCollection: DialogFragment() {
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
             override fun onTextChanged(text: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                viewModel.newCollectionName.value = text.toString()
+                viewModel.newGroupName.value = text.toString()
             }
         })
 
         builder.setTitle("Create new collection")
         builder.setView(view)
         builder.setNegativeButton("Return", DialogInterface.OnClickListener { dialogInterface, i ->
-            viewModel.newCollectionName.value = ""
+            viewModel.newGroupName.value = ""
         })
 
         builder.setPositiveButton("Ok", DialogInterface.OnClickListener { dialogInterface, i ->
             val name = fieldName.text.toString()
             viewModel.createCollection(name)
-            viewModel.newCollectionName.value = ""
+            viewModel.newGroupName.value = ""
         })
 
         val dialog = builder.create()
 
-        viewModel.collectionNameIsUsed.observe(this, Observer { alreadyExists ->
+        viewModel.groupNameIsUsed.observe(this, Observer { alreadyExists ->
             when (alreadyExists) {
                 true ->  {
                     fieldLayout.error = "The name is already used!"
@@ -66,10 +66,11 @@ class DialogNewCollection: DialogFragment() {
 
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
-        viewModel.newCollectionName.value = ""
+        viewModel.newGroupName.value = ""
     }
 
     companion object {
-        fun newInstance() = DialogNewCollection()
+        fun newInstance() =
+            DialogNewGroup()
     }
 }

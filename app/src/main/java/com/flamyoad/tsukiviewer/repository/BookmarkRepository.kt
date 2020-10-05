@@ -5,49 +5,54 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.room.withTransaction
 import com.flamyoad.tsukiviewer.db.AppDatabase
-import com.flamyoad.tsukiviewer.db.dao.CollectionItemDao
-import com.flamyoad.tsukiviewer.db.dao.DoujinCollectionDao
-import com.flamyoad.tsukiviewer.model.CollectionItem
-import com.flamyoad.tsukiviewer.model.DoujinCollection
+import com.flamyoad.tsukiviewer.db.dao.BookmarkGroupDao
+import com.flamyoad.tsukiviewer.db.dao.BookmarkItemDao
+import com.flamyoad.tsukiviewer.model.BookmarkGroup
+import com.flamyoad.tsukiviewer.model.BookmarkItem
+import org.threeten.bp.Instant
 import java.io.File
 
-class CollectionRepository(private val context: Context) {
+class BookmarkRepository(private val context: Context) {
 
     companion object {
-        const val DEFAULT_COLLECTION = "Default Collection"
+        const val DEFAULT_BOOKMARK_GROUP = "Default Bookmark Group"
     }
 
     private val db: AppDatabase
 
-    val collectionDao: DoujinCollectionDao
+    val groupDao: BookmarkGroupDao
 
-    val itemDao: CollectionItemDao
+    val itemDao: BookmarkItemDao
 
     init {
         db = AppDatabase.getInstance(context)
-        collectionDao = db.doujinCollectionDao()
-        itemDao = db.collectionItemDao()
+        groupDao = db.bookmarkGroupDao()
+        itemDao = db.bookmarkItemDao()
     }
 
-    fun getAllItems(): LiveData<List<CollectionItem>> {
+    fun getAllItems(): LiveData<List<BookmarkItem>> {
         return itemDao.selectAll()
     }
 
-    suspend fun getAllItemsFrom(collection: DoujinCollection): List<CollectionItem> {
-        return itemDao.selectFrom(collection.name)
+    fun getAllItems(group: BookmarkGroup): LiveData<List<BookmarkItem>> {
+        return itemDao.from(group.name)
     }
 
-    fun getAllCollections(): LiveData<List<DoujinCollection>> {
-        return collectionDao.getAll()
+    suspend fun getAllItemsFrom(group: BookmarkGroup): List<BookmarkItem> {
+        return itemDao.selectFrom(group.name)
     }
 
-    fun collectionNameExists(name: String): LiveData<Boolean> {
-        return collectionDao.exists(name)
+    fun getAllGroups(): LiveData<List<BookmarkGroup>> {
+        return groupDao.getAll()
     }
 
-    suspend fun getAllCollectionsFrom(absolutePath: File): List<DoujinCollection> {
-        val collections = collectionDao.getAllBlocking()
-        val names = collectionDao.getCollectionNamesFrom(absolutePath)
+    fun groupNameExists(name: String): LiveData<Boolean> {
+        return groupDao.exists(name)
+    }
+
+    suspend fun getAllCollectionsFrom(absolutePath: File): List<BookmarkGroup> {
+        val collections = groupDao.getAllBlocking()
+        val names = groupDao.getCollectionNamesFrom(absolutePath)
 
         for (collection in collections) {
             if (collection.name in names) {
@@ -57,44 +62,40 @@ class CollectionRepository(private val context: Context) {
         return collections
     }
 
-    suspend fun changeCollectionName(oldName: String, newName: String) {
-        collectionDao.changeName(oldName, newName)
+    suspend fun changeGroupName(oldName: String, newName: String) {
+        return groupDao.changeName(oldName, newName)
     }
 
-    suspend fun deleteCollection(collection: DoujinCollection) {
-        collectionDao.delete(collection)
+    suspend fun removeGroup(group: BookmarkGroup) {
+        groupDao.delete(group)
     }
 
-    suspend fun deleteCollection(name: String) {
-        collectionDao.delete(name)
+    suspend fun removeGroup(name: String) {
+        groupDao.delete(name)
     }
 
-    suspend fun getAllCollectionsBlocking(): List<DoujinCollection> {
-        return collectionDao.getAllBlocking()
+    suspend fun getAllGroupsBlocking(): List<BookmarkGroup> {
+        return groupDao.getAllBlocking()
     }
 
-    // Inserts a default folder first.
-    suspend fun createDefaultCollection() {
-        collectionDao.insert(DoujinCollection(DEFAULT_COLLECTION))
+    suspend fun insertGroup(collection: BookmarkGroup) {
+        groupDao.insert(collection)
     }
 
-    suspend fun insertCollection(collection: DoujinCollection) {
-        collectionDao.insert(collection)
-    }
-
-    suspend fun insertItem(item: CollectionItem) {
+    suspend fun insertItem(item: BookmarkItem) {
         itemDao.insert(item)
     }
 
-    suspend fun moveItemsTo(collection: DoujinCollection, itemsToBeMoved: List<CollectionItem>): Int {
+    suspend fun moveItemsTo(group: BookmarkGroup, itemsToBeMoved: List<BookmarkItem>): Int {
         val movedItems = db.withTransaction {
             itemDao.delete(itemsToBeMoved)
 
             val itemList = itemsToBeMoved.map { x ->
-                CollectionItem(
+                BookmarkItem(
                     id = null,
                     absolutePath = x.absolutePath,
-                    collectionName = collection.name
+                    parentName = group.name,
+                    dateAdded = x.dateAdded
                 )
             }
             return@withTransaction itemDao.insert(itemList)
@@ -108,9 +109,18 @@ class CollectionRepository(private val context: Context) {
             .filter { kvp -> kvp.value == false }
             .map { kvp -> kvp.key }
 
+        val dateAdded = Instant.now().toEpochMilli()
+
         val itemsToInsert = hashMap
             .filter { kvp -> kvp.value == true }
-            .map { kvp -> CollectionItem(absolutePath = absolutePath, collectionName = kvp.key) }
+            .map { kvp ->
+                BookmarkItem(
+                    id = null,
+                    absolutePath = absolutePath,
+                    parentName = kvp.key,
+                    dateAdded = dateAdded
+                )
+            }
 
         return db.withTransaction {
             try {
@@ -122,7 +132,7 @@ class CollectionRepository(private val context: Context) {
 
                 var insertCount = 0
                 for (item in itemsToInsert) {
-                    if (itemDao.exists(item.absolutePath, item.collectionName)) {
+                    if (itemDao.exists(item.absolutePath, item.parentName)) {
                         continue
                     } else {
                         val insertedId = itemDao.insert(item)

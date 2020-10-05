@@ -11,7 +11,7 @@
         <item
             android:id="@+id/nav_favourites"
             android:icon="@drawable/ic_favorite_gray_24dp"
-            android:title="Collections"/>
+            android:title="Bookmarks"/>
         <item
             android:id="@+id/nav_tags"
             android:icon="@drawable/ic_cast_connected_gray_24dp"

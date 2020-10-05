@@ -5,39 +5,32 @@ import com.flamyoad.tsukiviewer.db.typeconverter.FolderConverter
 import java.io.File
 
 @Entity(
-    tableName = "collection_item",
+    tableName = "bookmark_item",
     foreignKeys = [ForeignKey(
-        entity = DoujinCollection::class,
+        entity = BookmarkGroup::class,
         parentColumns = ["name"],
-        childColumns = ["collectionName"],
+        childColumns = ["parentName"],
         onDelete = ForeignKey.CASCADE,
         onUpdate = ForeignKey.CASCADE
     )]
 )
 @TypeConverters(FolderConverter::class)
 
-data class CollectionItem(
+data class BookmarkItem(
     @PrimaryKey(autoGenerate = true) val id: Long? = null,
-
     val absolutePath: File,
+    val parentName: String,
+    val dateAdded: Long,
+    @Ignore val doujin: Doujin? = null
+) {
 
-    val collectionName: String,
-
-    // todo: add this field
-    // val dateAdded: Long,
-
-    @Ignore val isHeader: Boolean = false,
-
-    @Ignore val doujin: Doujin? = null)
-{
-    constructor(id: Long, absolutePath: File, collectionName: String) : this(
+    constructor(id: Long, absolutePath: File, parentName: String, dateAdded: Long) : this(
         id,
         absolutePath,
-        collectionName,
-        false,
+        parentName,
+        dateAdded,
         null
     )
 
-    @Ignore var isCollapsed: Boolean = false
     @Ignore var isSelected: Boolean = false
 }

@@ -17,6 +17,7 @@ import com.flamyoad.tsukiviewer.network.FetchMetadataService
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
 import com.flamyoad.tsukiviewer.utils.snackbar
 import com.flamyoad.tsukiviewer.utils.toast
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_doujin_details.*
 
 class DoujinDetailsActivity : AppCompatActivity() {
@@ -37,7 +38,8 @@ class DoujinDetailsActivity : AppCompatActivity() {
                 return@Observer
             }
 
-            snackbar(rootView, text, lengthLong = true)
+            Snackbar.make(rootView, text, Snackbar.LENGTH_LONG)
+                .show()
 
             viewModel.snackbarText.value = ""
         })

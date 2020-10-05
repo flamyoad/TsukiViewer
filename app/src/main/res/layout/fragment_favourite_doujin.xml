@@ -1,35 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.home.collection.CollectionDoujinFragment">
+    android:orientation="vertical">
 
-    <com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
-        android:id="@+id/fastScroller"
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:backgroundTint="@color/colorPrimary"
+        android:elevation="0dp"
+        app:tabIndicatorColor="@android:color/white"
+        app:tabRippleColor="@color/colorPrimaryDark"
+        app:tabSelectedTextColor="@android:color/white"
+        app:tabTextAppearance="@style/MyTabLayoutTextAppearance"
+        app:tabTextColor="#DCDCDC"/>
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:handleHeight="32dp">
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/listCollectionDoujins"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:listitem="@layout/doujin_list_item" />
-
-    </com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/floatingActionButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:clickable="true"
-        android:src="@drawable/ic_create_new_folder_white_24dp"
-        android:layout_gravity="bottom|right"
-        android:layout_margin="16dp"
-        app:elevation="4dp"
-        app:tint="@android:color/white"
-        app:backgroundTint="@color/colorPrimary"/>
-
-</FrameLayout>
+</LinearLayout>

@@ -81,7 +81,7 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
             if (tags.isBlank()) {
                 val existingList = (app as MyApplication).fullDoujinList
                 if (existingList != null) {
-                    searchFromExistingList(existingList, keyword)
+                    searchFromExistingList(existingList.toList(), keyword)
                 } else {
                     searchFromFileExplorer(keyword)
                 }

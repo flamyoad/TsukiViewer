@@ -8,7 +8,7 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
-import com.flamyoad.tsukiviewer.model.DoujinCollection
+import com.flamyoad.tsukiviewer.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.ui.doujinpage.CollectionDialogListener
 import java.lang.IllegalArgumentException
 
@@ -17,7 +17,7 @@ class CollectionPickerAdapter(private val listener: CollectionDialogListener)
     private val ADD_NEW_BUTTON = 1
     private val COLLECTION_ITEM = 2
 
-    private var list: List<DoujinCollection> = emptyList()
+    private var list: List<BookmarkGroup> = emptyList()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -84,7 +84,7 @@ class CollectionPickerAdapter(private val listener: CollectionDialogListener)
         }
     }
 
-    fun setList(newList: List<DoujinCollection>) {
+    fun setList(newList: List<BookmarkGroup>) {
         list = newList
         notifyDataSetChanged()
     }
@@ -98,7 +98,7 @@ class CollectionPickerAdapter(private val listener: CollectionDialogListener)
 
         }
 
-        fun bindTo(collection: DoujinCollection) {
+        fun bindTo(collection: BookmarkGroup) {
             val firstLetter = collection.name.first().toUpperCase()
 
             txtIcon.text = firstLetter.toString()

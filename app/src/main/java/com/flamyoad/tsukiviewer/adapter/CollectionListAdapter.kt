@@ -7,16 +7,16 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
-import com.flamyoad.tsukiviewer.model.DoujinCollection
+import com.flamyoad.tsukiviewer.model.BookmarkGroup
 
 private const val ADD_NEW_BUTTON = 1
 private const val COLLECTION_ITEM = 2
 
-class CollectionListAdapter(private val onMoveItems: (DoujinCollection) -> Unit,
+class CollectionListAdapter(private val onMoveItems: (BookmarkGroup) -> Unit,
                             private val showNewCollectionDialog: () -> Unit)
     : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    private var list: List<DoujinCollection> = emptyList()
+    private var list: List<BookmarkGroup> = emptyList()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -76,7 +76,7 @@ class CollectionListAdapter(private val onMoveItems: (DoujinCollection) -> Unit,
         }
     }
 
-    fun setList(newList: List<DoujinCollection>) {
+    fun setList(newList: List<BookmarkGroup>) {
         list = newList
         notifyDataSetChanged()
     }
@@ -85,7 +85,7 @@ class CollectionListAdapter(private val onMoveItems: (DoujinCollection) -> Unit,
         private val txtIcon: TextView = itemView.findViewById(R.id.txtIcon)
         private val txtCollectionName: TextView = itemView.findViewById(R.id.txtCollectionName)
 
-        fun bindTo(collection: DoujinCollection) {
+        fun bindTo(collection: BookmarkGroup) {
             val firstLetter = collection.name.first().toUpperCase()
 
             txtIcon.text = firstLetter.toString()

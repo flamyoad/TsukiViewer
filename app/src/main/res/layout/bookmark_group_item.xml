@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:paddingVertical="12dp"
+    android:paddingHorizontal="4dp"
+    android:background="?android:selectableItemBackground"
+    tools:background="@color/colorPrimary"
+    android:clickable="true"
+    >
+
+    <FrameLayout
+        android:id="@+id/logoContent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="@+id/txtGroupName"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/circleImageView"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            app:layout_constraintEnd_toEndOf="@+id/txtGroupName"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:src="@color/subLightTextColor" />
+
+        <TextView
+            android:id="@+id/txtPlaceHolder"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:textSize="24dp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:visibility="visible"
+            tools:text="F"/>
+
+    </FrameLayout>
+
+
+    <TextView
+        android:id="@+id/txtGroupName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textAlignment="center"
+        android:textColor="@android:color/white"
+        android:textSize="12sp"
+        android:ems="7"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/logoContent"
+        tools:text="Kotowaifu" />
+
+    <TextView
+        android:id="@+id/txtItemCount"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textColor="@color/subLightTextColor"
+        android:textSize="10sp"
+        app:layout_constraintEnd_toEndOf="@+id/txtGroupName"
+        app:layout_constraintStart_toStartOf="@+id/txtGroupName"
+        app:layout_constraintTop_toBottomOf="@+id/txtGroupName"
+        tools:text="(19)" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

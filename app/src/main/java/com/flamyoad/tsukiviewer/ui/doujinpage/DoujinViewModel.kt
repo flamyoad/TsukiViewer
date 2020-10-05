@@ -4,9 +4,9 @@ import android.app.Application
 import android.net.Uri
 import androidx.core.net.toUri
 import androidx.lifecycle.*
-import com.flamyoad.tsukiviewer.model.DoujinCollection
+import com.flamyoad.tsukiviewer.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.model.DoujinDetailsWithTags
-import com.flamyoad.tsukiviewer.repository.CollectionRepository
+import com.flamyoad.tsukiviewer.repository.BookmarkRepository
 import com.flamyoad.tsukiviewer.repository.MetadataRepository
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +18,7 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
 
     private val metadataRepo = MetadataRepository(application)
 
-    private val collectionRepo = CollectionRepository(application)
+    private val collectionRepo = BookmarkRepository(application)
 
     lateinit var detailWithTags: LiveData<DoujinDetailsWithTags>
 
@@ -28,13 +28,13 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
     private val coverImage = MutableLiveData<Uri>()
     fun coverImage(): LiveData<Uri> = coverImage
 
-    private val collectionList = MutableLiveData<List<DoujinCollection>>()
-    fun collectionList(): LiveData<List<DoujinCollection>> = collectionList
+    private val collectionList = MutableLiveData<List<BookmarkGroup>>()
+    fun collectionList(): LiveData<List<BookmarkGroup>> = collectionList
 
     val newCollectionName = MutableLiveData<String>()
 
     val collectionNameExists: LiveData<Boolean> = newCollectionName.switchMap { name ->
-        return@switchMap collectionRepo.collectionNameExists(name)
+        return@switchMap collectionRepo.groupNameExists(name)
     }
 
     val snackbarText = MutableLiveData<String>("")
@@ -141,7 +141,7 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
 
     fun createCollection(name: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            collectionRepo.insertCollection(DoujinCollection(name))
+            collectionRepo.insertGroup(BookmarkGroup(name))
         }
     }
 

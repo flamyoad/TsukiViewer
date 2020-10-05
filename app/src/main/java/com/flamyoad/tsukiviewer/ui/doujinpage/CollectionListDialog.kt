@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.CollectionPickerAdapter
-import com.flamyoad.tsukiviewer.model.DoujinCollection
+import com.flamyoad.tsukiviewer.model.BookmarkGroup
 
 class CollectionListDialog: DialogFragment(), CollectionDialogListener {
     private val viewModel: DoujinViewModel by activityViewModels()
@@ -92,11 +92,11 @@ class CollectionListDialog: DialogFragment(), CollectionDialogListener {
         }
     }
 
-    override fun onCollectionTicked(collection: DoujinCollection) {
+    override fun onCollectionTicked(collection: BookmarkGroup) {
         collectionTickStatus.put(collection.name, true)
     }
 
-    override fun onCollectionUnticked(collection: DoujinCollection) {
+    override fun onCollectionUnticked(collection: BookmarkGroup) {
         collectionTickStatus.put(collection.name, false)
     }
 
