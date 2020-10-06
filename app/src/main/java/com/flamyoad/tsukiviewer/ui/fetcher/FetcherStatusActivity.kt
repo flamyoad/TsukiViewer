@@ -67,7 +67,7 @@ class FetcherStatusActivity : AppCompatActivity() {
             })
 
             service.fetchHistories().observe(this, Observer {
-                adapter.setList(it)
+                adapter.submitList(it)
                 txtProcessed.text = getString(R.string.processed_item_text, it.size)
             })
 

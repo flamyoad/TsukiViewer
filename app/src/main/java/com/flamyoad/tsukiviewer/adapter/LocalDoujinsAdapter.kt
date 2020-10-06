@@ -1,35 +1,34 @@
 package com.flamyoad.tsukiviewer.adapter
 
 import android.content.Intent
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
+import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
+import com.flamyoad.tsukiviewer.ActionModeListener
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.ui.doujinpage.DoujinDetailsActivity
 import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
-import java.util.*
 
 
-class LocalDoujinsAdapter :
+class LocalDoujinsAdapter(private val listener: ActionModeListener<Doujin>) :
     RecyclerView.Adapter<LocalDoujinsAdapter.DoujinViewHolder>(),
     RecyclerViewFastScroller.OnPopupTextUpdate {
 
     companion object {
         const val DOUJIN_FILE_PATH = "LocalDoujinsAdapter.DOUJIN_FILE_PATH"
         const val DOUJIN_NAME = "LocalDoujinsAdapter.DOUJIN_NAME"
-        const val TRANSITION_NAME = "LocalDoujinsAdapter.TRANSITION_NAME"
     }
 
     private var doujinList: List<Doujin> = emptyList()
+
+    var actionModeEnabled: Boolean = false
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DoujinViewHolder {
         val layout = LayoutInflater.from(parent.context)
@@ -42,17 +41,48 @@ class LocalDoujinsAdapter :
 
             // Sometiems return -1 after we include new directory and the recyclerview gets invalidated
             if (adapterPosition == RecyclerView.NO_POSITION) {
-                Log.d("adapter", "Adapter Position is -1")
                 return@setOnClickListener
             }
 
             val doujin = doujinList[adapterPosition]
 
-            val intent = Intent(context, DoujinDetailsActivity::class.java)
-            intent.putExtra(DOUJIN_FILE_PATH, doujin.path.toString())
-            intent.putExtra(DOUJIN_NAME, doujin.title)
+            when (actionModeEnabled) {
+                true -> {
+                    listener.onMultiSelectionClick(doujin)
+                }
+                false -> {
+                    val intent = Intent(context, DoujinDetailsActivity::class.java).apply {
+                        putExtra(DOUJIN_FILE_PATH, doujin.path.toString())
+                        putExtra(DOUJIN_NAME, doujin.title)
+                    }
+                    context.startActivity(intent)
+                }
+            }
+        }
 
-            context.startActivity(intent)
+        layout.setOnLongClickListener {
+            val adapterPosition = holder.adapterPosition
+            if (adapterPosition == RecyclerView.NO_POSITION) {
+                return@setOnLongClickListener true
+            }
+
+            if (!actionModeEnabled) {
+                val zoomIn = AnimationUtils.loadAnimation(it.context, R.anim.doujin_img_zoom_in)
+                val zoomOut = AnimationUtils.loadAnimation(it.context, R.anim.doujin_img_zoom_out)
+
+                val coverImage: ImageView = it.findViewById(R.id.imgCover)
+
+                coverImage.startAnimation(zoomIn)
+
+                listener.startActionMode()
+
+                coverImage.startAnimation(zoomOut)
+            }
+
+            val item = doujinList[adapterPosition]
+
+            listener.onMultiSelectionClick(item)
+            return@setOnLongClickListener true
         }
 
         return holder
@@ -82,17 +112,31 @@ class LocalDoujinsAdapter :
         private val coverImg: ImageView = itemView.findViewById(R.id.imgCover)
         private val txtTitle: TextView = itemView.findViewById(R.id.txtTitleEng)
         private val txtPageNumber: TextView = itemView.findViewById(R.id.txtPageNumber)
+        private val multiSelectIndicator: ImageView =
+            itemView.findViewById(R.id.multiSelectIndicator)
 
         fun bind(doujin: Doujin) {
             Glide.with(itemView.context)
                 .load(doujin.pic)
                 .transition(withCrossFade())
-//                .thumbnail(0.25f)
                 .sizeMultiplier(0.75f)
                 .into(coverImg)
 
             txtTitle.text = doujin.title
             txtPageNumber.text = doujin.numberOfItems.toString()
+
+            when (doujin.isSelected) {
+                true -> setIconVisibility(View.VISIBLE)
+                false -> setIconVisibility(View.GONE)
+            }
+        }
+
+        private fun setIconVisibility(visibility: Int) {
+            when (visibility) {
+                View.VISIBLE -> multiSelectIndicator.visibility = visibility
+                View.GONE -> multiSelectIndicator.visibility = visibility
+                else -> return
+            }
         }
     }
 

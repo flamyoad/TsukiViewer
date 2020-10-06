@@ -9,8 +9,10 @@ import android.os.IBinder
 import androidx.core.net.toUri
 import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyApplication
+import com.flamyoad.tsukiviewer.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.network.FetchMetadataService
+import com.flamyoad.tsukiviewer.repository.BookmarkRepository
 import com.flamyoad.tsukiviewer.repository.MetadataRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -20,8 +22,12 @@ import java.io.File
 
 
 class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app) {
+    private val metadataRepo = MetadataRepository(app)
+    private val bookmarkRepo = BookmarkRepository(app)
 
-    private val repo = MetadataRepository(app)
+    private val selectedDoujins = mutableListOf<Doujin>()
+
+    private var shouldResetSelections: Boolean = false
 
     private var includedDirectories = listOf<File>()
 
@@ -53,8 +59,13 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 
     private var loadingJob: Job? = null
 
+    val snackbarText = MutableLiveData<String>("")
+
+    val bookmarkGroupList: LiveData<List<BookmarkGroup>>
+
     init {
         initDoujinList()
+        bookmarkGroupList = bookmarkRepo.getAllGroups()
     }
 
     private fun initDoujinList() {
@@ -71,7 +82,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 
     fun reloadDoujins() {
         viewModelScope.launch(Dispatchers.IO) {
-            val directoriesFromDb = repo.pathDao.getAllBlocking()
+            val directoriesFromDb = metadataRepo.pathDao.getAllBlocking()
 
             if (includedDirectories == directoriesFromDb) {
                 return@launch
@@ -90,7 +101,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
             val prevListSize = doujinListBuffer.size
 
             withContext(Dispatchers.IO) {
-                includedDirectories = repo.pathDao.getAllBlocking()
+                includedDirectories = metadataRepo.pathDao.getAllBlocking()
 
                 // Clears doujins from directories previously included, but are now removed by the user
                 if (doujinListBuffer.isNotEmpty()) {
@@ -114,7 +125,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
                     isLoading.value = false
 
                     val newListSize = doujinListBuffer.size
-                    postRefreshResult(newListSize - prevListSize)
+//                    postRefreshResult(newListSize - prevListSize)
 
                     if (fetchService != null) {
                         enqueueDirs()
@@ -168,15 +179,27 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
             Instead, the parent directory of the item is changed to make it easier to be removed, when the included directories are modified by user
             */
             val item = list.find { x -> x.path == doujin.path }
+
             if (item != null) {
                 item.parentDir = parentDir
+
             } else {
                 doujinListBuffer.add(doujin)
             }
 
-
             withContext(Dispatchers.Main) {
+                if (shouldResetSelections) {
+                    for (doujinItem in doujinListBuffer) {
+                        doujinItem.isSelected = false
+                    }
+                } else {
+                    for (doujinItem in doujinListBuffer) {
+                        doujinItem.isSelected = doujinItem in selectedDoujins
+                    }
+                }
+
                 doujinList.value = doujinListBuffer
+                shouldResetSelections = false
             }
         }
     }
@@ -257,7 +280,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
     }
 
     suspend fun sortByShortName(ascending: Boolean): MutableList<Doujin> {
-        val shortTitles = repo.doujinDetailsDao.getAllShortTitles()
+        val shortTitles = metadataRepo.doujinDetailsDao.getAllShortTitles()
 
         val doujinList = doujinListBuffer.toMutableList()
         for (doujin in doujinList) {
@@ -287,11 +310,50 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
         return doujinList
     }
 
-    fun refreshList() {
-        if (isLoading.value == true) {
-            return
+    fun tickSelectedDoujin(doujin: Doujin) {
+        val hasBeenSelected = selectedDoujins.contains(doujin)
+        when (hasBeenSelected) {
+            true -> selectedDoujins.remove(doujin)
+            false -> selectedDoujins.add(doujin)
         }
-//        fetchDoujinsFromDir()
+
+        if (loadingJob?.isCompleted == true) {
+
+            val index = doujinListBuffer.indexOf(doujin)
+
+            val doujin = doujinListBuffer[index]
+            doujin.isSelected = !hasBeenSelected
+
+            doujinList.value = doujinListBuffer
+        }
+    }
+
+    fun clearSelectedDoujins() {
+        selectedDoujins.clear()
+
+        if (loadingJob?.isCompleted == true) {
+            for (doujin in doujinListBuffer) {
+                doujin.isSelected = false
+            }
+            doujinList.value = doujinListBuffer
+
+        } else {
+            shouldResetSelections = true
+        }
+    }
+
+    fun selectedCount(): Int {
+        return selectedDoujins.size
+    }
+
+    fun insertItemIntoTickedCollections(bookmarkGroups: List<BookmarkGroup>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val status = bookmarkRepo.insertAllItems(selectedDoujins.toList(), bookmarkGroups)
+
+            withContext(Dispatchers.Main) {
+                snackbarText.value = status
+            }
+        }
     }
 
     private fun postRefreshResult(amountNewItems: Int) {

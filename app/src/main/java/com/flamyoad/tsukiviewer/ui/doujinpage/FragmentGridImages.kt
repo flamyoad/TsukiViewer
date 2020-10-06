@@ -139,9 +139,11 @@ class FragmentGridImages : Fragment() {
             startActivityForResult(it, IMAGE_POSITION_REQUEST_CODE)
         }
 
+        adapter.setHasStableIds(true)
+
         gridLayoutManager = GridLayoutManager(context, spanCount)
 
-        listImages.adapter = adapter
+        listImages.swapAdapter(adapter, false)
         listImages.layoutManager = gridLayoutManager
         /*
            Since this method is called each time the view type is changed,

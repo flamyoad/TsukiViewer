@@ -9,8 +9,8 @@
             android:icon="@drawable/ic_local_library_gray_24dp"
             android:title="Local Storage"/>
         <item
-            android:id="@+id/nav_favourites"
-            android:icon="@drawable/ic_favorite_gray_24dp"
+            android:id="@+id/nav_bookmark"
+            android:icon="@drawable/ic_bookmark_white_24dp"
             android:title="Bookmarks"/>
         <item
             android:id="@+id/nav_tags"

@@ -18,7 +18,7 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
 
     private val metadataRepo = MetadataRepository(application)
 
-    private val collectionRepo = BookmarkRepository(application)
+    private val bookmarkRepo = BookmarkRepository(application)
 
     lateinit var detailWithTags: LiveData<DoujinDetailsWithTags>
 
@@ -34,7 +34,7 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
     val newCollectionName = MutableLiveData<String>()
 
     val collectionNameExists: LiveData<Boolean> = newCollectionName.switchMap { name ->
-        return@switchMap collectionRepo.groupNameExists(name)
+        return@switchMap bookmarkRepo.groupNameExists(name)
     }
 
     val snackbarText = MutableLiveData<String>("")
@@ -119,7 +119,7 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch(Dispatchers.IO) {
             if (currentPath.isNotBlank()) {
                 val dir = File(currentPath)
-                val collections = collectionRepo.getAllCollectionsFrom(dir)
+                val collections = bookmarkRepo.getAllCollectionsFrom(dir)
 
                 withContext(Dispatchers.Main) {
                     collectionList.value = collections
@@ -128,10 +128,10 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    fun insertItemIntoTickedCollections(collectionWithTickStatus: HashMap<String, Boolean>) {
+    fun insertItemIntoTickedCollections(collectionWithTickStatus: HashMap<BookmarkGroup, Boolean>) {
         viewModelScope.launch(Dispatchers.IO) {
             val status =
-                collectionRepo.wipeAndInsertNew(File(currentPath), collectionWithTickStatus)
+                bookmarkRepo.wipeAndInsertNew(File(currentPath), collectionWithTickStatus)
 
             withContext(Dispatchers.Main) {
                 snackbarText.value = status
@@ -141,7 +141,7 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
 
     fun createCollection(name: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            collectionRepo.insertGroup(BookmarkGroup(name))
+            bookmarkRepo.insertGroup(BookmarkGroup(name))
         }
     }
 

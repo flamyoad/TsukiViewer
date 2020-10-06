@@ -9,6 +9,7 @@ import com.flamyoad.tsukiviewer.db.dao.BookmarkGroupDao
 import com.flamyoad.tsukiviewer.db.dao.BookmarkItemDao
 import com.flamyoad.tsukiviewer.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.model.BookmarkItem
+import com.flamyoad.tsukiviewer.model.Doujin
 import org.threeten.bp.Instant
 import java.io.File
 
@@ -104,10 +105,13 @@ class BookmarkRepository(private val context: Context) {
     }
 
     // Returns: Snackbar message to be shown to user indicating the number of insert and delete
-    suspend fun wipeAndInsertNew(absolutePath: File, hashMap: HashMap<String, Boolean>): String {
+    suspend fun wipeAndInsertNew(
+        absolutePath: File,
+        hashMap: HashMap<BookmarkGroup, Boolean>
+    ): String {
         val namesOfCollectionsToRemoveFrom = hashMap
             .filter { kvp -> kvp.value == false }
-            .map { kvp -> kvp.key }
+            .map { kvp -> kvp.key.name }
 
         val dateAdded = Instant.now().toEpochMilli()
 
@@ -117,7 +121,7 @@ class BookmarkRepository(private val context: Context) {
                 BookmarkItem(
                     id = null,
                     absolutePath = absolutePath,
-                    parentName = kvp.key,
+                    parentName = kvp.key.name,
                     dateAdded = dateAdded
                 )
             }
@@ -160,6 +164,54 @@ class BookmarkRepository(private val context: Context) {
                 e.printStackTrace()
                 return@withTransaction "Failed to add or remove current doujin"
             }
+        }
+    }
+
+    suspend fun insertAllItems(doujinList: List<Doujin>, groupList: List<BookmarkGroup>): String {
+        val dateAdded = Instant.now().toEpochMilli()
+
+        val itemsToInsert = groupList.flatMap { group ->
+            doujinList.map { doujin ->
+                BookmarkItem(
+                    id = null,
+                    absolutePath = doujin.path,
+                    parentName = group.name,
+                    dateAdded = dateAdded
+                )
+            }
+        }
+
+        return db.withTransaction {
+            var insertCount = 0
+            for (item in itemsToInsert) {
+                if (itemDao.exists(item.absolutePath, item.parentName)) {
+                    continue
+                } else {
+                    val insertedId = itemDao.insert(item)
+                    if (insertedId > 0) {
+                        insertCount++
+                    }
+                }
+            }
+
+            if (insertCount == 0) {
+                return@withTransaction "No items are bookmarked"
+            }
+
+            val builder = StringBuilder()
+
+            when {
+                insertCount == 1 -> builder.append("$insertCount item has been bookmarked. ")
+                insertCount > 1 -> builder.append("$insertCount items have been bookmarked. ")
+            }
+
+            val ignoreCount = doujinList.size - insertCount
+            when {
+                ignoreCount == 1 -> builder.append("$insertCount item ignored")
+                ignoreCount > 1 -> builder.append("$insertCount items ignored")
+            }
+
+            return@withTransaction builder.toString()
         }
     }
 

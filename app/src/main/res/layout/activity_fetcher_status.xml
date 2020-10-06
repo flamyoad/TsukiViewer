@@ -1,122 +1,132 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/colorAccent"
-    android:orientation="vertical"
-    tools:context=".ui.fetcher.FetcherStatusActivity">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/lblCurrent"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:text="Current Item: "
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textColor="#FFFFFF"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-
-    <TextView
-        android:id="@+id/txtCurrentItem"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:lines="3"
-        android:textColor="@color/subLightTextColor"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/lblCurrent"
-        app:layout_constraintTop_toTopOf="@+id/lblCurrent"
-        tools:text="@string/doujin_name_en" />
-
-    <TextView
-        android:id="@+id/lblProgress"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Total Progress: "
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textColor="#FFFFFF"
-        app:layout_constraintStart_toStartOf="@+id/lblCurrent"
-        app:layout_constraintTop_toBottomOf="@+id/txtCurrentItem" />
-
-    <TextView
-        android:id="@+id/txtProgress"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textColor="#FFFFFF"
-        app:layout_constraintBottom_toBottomOf="@+id/lblProgress"
-        app:layout_constraintEnd_toStartOf="@+id/txtPercentage"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toEndOf="@+id/lblProgress"
-        app:layout_constraintTop_toTopOf="@+id/lblProgress"
-        app:layout_constraintVertical_bias="1.0"
-        tools:text="45/3999" />
-
-    <TextView
-        android:id="@+id/txtPercentage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textColor="#FFFFFF"
-        app:layout_constraintBottom_toBottomOf="@+id/lblProgress"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/lblProgress"
-        tools:text="33%" />
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        tools:progress="33"
-        android:progressBackgroundTint="@color/white"
-        android:progressTint="@color/wine_red"
-        app:layout_constraintEnd_toEndOf="@+id/txtPercentage"
-        app:layout_constraintStart_toStartOf="@+id/lblProgress"
-        app:layout_constraintTop_toBottomOf="@+id/lblProgress" />
-
-    <LinearLayout
-        android:id="@+id/listLayout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:background="@color/white"
-        android:orientation="vertical"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/progressBar">
-
-        <TextView
-            android:id="@+id/txtProcessed"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/wine_red"
-            android:gravity="center|left"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="10dp"
-            tools:text="Processed Items (1892)"
-            android:textColor="@color/white" />
+            android:layout_height="match_parent"
+            android:background="@color/colorAccent">
 
-    </LinearLayout>
+            <TextView
+                android:id="@+id/lblCurrent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:text="Current Item: "
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                android:textColor="#FFFFFF"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/txtCurrentItem"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:lines="3"
+                android:textColor="@color/subLightTextColor"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/lblCurrent"
+                app:layout_constraintTop_toTopOf="@+id/lblCurrent"
+                tools:text="@string/doujin_name_en" />
+
+            <TextView
+                android:id="@+id/lblProgress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Total Progress: "
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                android:textColor="#FFFFFF"
+                app:layout_constraintStart_toStartOf="@+id/lblCurrent"
+                app:layout_constraintTop_toBottomOf="@+id/txtCurrentItem" />
+
+            <TextView
+                android:id="@+id/txtProgress"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                android:textColor="#FFFFFF"
+                app:layout_constraintBottom_toBottomOf="@+id/lblProgress"
+                app:layout_constraintEnd_toStartOf="@+id/txtPercentage"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toEndOf="@+id/lblProgress"
+                app:layout_constraintTop_toTopOf="@+id/lblProgress"
+                app:layout_constraintVertical_bias="1.0"
+                tools:text="45/3999" />
+
+            <TextView
+                android:id="@+id/txtPercentage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                android:textColor="#FFFFFF"
+                app:layout_constraintBottom_toBottomOf="@+id/lblProgress"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/lblProgress"
+                tools:text="33%" />
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:progressBackgroundTint="@color/white"
+                android:progressTint="@color/wine_red"
+                app:layout_constraintEnd_toEndOf="@+id/txtPercentage"
+                app:layout_constraintStart_toStartOf="@+id/lblProgress"
+                app:layout_constraintTop_toBottomOf="@+id/lblProgress"
+                tools:progress="33" />
+
+            <LinearLayout
+                android:id="@+id/listLayout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@color/white"
+                android:orientation="vertical"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/progressBar">
+
+                <TextView
+                    android:id="@+id/txtProcessed"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/wine_red"
+                    android:gravity="center|left"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="10dp"
+                    android:textColor="@color/white"
+                    tools:text="Processed Items (1892)" />
+
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/listItems"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        tools:listitem="@layout/fetcher_list_item"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/listLayout"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        tools:listitem="@layout/fetcher_list_item" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
 

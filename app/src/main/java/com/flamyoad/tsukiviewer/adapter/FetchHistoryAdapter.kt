@@ -6,15 +6,16 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.network.FetchHistory
 import com.flamyoad.tsukiviewer.network.FetchStatus
 
-class FetchHistoryAdapter: RecyclerView.Adapter<FetchHistoryAdapter.FetchViewHolder>() {
-
-    private var itemList = emptyList<FetchHistory>()
+class FetchHistoryAdapter:
+    ListAdapter<FetchHistory, FetchHistoryAdapter.FetchViewHolder>(HistoryItemCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FetchViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -24,22 +25,13 @@ class FetchHistoryAdapter: RecyclerView.Adapter<FetchHistoryAdapter.FetchViewHol
         return holder
     }
 
-    override fun getItemCount(): Int {
-        return itemList.size
-    }
-
     override fun onBindViewHolder(holder: FetchViewHolder, position: Int) {
-        holder.bindTo(itemList[position])
+        holder.bindTo(getItem(position))
     }
 
     override fun getItemId(position: Int): Long {
-        val item = itemList[position]
+        val item = getItem(position)
         return item.hashCode().toLong()
-    }
-
-    fun setList(list: List<FetchHistory>) {
-        itemList = list
-        notifyDataSetChanged()
     }
 
     inner class FetchViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -61,5 +53,15 @@ class FetchHistoryAdapter: RecyclerView.Adapter<FetchHistoryAdapter.FetchViewHol
                 .load(drawable)
                 .into(imgStatus)
         }
+    }
+}
+
+class HistoryItemCallback: DiffUtil.ItemCallback<FetchHistory>() {
+    override fun areItemsTheSame(oldItem: FetchHistory, newItem: FetchHistory): Boolean {
+        return oldItem == newItem
+    }
+
+    override fun areContentsTheSame(oldItem: FetchHistory, newItem: FetchHistory): Boolean {
+        return oldItem == newItem
     }
 }

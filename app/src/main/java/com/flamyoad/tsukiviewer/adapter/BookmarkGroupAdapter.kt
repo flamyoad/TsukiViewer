@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.model.BookmarkGroup
 import de.hdodenhof.circleimageview.CircleImageView
@@ -87,7 +88,7 @@ class BookmarkGroupAdapter(private val onGroupClick: (BookmarkGroup) -> Unit,
 
         fun bindTo(group: BookmarkGroup) {
             txtGroupName.text = group.name
-            txtItemCount.text =  "(" + group.totalItems.toString() + ")"
+            txtItemCount.text =  "( " + group.totalItems.toString() + " )"
             txtPlaceHolder.text = group.name.first().toUpperCase().toString()
 
             if (group.pic != Uri.EMPTY) {

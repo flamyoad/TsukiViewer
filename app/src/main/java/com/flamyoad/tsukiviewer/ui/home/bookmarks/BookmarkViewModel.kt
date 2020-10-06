@@ -91,6 +91,32 @@ class BookmarkViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    fun refreshGroupInfo() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val groups = bookmarkRepo.getAllGroupsBlocking()
+
+            val newList = mutableListOf<BookmarkGroup>()
+
+            for (group in groups) {
+                val bookmarkedItems = bookmarkRepo.getAllItemsFrom(group)
+
+                val pic = getThumbnail(bookmarkedItems.firstOrNull())
+
+                val bookmarkGroup = BookmarkGroup(
+                    name = group.name,
+                    pic = pic,
+                    totalItems = bookmarkedItems.size,
+                    lastDate = group.lastDate,
+                    isTicked = false
+                )
+                newList.add(bookmarkGroup)
+            }
+            withContext(Dispatchers.Main) {
+                bookmarkGroups.value = newList
+            }
+        }
+    }
+
     fun fetchBookmarkItems(group: BookmarkGroup) {
         fetchJob?.cancel()
         isLoading.value = true
@@ -152,7 +178,7 @@ class BookmarkViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun addSelectedBookmark(item: BookmarkItem) {
+    fun tickSelectedBookmark(item: BookmarkItem) {
         val hasBeenSelected = selectedBookmarks.contains(item)
         when (hasBeenSelected) {
             true -> selectedBookmarks.remove(item)

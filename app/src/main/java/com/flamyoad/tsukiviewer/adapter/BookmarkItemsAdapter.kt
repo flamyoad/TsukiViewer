@@ -2,9 +2,11 @@ package com.flamyoad.tsukiviewer.adapter
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
@@ -16,11 +18,11 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.model.BookmarkItem
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.ui.doujinpage.DoujinDetailsActivity
-import com.flamyoad.tsukiviewer.ui.home.bookmarks.ActionModeListener
+import com.flamyoad.tsukiviewer.ActionModeListener
 import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
 
 class BookmarkItemsAdapter(
-    private val actionListener: ActionModeListener,
+    private val actionListener: ActionModeListener<BookmarkItem>,
     var actionModeEnabled: Boolean
 
 ) : ListAdapter<BookmarkItem, BookmarkItemsAdapter.BookmarkViewHolder>(BookmarkDiffCallback()),
@@ -29,6 +31,8 @@ class BookmarkItemsAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BookmarkViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.doujin_list_item, parent, false)
+
+        val coverImage: ImageView = view.findViewById(R.id.imgCover)
 
         val holder = BookmarkViewHolder(view)
 
@@ -54,7 +58,16 @@ class BookmarkItemsAdapter(
         }
 
         view.setOnLongClickListener {
-            actionListener.startActionMode()
+            if (!actionModeEnabled) {
+                val zoomIn = AnimationUtils.loadAnimation(it.context, R.anim.doujin_img_zoom_in)
+                val zoomOut = AnimationUtils.loadAnimation(it.context, R.anim.doujin_img_zoom_out)
+
+                coverImage.startAnimation(zoomIn)
+
+                actionListener.startActionMode()
+
+                coverImage.startAnimation(zoomOut)
+            }
 
             val itemIndex = holder.adapterPosition
             val item = getItem(itemIndex)
@@ -67,6 +80,7 @@ class BookmarkItemsAdapter(
     }
 
     override fun onBindViewHolder(holder: BookmarkViewHolder, position: Int) {
+        Log.d("debuff", "onBindViewHolder called for position $position")
         holder.bind(getItem(position))
     }
 
@@ -100,7 +114,7 @@ class BookmarkItemsAdapter(
             }
         }
 
-        fun setIconVisibility(visibility: Int) {
+        private fun setIconVisibility(visibility: Int) {
             when (visibility) {
                 View.VISIBLE -> multiSelectIndicator.visibility = visibility
                 View.GONE -> multiSelectIndicator.visibility = visibility

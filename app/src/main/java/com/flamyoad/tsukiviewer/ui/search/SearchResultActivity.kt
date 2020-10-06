@@ -13,13 +13,17 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.flamyoad.tsukiviewer.ActionModeListener
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
+import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.utils.GridItemDecoration
 import kotlinx.android.synthetic.main.activity_search_result.*
 import kotlinx.coroutines.launch
 
-class SearchResultActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
+class SearchResultActivity : AppCompatActivity(),
+    ActionModeListener<Doujin>,
+    SearchView.OnQueryTextListener {
 
     private lateinit var viewmodel: SearchResultViewModel
 
@@ -118,7 +122,7 @@ class SearchResultActivity : AppCompatActivity(), SearchView.OnQueryTextListener
 
         val gridLayoutManager = GridLayoutManager(this, spanCount)
 
-        val adapter = LocalDoujinsAdapter()
+        val adapter = LocalDoujinsAdapter(this)
 
         // StateRestorationPolicy is in alpha stage. It may crash the app
         adapter.stateRestorationPolicy =
@@ -143,5 +147,11 @@ class SearchResultActivity : AppCompatActivity(), SearchView.OnQueryTextListener
 
     override fun onQueryTextSubmit(query: String?): Boolean {
         return true
+    }
+
+    override fun startActionMode() {
+    }
+
+    override fun onMultiSelectionClick(item: Doujin) {
     }
 }

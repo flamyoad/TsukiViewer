@@ -20,7 +20,6 @@ import kotlinx.android.synthetic.main.activity_editor.*
 private const val BACKMOST_POSITION = -1
 
 class EditorActivity : AppCompatActivity(), CreateTagListener {
-
     private lateinit var viewModel: EditorViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {

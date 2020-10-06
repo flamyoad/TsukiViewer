@@ -20,6 +20,7 @@ data class Doujin(
     */
     var parentDir: File = File("")
     var shortTitle: String = ""
+    var isSelected: Boolean = false
 
     constructor(
         pic: Uri,

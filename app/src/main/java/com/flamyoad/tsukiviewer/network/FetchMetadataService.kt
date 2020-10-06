@@ -23,7 +23,6 @@ private const val ACTION_CLOSE = "action_close"
 private const val DELAY_BETWEEN_REQUEST: Long = 0 // ms
 
 class FetchMetadataService : Service() {
-
     private val supervisorJob = SupervisorJob()
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO + supervisorJob)
@@ -135,6 +134,7 @@ class FetchMetadataService : Service() {
                 }
 
                 val result: Pair<FetchStatus, String> = metadataRepo!!.fetchMetadata(dir)
+//                val result = Pair(FetchStatus.SUCCESS, "Emptty String")
 
                 val history = FetchHistory(
                     dir = dir,

@@ -102,7 +102,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 }
             }
 
-            R.id.nav_favourites -> {
+            R.id.nav_bookmark -> {
                 if (currentFragmentTag != BookmarkFragment.APPBAR_TITLE) {
                     val fragment = BookmarkFragment.newInstance()
                     pushFragment(fragment, fragment.getTitle())

@@ -1,4 +1,4 @@
-package com.flamyoad.tsukiviewer.ui.doujinpage
+package com.flamyoad.tsukiviewer.ui.home.local
 
 import android.app.Dialog
 import android.content.DialogInterface
@@ -17,14 +17,19 @@ import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.CollectionPickerAdapter
 import com.flamyoad.tsukiviewer.model.BookmarkGroup
+import com.flamyoad.tsukiviewer.ui.doujinpage.CollectionDialogListener
+import com.flamyoad.tsukiviewer.ui.doujinpage.CollectionListDialog
+import com.flamyoad.tsukiviewer.ui.doujinpage.DialogNewCollection
 
-class CollectionListDialog: DialogFragment(), CollectionDialogListener {
-    private val viewModel: DoujinViewModel by activityViewModels()
-
+class BookmarkGroupDialog : DialogFragment(), CollectionDialogListener {
     companion object {
         const val DEFAULT_COLLECTION_NAME = "Default Collection"
         const val NEW_COLLECTION_DIALOG = "NEW_COLLECTION_DIALOG"
+
+        fun newInstance() = BookmarkGroupDialog()
     }
+
+    private val viewModel: LocalDoujinViewModel by activityViewModels()
 
     private val collectionAdapter: CollectionPickerAdapter = CollectionPickerAdapter(this)
 
@@ -53,16 +58,18 @@ class CollectionListDialog: DialogFragment(), CollectionDialogListener {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        viewModel.initCollectionList()
-
-        viewModel.collectionList().observe(this, Observer {
+        viewModel.bookmarkGroupList.observe(this, Observer {
             collectionAdapter.setList(it)
         })
 
         setRecyclerviewSize()
 
         btnSave.setOnClickListener {
-            viewModel.insertItemIntoTickedCollections(collectionTickStatus)
+            val bookmarkGroups = collectionTickStatus
+                .filter { x -> x.value == true }
+                .map { x -> x.key }
+
+            viewModel.insertItemIntoTickedCollections(bookmarkGroups)
             this.dismiss()
         }
 
@@ -71,7 +78,8 @@ class CollectionListDialog: DialogFragment(), CollectionDialogListener {
         }
 
         listCollections.adapter = collectionAdapter
-        listCollections.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+        listCollections.layoutManager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
     }
 
     override fun onDismiss(dialog: DialogInterface) {
@@ -104,6 +112,7 @@ class CollectionListDialog: DialogFragment(), CollectionDialogListener {
         this.dismiss()
 
         val dialog = DialogNewCollection()
-        dialog.show(parentFragmentManager, NEW_COLLECTION_DIALOG)
+        dialog.show(parentFragmentManager, CollectionListDialog.NEW_COLLECTION_DIALOG)
     }
+
 }

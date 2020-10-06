@@ -14,6 +14,7 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSnapHelper
+import com.flamyoad.tsukiviewer.ActionModeListener
 import com.flamyoad.tsukiviewer.BaseFragment
 
 import com.flamyoad.tsukiviewer.R
@@ -25,8 +26,10 @@ import com.flamyoad.tsukiviewer.utils.GridItemDecoration
 import kotlinx.android.synthetic.main.fragment_bookmark.*
 
 private const val ACTION_MODE = "action_mode"
+private const val CURRENT_BOOKMARK_GROUP = "current_bookmark_group"
 
-class BookmarkFragment : BaseFragment(), ActionModeListener, SearchView.OnQueryTextListener {
+class BookmarkFragment : BaseFragment(),
+    ActionModeListener<BookmarkItem>, SearchView.OnQueryTextListener {
 
     private val viewModel: BookmarkViewModel by activityViewModels()
     private val groupAdapter = BookmarkGroupAdapter(this::onGroupChange, this::showNewGroupDialog)
@@ -51,6 +54,7 @@ class BookmarkFragment : BaseFragment(), ActionModeListener, SearchView.OnQueryT
     override fun onSaveInstanceState(outState: Bundle) {
         val isInActionMode = actionMode != null
         outState.putBoolean(ACTION_MODE, isInActionMode)
+        outState.putString(CURRENT_BOOKMARK_GROUP, viewModel.selectedGroup?.name ?: "")
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -82,7 +86,7 @@ class BookmarkFragment : BaseFragment(), ActionModeListener, SearchView.OnQueryT
             val shouldRestartActionMode = savedInstanceState.getBoolean(ACTION_MODE, false)
             if (shouldRestartActionMode) {
                 startActionMode()
-                actionMode?.title = viewModel.selectedBookmarkCount().toString()
+                actionMode?.title = viewModel.selectedBookmarkCount().toString() + " selected"
             }
         }
 
@@ -113,13 +117,13 @@ class BookmarkFragment : BaseFragment(), ActionModeListener, SearchView.OnQueryT
         viewModel.bookmarkItems.observe(viewLifecycleOwner, Observer {
             viewModel.selectedGroup?.let {
                 viewModel.fetchBookmarkItems(it)
+                viewModel.refreshGroupInfo()
             }
         })
 
         viewModel.processedBookmarks().observe(viewLifecycleOwner, Observer {
             itemAdapter.submitList(it.toList())
         })
-
     }
 
     private fun initBookmarkGroups() {
@@ -281,7 +285,7 @@ class BookmarkFragment : BaseFragment(), ActionModeListener, SearchView.OnQueryT
     }
 
     override fun onMultiSelectionClick(item: BookmarkItem) {
-        viewModel.addSelectedBookmark(item)
+        viewModel.tickSelectedBookmark(item)
 
         val count = viewModel.selectedBookmarkCount()
         if (count == 0) {
@@ -331,8 +335,10 @@ class BookmarkFragment : BaseFragment(), ActionModeListener, SearchView.OnQueryT
         // This method is not called on screen rotation
         override fun onDestroyActionMode(mode: ActionMode?) {
             actionMode = null
-            requireActivity().window.statusBarColor =
-                statusBarColor // Restores the original status bar color
+            requireActivity().window.statusBarColor = statusBarColor // Restores the original status bar color
+
+            itemAdapter.actionModeEnabled = false
+
             viewModel.clearSelectedBookmarks()
         }
 

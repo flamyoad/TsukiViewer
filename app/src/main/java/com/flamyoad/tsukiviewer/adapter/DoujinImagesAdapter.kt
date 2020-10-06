@@ -73,14 +73,18 @@ class DoujinImagesAdapter(
         return holder
     }
 
-    override fun getItemCount(): Int {
-        return imageList.size
-    }
-
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
         holder.bind(imageList[holder.adapterPosition])
         Log.d("bind", "Binded for $count times")
         count++
+    }
+
+    override fun getItemCount(): Int {
+        return imageList.size
+    }
+
+    override fun getItemId(position: Int): Long {
+        return imageList[position].hashCode().toLong()
     }
 
     fun setList(list: List<File>) {
