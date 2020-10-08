@@ -39,8 +39,9 @@
 
         <activity android:name=".ui.search.SearchActivity" />
 
-        <activity android:name=".ui.reader.ReaderActivity"
-            android:theme="@style/AppTheme.Transparent"/>
+        <activity
+            android:name=".ui.reader.ReaderActivity"
+            android:theme="@style/AppTheme.Transparent" />
 
         <activity android:name=".ui.doujinpage.DoujinDetailsActivity" />
 
@@ -52,7 +53,8 @@
             android:name=".ui.settings.SettingsActivity"
             android:parentActivityName=".MainActivity" />
 
-        <activity android:name=".MainActivity">
+        <activity
+            android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

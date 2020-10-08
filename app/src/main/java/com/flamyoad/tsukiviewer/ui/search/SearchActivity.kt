@@ -2,8 +2,11 @@ package com.flamyoad.tsukiviewer.ui.search
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.PersistableBundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
+import androidx.core.view.children
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -15,20 +18,27 @@ import kotlinx.android.synthetic.main.activity_search.*
 import kotlinx.android.synthetic.main.search_bar.*
 
 class SearchActivity : AppCompatActivity(), TagSelectedListener {
-
     private lateinit var viewModel: SearchViewModel
 
     companion object {
         const val SEARCH_TITLE = "SearchActivity.SEARCH_TITLE"
         const val SEARCH_TAGS = "SearchActivity.SEARCH_TAGS"
         const val DIALOG_FRAGMENT_TAG = "fragment_tag_list"
+        
+        private const val SELECTED_TAGS = "SearchActivity.SELECTED_TAGS"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search)
-
         viewModel = ViewModelProvider(this).get(SearchViewModel::class.java)
+        
+        savedInstanceState?.let { 
+            val tags = it.getStringArray(SELECTED_TAGS)
+            if (tags != null) {
+                restoreTagList(tags)
+            }
+        }
 
         initSearchView()
         initSearchHistory()
@@ -43,24 +53,60 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        val selectedTags = chipGroup.children
+            .map { x -> (x as Chip).text.toString() }
+            .toList()
+            .toTypedArray()
+
+        outState.putStringArray(SELECTED_TAGS, selectedTags)
+    }
+    
+    private fun restoreTagList(tagNames: Array<String>) {
+        for (tag in tagNames) {
+            this.addChip(tag)
+        }
+    }
+
+    private fun addChip(tagName: String) {
+        val chips = chipGroup.children as Sequence<Chip>
+
+        // Check for duplicates. If yes, then return
+        for (chip in chips) {
+            if (tagName == chip.text) {
+                return
+            }
+        }
+
+        val chip = layoutInflater.inflate(R.layout.tag_list_chip, chipGroup, false) as Chip
+        chip.text = tagName
+
+        chipGroup.addView(chip)
+        revalidateCheckBox()
+
+        chip.setOnCloseIconClickListener {
+            chipGroup.removeView(it)
+            revalidateCheckBox()
+        }
+    }
+
     override fun onTagSelected(tagName: String) {
         addChip(tagName)
 
+        // Dismisses the dialog once an item is clicked
         val dialog = supportFragmentManager.findFragmentByTag(DIALOG_FRAGMENT_TAG) as DialogFragment
         dialog.dismiss()
 
         viewModel.clearQuery()
     }
 
-    private fun addChip(text: String) {
-        val chip = layoutInflater.inflate(R.layout.tag_list_chip, chipGroup, false) as Chip
-        chip.text = text
-
-        chip.setOnCloseIconClickListener {
-            chipGroup.removeView(it)
-        }
-
-        chipGroup.addView(chip)
+    // Hides the checkbox if the user did not choose any tags. Otherwise, show the checkbox
+    private fun revalidateCheckBox() {
+        if (chipGroup.childCount > 1)
+            checkbox.visibility = View.VISIBLE
+        else
+            checkbox.visibility = View.GONE
     }
 
     private fun submitSearch() {
@@ -115,19 +161,5 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
         listSearchHistory.adapter = adapter
         listSearchHistory.layoutManager = linearLayoutManager
         listSearchHistory.addItemDecoration(itemDeco)
-
-//        val mockList = listOf<SearchHistory>(
-//            SearchHistory(title = "Hikawa Sayo", tags = "bang"),
-//            SearchHistory(title = "Hikawa Sayo", tags = "bang"),
-//            SearchHistory(title = "Hikawa Sayo", tags = "bang"),
-//            SearchHistory(title = "Hikawa Sayo", tags = "bang"),
-//            SearchHistory(title = "Hikawa Sayo", tags = "bang"),
-//            SearchHistory(title = "Hikawa Sayo", tags = "bang"),
-//            SearchHistory(title = "Hikawa Sayo", tags = "bang"),
-//            SearchHistory(title = "Hikawa Sayo", tags = "bang"),
-//            SearchHistory(title = "Hikawa Sayo", tags = "bang")
-//            )
-
-//        adapter.setList(mockList)
     }
 }

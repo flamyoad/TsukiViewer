@@ -35,6 +35,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.string.navigation_drawer_close
         )
         drawerLayout.addDrawerListener(toggle)
+        drawerLayout.drawerElevation = 0f
+
         toggle.syncState()
 
         nav_view.setNavigationItemSelectedListener(this)

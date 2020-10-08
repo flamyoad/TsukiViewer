@@ -31,7 +31,6 @@ const val ROW_ITEM_SPAN = 1
 const val IMAGE_POSITION_REQUEST_CODE = 100
 
 class FragmentGridImages : Fragment() {
-
     private val viewModel by activityViewModels<DoujinViewModel>()
 
     private lateinit var adapter: DoujinImagesAdapter
@@ -143,7 +142,7 @@ class FragmentGridImages : Fragment() {
 
         gridLayoutManager = GridLayoutManager(context, spanCount)
 
-        listImages.swapAdapter(adapter, false)
+        listImages.adapter = adapter
         listImages.layoutManager = gridLayoutManager
         /*
            Since this method is called each time the view type is changed,

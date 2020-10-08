@@ -1,4 +1,4 @@
-package com.flamyoad.tsukiviewer.ui.home.local
+package com.flamyoad.tsukiviewer.ui.search
 
 import android.app.Dialog
 import android.content.DialogInterface
@@ -23,13 +23,10 @@ import com.flamyoad.tsukiviewer.ui.doujinpage.DialogNewCollection
 
 class BookmarkGroupDialog : DialogFragment(), CollectionDialogListener {
     companion object {
-        const val DEFAULT_COLLECTION_NAME = "Default Collection"
-        const val NEW_COLLECTION_DIALOG = "NEW_COLLECTION_DIALOG"
-
         fun newInstance() = BookmarkGroupDialog()
     }
 
-    private val viewModel: LocalDoujinViewModel by activityViewModels()
+    private val viewModel: SearchResultViewModel by activityViewModels()
 
     private val collectionAdapter: CollectionPickerAdapter = CollectionPickerAdapter(this)
 

@@ -38,19 +38,12 @@ class ImageFragment: Fragment() {
 
         Glide.with(this)
             .load(image.toUri())
-            .listener(object: RequestListener<Drawable> {
-                override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>?, isFirstResource: Boolean): Boolean {
-                    this@ImageFragment.requireActivity().supportPostponeEnterTransition()
-                    return true
-                }
-
-                override fun onResourceReady(resource: Drawable?, model: Any?, target: Target<Drawable>?, dataSource: DataSource?, isFirstResource: Boolean): Boolean {
-                    this@ImageFragment.requireActivity().supportPostponeEnterTransition()
-                    return false
-                }
-
-            })
             .into(photoView)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        photoView.scale = 1.0f // Resets the zoom scale. todo: Perhaps put this in Settings for users to choose whether to...?
     }
 
     companion object {

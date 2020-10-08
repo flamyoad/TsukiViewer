@@ -17,8 +17,11 @@ import com.flamyoad.tsukiviewer.db.dao.DoujinDetailsDao
 import com.flamyoad.tsukiviewer.db.dao.DoujinTagsDao
 import com.flamyoad.tsukiviewer.db.dao.IncludedPathDao
 import com.flamyoad.tsukiviewer.db.dao.TagDao
+import com.flamyoad.tsukiviewer.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.IncludedPath
+import com.flamyoad.tsukiviewer.repository.BookmarkRepository
+import com.flamyoad.tsukiviewer.repository.MetadataRepository
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -29,16 +32,18 @@ import java.util.*
 
 
 class SearchResultViewModel(private val app: Application) : AndroidViewModel(app) {
-    private val context: Context
+    private val context: Context = app.applicationContext
+    private val contentResolver: ContentResolver = app.contentResolver
+    private val bookmarkRepo = BookmarkRepository(app)
+    private val metadataRepo = MetadataRepository(app)
+    private val db: AppDatabase = AppDatabase.getInstance(app)
 
-    private val contentResolver: ContentResolver
+    private val selectedDoujins = mutableListOf<Doujin>()
 
-    private val db: AppDatabase
-
-    val pathDao: IncludedPathDao
-    val doujinDetailsDao: DoujinDetailsDao
-    val tagDao: TagDao
-    val doujinTagDao: DoujinTagsDao
+    private val pathDao: IncludedPathDao
+    private val doujinDetailsDao: DoujinDetailsDao
+    private val tagDao: TagDao
+    private val doujinTagDao: DoujinTagsDao
 
     private val includedPathList: LiveData<List<IncludedPath>>
 
@@ -49,46 +54,54 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
 
     private val isLoading = MutableLiveData<Boolean>(false)
 
+    private var loadingJob: Job? = null
+
     private var filterJob: Job? = null
+
+    private var shouldResetSelections: Boolean = false
 
     fun searchedResult(): LiveData<List<Doujin>> = searchResult
 
     fun isLoading(): LiveData<Boolean> = isLoading
 
+    val snackbarText = MutableLiveData<String>("")
+
+    val bookmarkGroupList: LiveData<List<BookmarkGroup>>
+
     init {
-        db = AppDatabase.getInstance(app)
-
-        context = app.applicationContext
-
-        contentResolver = app.contentResolver
-
         pathDao = db.includedFolderDao()
         doujinDetailsDao = db.doujinDetailsDao()
         tagDao = db.tagsDao()
         doujinTagDao = db.doujinTagDao()
 
         includedPathList = pathDao.getAll()
+        bookmarkGroupList = bookmarkRepo.getAllGroups()
     }
 
-    suspend fun submitQuery(keyword: String, tags: String) {
+    fun submitQuery(keyword: String, tags: String) {
+        if (loadingJob != null) return
+
         isLoading.value = true
 
-        withContext(Dispatchers.IO) {
+        loadingJob = viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                searchFromDatabase(keyword, tags)
 
-            searchFromDatabase(keyword, tags)
-
-            // If tags are not specified in the query, then we have to search from file explorer too
-            if (tags.isBlank()) {
-                val existingList = (app as MyApplication).fullDoujinList
-                if (existingList != null) {
-                    searchFromExistingList(existingList.toList(), keyword)
-                } else {
-                    searchFromFileExplorer(keyword)
+                // If tags are not specified in the query, then we have to search from file explorer too
+                if (tags.isBlank()) {
+                    val existingList = (app as MyApplication).fullDoujinList
+                    if (existingList != null) {
+                        searchFromExistingList(existingList.toList(), keyword)
+                    } else {
+                        searchFromFileExplorer(keyword)
+                    }
                 }
             }
-        }
 
-        isLoading.value = false
+            withContext(Dispatchers.Main) {
+                isLoading.value = false
+            }
+        }
     }
 
     private suspend fun searchFromDatabase(keyword: String, tags: String) {
@@ -100,7 +113,8 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
             val doujinDetailItems = doujinDetailsDao.findByTags(tagList, tagList.size)
 
             for (item in doujinDetailItems) {
-                val containsKeywordEnglish = item.fullTitleEnglish.toLowerCase(Locale.ROOT).contains(keyword)
+                val containsKeywordEnglish =
+                    item.fullTitleEnglish.toLowerCase(Locale.ROOT).contains(keyword)
                 val containsKeywordJap = item.fullTitleJapanese.contains(keyword)
 
                 if (containsKeywordEnglish || containsKeywordJap) {
@@ -143,26 +157,31 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
 
             val selection =
                 "${MediaStore.Files.FileColumns.DATA} LIKE ?" +
-                " AND " +
-                "${MediaStore.Files.FileColumns.TITLE} LIKE ?"
+                        " AND " +
+                        "${MediaStore.Files.FileColumns.TITLE} LIKE ?"
 
             val params = arrayOf(
                 "%" + pathName + "%",
-                "%" + keyword + "%")
+                "%" + keyword + "%"
+            )
 
-            val cursor = ContentResolverCompat.query(contentResolver,
+            val cursor = ContentResolverCompat.query(
+                contentResolver,
                 uri,
                 projection,
                 selection,
                 params,
                 null,
-                null)
+                null
+            )
 
             while (cursor.moveToNext()) {
                 val idSet = mutableSetOf<String>()
 
-                val fullPath = cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA))
-                val parentId = cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.PARENT))
+                val fullPath =
+                    cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA))
+                val parentId =
+                    cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.PARENT))
 
                 if (idSet.add(parentId)) {
                     val doujinDir = File(fullPath)
@@ -185,7 +204,7 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
         }
     }
 
-    private fun searchFromExistingList(doujinList: List<Doujin>, keyword: String) {
+    private suspend fun searchFromExistingList(doujinList: List<Doujin>, keyword: String) {
         for (doujin in doujinList) {
             if (doujin.title.toLowerCase(Locale.ROOT).contains(keyword)) {
                 postResult(doujin)
@@ -211,6 +230,111 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
         }
     }
 
+    private suspend fun postResult(doujin: Doujin) {
+        if (!doujinList.contains(doujin)) {
+            doujinList.add(doujin)
+        }
+
+        withContext(Dispatchers.Main) {
+            checkItemSelections()
+            searchResult.value = doujinList
+        }
+    }
+
+    private suspend fun postResult(dir: File) {
+        val isDuplicate = doujinList.any { doujin -> doujin.title == dir.name }
+        if (!isDuplicate) {
+            val doujin = dir.toDoujin()
+            if (doujin != null) {
+                doujinList.add(doujin)
+            }
+
+            withContext(Dispatchers.Main) {
+                checkItemSelections()
+                searchResult.value = doujinList
+            }
+        }
+    }
+
+    private fun checkItemSelections() {
+        if (shouldResetSelections) {
+            for (doujin in doujinList) {
+                doujin.isSelected = false
+            }
+        } else {
+            for (doujinItem in doujinList) {
+                doujinItem.isSelected = doujinItem in selectedDoujins
+            }
+        }
+        searchResult.value = doujinList
+        shouldResetSelections = false
+    }
+
+    fun File.toDoujin(): Doujin? {
+        val imageList = this.listFiles(ImageFileFilter())
+
+        if (imageList == null) {
+            return null
+        }
+
+        val doujin = Doujin(
+            pic = imageList.first().toUri(),
+            title = this.name,
+            path = this,
+            lastModified = this.lastModified(),
+            numberOfItems = imageList.size
+        )
+        return doujin
+    }
+
+    fun tickSelectedDoujin(doujin: Doujin) {
+        val hasBeenSelected = selectedDoujins.contains(doujin)
+        when (hasBeenSelected) {
+            true -> selectedDoujins.remove(doujin)
+            false -> selectedDoujins.add(doujin)
+        }
+
+        if (loadingJob?.isCompleted == true) {
+
+            val index = doujinList.indexOf(doujin)
+
+            val doujin = doujinList[index]
+            doujin.isSelected = !hasBeenSelected
+
+            searchResult.value = doujinList // ??
+        }
+    }
+
+    fun clearSelectedDoujins() {
+        selectedDoujins.clear()
+
+        if (loadingJob?.isCompleted == true) {
+            for (doujin in doujinList) {
+                doujin.isSelected = false
+            }
+            searchResult.value = doujinList
+
+        } else {
+            shouldResetSelections = true
+        }
+    }
+
+    fun selectedCount(): Int {
+        return selectedDoujins.size
+    }
+
+    fun insertItemIntoTickedCollections(bookmarkGroups: List<BookmarkGroup>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val status = bookmarkRepo.insertAllItems(selectedDoujins.toList(), bookmarkGroups)
+
+            withContext(Dispatchers.Main) {
+                snackbarText.value = status
+            }
+        }
+    }
+}
+
+/*
     fun getImages(id: String): List<File> {
         val uri = MediaStore.Files.getContentUri("external")
 
@@ -266,38 +390,4 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
         return cur.count
     }
 
-    private fun postResult(doujin: Doujin) {
-        if (!doujinList.contains(doujin)) {
-            doujinList.add(doujin)
-            searchResult.postValue(doujinList)
-        }
-    }
-
-    private fun postResult(dir: File) {
-        val isDuplicate = doujinList.any { doujin -> doujin.title == dir.name}
-        if (!isDuplicate) {
-            val doujin = dir.toDoujin()
-            if (doujin != null) {
-                doujinList.add(doujin)
-                searchResult.postValue(doujinList)
-            }
-        }
-    }
-
-    fun File.toDoujin(): Doujin? {
-        val imageList = this.listFiles(ImageFileFilter())
-
-        if (imageList == null) {
-            return null
-        }
-
-        val doujin = Doujin(
-            pic = imageList.first().toUri(),
-            title = this.name,
-            path = this,
-            lastModified = this.lastModified(),
-            numberOfItems = imageList.size
-        )
-        return doujin
-    }
-}
+ */
