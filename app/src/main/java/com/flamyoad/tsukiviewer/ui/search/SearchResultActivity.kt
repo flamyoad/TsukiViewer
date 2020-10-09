@@ -25,6 +25,7 @@ import kotlinx.android.synthetic.main.activity_search_result.*
 
 private const val ACTION_MODE = "action_mode"
 private const val ADD_BOOKMARK_DIALOG = "add_bookmark_dialog"
+private const val SEARCH_VIEW = "search_view"
 
 class SearchResultActivity : AppCompatActivity(),
     ActionModeListener<Doujin>,
@@ -34,13 +35,17 @@ class SearchResultActivity : AppCompatActivity(),
 
     private lateinit var adapter: LocalDoujinsAdapter
 
+    private var searchView: SearchView? = null
     private var actionMode: ActionMode? = null
     private var statusBarColor: Int = -1
+    private var previousSearchQuery: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search_result)
         viewModel = ViewModelProvider(this).get(SearchResultViewModel::class.java)
+
+        initRecyclerView()
 
         if (savedInstanceState != null) {
             val shouldRestartActionMode = savedInstanceState.getBoolean(ACTION_MODE, false)
@@ -48,6 +53,8 @@ class SearchResultActivity : AppCompatActivity(),
                 startActionMode()
                 actionMode?.title = viewModel.selectedCount().toString() + " selected"
             }
+
+            previousSearchQuery = savedInstanceState.getString(SEARCH_VIEW) ?: ""
         }
 
         initToolbar()
@@ -57,8 +64,6 @@ class SearchResultActivity : AppCompatActivity(),
         val includeAllTags = intent.getBooleanExtra(SearchActivity.SEARCH_INCLUDE_ALL_TAGS, false)
 
         viewModel.submitQuery(title, tags, includeAllTags)
-
-        initRecyclerView()
 
         viewModel.snackbarText.observe(this, Observer { text ->
             if (text.isNullOrBlank()) return@Observer
@@ -70,14 +75,26 @@ class SearchResultActivity : AppCompatActivity(),
         })
     }
 
-    override fun onSaveInstanceState(outState: Bundle?, outPersistentState: PersistableBundle?) {
-        super.onSaveInstanceState(outState, outPersistentState)
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
         val isInActionMode = actionMode != null
-        outState?.putBoolean(ACTION_MODE, isInActionMode)
+
+        outState.putBoolean(ACTION_MODE, isInActionMode)
+        outState.putString(SEARCH_VIEW, searchView?.query.toString())
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_search_result, menu)
+
+        val searchItem: MenuItem? = menu?.findItem(R.id.action_search)
+        searchView = searchItem?.actionView as SearchView
+
+        if (previousSearchQuery.isNotBlank()) {
+            searchItem.expandActionView()
+            searchView?.setQuery(previousSearchQuery, false)
+            searchView?.clearFocus()
+        }
+
         return true
     }
 
@@ -186,7 +203,6 @@ class SearchResultActivity : AppCompatActivity(),
     override fun startActionMode() {
         actionMode = startSupportActionMode(ActionModeCallback())
         adapter.actionModeEnabled = true
-
     }
 
     override fun onMultiSelectionClick(item: Doujin) {

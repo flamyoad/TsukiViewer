@@ -1,4 +1,4 @@
-package com.flamyoad.tsukiviewer.adapter
+package com.flamyoad.tsukiviewer.utils
 
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView

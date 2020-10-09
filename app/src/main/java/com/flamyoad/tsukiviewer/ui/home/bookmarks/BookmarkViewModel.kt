@@ -56,6 +56,8 @@ class BookmarkViewModel(app: Application) : AndroidViewModel(app) {
 
     var selectedGroup: BookmarkGroup? = null
 
+    var selectedGroupName: String = ""
+
     val groupList: LiveData<List<BookmarkGroup>>
 
     init {
@@ -124,9 +126,9 @@ class BookmarkViewModel(app: Application) : AndroidViewModel(app) {
         isLoading.value = true
 
         fetchJob = viewModelScope.launch(Dispatchers.IO) {
-            val bookmarkList = when (selectedGroup == null) {
+            val bookmarkList = when (selectedGroupName.isBlank()) {
                 true -> bookmarkRepo.getAllItemsFrom(firstGroup)
-                false -> bookmarkRepo.getAllItemsFrom(selectedGroup!!)
+                false -> bookmarkRepo.getAllItemsFrom(selectedGroupName)
             }
 
             val itemList = mutableListOf<BookmarkItem>()
@@ -239,6 +241,8 @@ class BookmarkViewModel(app: Application) : AndroidViewModel(app) {
 
     fun switchBookmarkGroup(group: BookmarkGroup) {
         selectedGroup = group
+        selectedGroupName = group.name
+
         selectedBookmarkGroup.value = group
     }
 
@@ -280,5 +284,6 @@ class BookmarkViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch(Dispatchers.IO) {
             bookmarkRepo.changeGroupName(oldName, newName)
         }
+        selectedGroupName = newName
     }
 }

@@ -46,7 +46,6 @@ class BookmarkFragment : BaseFragment(),
         setHasOptionsMenu(true)
 
         previousSearchQuery = savedInstanceState?.getString(SEARCH_VIEW) ?: ""
-        val a = 1
     }
 
     override fun onCreateView(

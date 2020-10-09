@@ -14,11 +14,14 @@ import com.flamyoad.tsukiviewer.utils.SimpleDialog
 import com.google.android.material.tabs.TabLayoutMediator
 import kotlinx.android.synthetic.main.fragment_doujin_tags.*
 
-class DoujinTagsFragment : BaseFragment(), SearchView.OnQueryTextListener {
+private const val SEARCH_VIEW = "search_view"
 
+class DoujinTagsFragment : BaseFragment(), SearchView.OnQueryTextListener {
     private val viewModel by activityViewModels<DoujinTagsViewModel>()
 
     private var searchView: SearchView? = null
+
+    private var previousSearchQuery: String = ""
 
     private val tagList = listOf(
         TagType.All,
@@ -34,6 +37,13 @@ class DoujinTagsFragment : BaseFragment(), SearchView.OnQueryTextListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
+
+        previousSearchQuery = savedInstanceState?.getString(SEARCH_VIEW) ?: ""
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(SEARCH_VIEW, searchView?.query.toString())
     }
 
     override fun onCreateView(
@@ -48,6 +58,12 @@ class DoujinTagsFragment : BaseFragment(), SearchView.OnQueryTextListener {
         val searchItem: MenuItem? = menu.findItem(R.id.action_search)
         searchView = searchItem?.actionView as SearchView
         searchView?.setOnQueryTextListener(this)
+
+        if (previousSearchQuery.isNotBlank()) {
+            searchItem.expandActionView()
+            searchView?.setQuery(previousSearchQuery, false)
+            searchView?.clearFocus()
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

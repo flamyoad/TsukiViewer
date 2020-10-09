@@ -43,6 +43,10 @@ class BookmarkRepository(private val context: Context) {
         return itemDao.selectFrom(group.name)
     }
 
+    suspend fun getAllItemsFrom(groupName: String): List<BookmarkItem> {
+        return itemDao.selectFrom(groupName)
+    }
+
     fun getAllGroups(): LiveData<List<BookmarkGroup>> {
         return groupDao.getAll()
     }
