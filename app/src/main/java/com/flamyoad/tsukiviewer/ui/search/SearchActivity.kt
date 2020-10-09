@@ -23,8 +23,10 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
     companion object {
         const val SEARCH_TITLE = "SearchActivity.SEARCH_TITLE"
         const val SEARCH_TAGS = "SearchActivity.SEARCH_TAGS"
-        const val DIALOG_FRAGMENT_TAG = "fragment_tag_list"
-        
+        const val SEARCH_INCLUDE_ALL_TAGS = "SearchActivity.SEARCH_INCLUDE_ALL_TAGS"
+
+
+        private const val DIALOG_FRAGMENT_TAG = "fragment_tag_list"
         private const val SELECTED_TAGS = "SearchActivity.SELECTED_TAGS"
     }
 
@@ -124,9 +126,13 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
             return
         }
 
-        val intent = Intent(this, SearchResultActivity::class.java)
-        intent.putExtra(SEARCH_TITLE, title)
-        intent.putExtra(SEARCH_TAGS, tags)
+        val includeAllTags = checkbox.isChecked
+
+        val intent = Intent(this, SearchResultActivity::class.java).apply {
+            putExtra(SEARCH_TITLE, title)
+            putExtra(SEARCH_TAGS, tags)
+            putExtra(SEARCH_INCLUDE_ALL_TAGS, includeAllTags)
+        }
         startActivity(intent)
     }
 

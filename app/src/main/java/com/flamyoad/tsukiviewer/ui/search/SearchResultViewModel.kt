@@ -78,14 +78,14 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
         bookmarkGroupList = bookmarkRepo.getAllGroups()
     }
 
-    fun submitQuery(keyword: String, tags: String) {
+    fun submitQuery(keyword: String, tags: String, shouldIncludeAllTags: Boolean) {
         if (loadingJob != null) return
 
         isLoading.value = true
 
         loadingJob = viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                searchFromDatabase(keyword, tags)
+                searchFromDatabase(keyword, tags, shouldIncludeAllTags)
 
                 // If tags are not specified in the query, then we have to search from file explorer too
                 if (tags.isBlank()) {
@@ -104,13 +104,16 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
         }
     }
 
-    private suspend fun searchFromDatabase(keyword: String, tags: String) {
+    private suspend fun searchFromDatabase(keyword: String, tags: String, shouldIncludeAllTags: Boolean) {
         if (keyword.isNotBlank() && tags.isNotBlank()) {
             // Search using both title and tags
             val tagList = tags.split(",")
                 .map { tagName -> tagName }
 
-            val doujinDetailItems = doujinDetailsDao.findByTags(tagList, tagList.size)
+            val doujinDetailItems = when (shouldIncludeAllTags) {
+                true -> doujinDetailsDao.findByTags(tagList, tagList.size) // Searched items must include all tags
+                false -> doujinDetailsDao.findByTags(tagList) // Searched items must include at least 1 tag
+            }
 
             for (item in doujinDetailItems) {
                 val containsKeywordEnglish =
@@ -135,7 +138,10 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
             val tagList = tags.split(",")
                 .map { tagName -> tagName }
 
-            val doujinDetailItems = doujinDetailsDao.findByTags(tagList, tagList.size)
+            val doujinDetailItems = when (shouldIncludeAllTags) {
+                true -> doujinDetailsDao.findByTags(tagList, tagList.size)
+                false -> doujinDetailsDao.findByTags(tagList)
+            }
 
             for (item in doujinDetailItems) {
                 postResult(item.absolutePath)

@@ -4,6 +4,7 @@
     <color name="colorPrimaryDark">#2b2b2b</color>
     <color name="colorAccent">#42464b</color>
 
+    <color name="navDrawerScrim">#8D000000</color>
     <color name="colorPrimaryLight">#42464b</color>
     <color name="miWhite">#ececec</color>
     <color name="actionBlue">#267aff</color>

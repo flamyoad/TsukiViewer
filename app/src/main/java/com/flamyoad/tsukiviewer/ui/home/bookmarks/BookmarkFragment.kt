@@ -24,9 +24,10 @@ import com.flamyoad.tsukiviewer.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.model.BookmarkItem
 import com.flamyoad.tsukiviewer.utils.GridItemDecoration
 import kotlinx.android.synthetic.main.fragment_bookmark.*
+import java.util.*
 
 private const val ACTION_MODE = "action_mode"
-private const val CURRENT_BOOKMARK_GROUP = "current_bookmark_group"
+private const val SEARCH_VIEW = "search_view"
 
 class BookmarkFragment : BaseFragment(),
     ActionModeListener<BookmarkItem>, SearchView.OnQueryTextListener {
@@ -38,10 +39,14 @@ class BookmarkFragment : BaseFragment(),
 
     private var searchView: SearchView? = null
     private var statusBarColor: Int = -1
+    private var previousSearchQuery: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
+
+        previousSearchQuery = savedInstanceState?.getString(SEARCH_VIEW) ?: ""
+        val a = 1
     }
 
     override fun onCreateView(
@@ -54,12 +59,21 @@ class BookmarkFragment : BaseFragment(),
     override fun onSaveInstanceState(outState: Bundle) {
         val isInActionMode = actionMode != null
         outState.putBoolean(ACTION_MODE, isInActionMode)
-        outState.putString(CURRENT_BOOKMARK_GROUP, viewModel.selectedGroup?.name ?: "")
+        outState.putString(SEARCH_VIEW, searchView?.query.toString())
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         inflater.inflate(R.menu.menu_doujin_collection, menu)
+
+        val searchItem: MenuItem? = menu.findItem(R.id.action_search)
+        val searchView = searchItem?.actionView as SearchView
+
+        if (previousSearchQuery.isNotBlank()) {
+            searchItem.expandActionView()
+            searchView.setQuery(previousSearchQuery, false)
+            searchView.clearFocus()
+        }
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
@@ -83,6 +97,7 @@ class BookmarkFragment : BaseFragment(),
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         if (savedInstanceState != null) {
+            // Restores action mode
             val shouldRestartActionMode = savedInstanceState.getBoolean(ACTION_MODE, false)
             if (shouldRestartActionMode) {
                 startActionMode()
@@ -132,12 +147,13 @@ class BookmarkFragment : BaseFragment(),
         val layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
 
+        layoutManager.isSmoothScrollbarEnabled = true
+
         val linearSnapHelper = LinearSnapHelper()
 
         listGroups.adapter = groupAdapter
         listGroups.layoutManager = layoutManager
         linearSnapHelper.attachToRecyclerView(listGroups)
-        listGroups.itemAnimator = null
     }
 
     private fun initBookmarkItems() {
@@ -302,7 +318,11 @@ class BookmarkFragment : BaseFragment(),
     }
 
     override fun onQueryTextChange(newText: String?): Boolean {
-        viewModel.filterList(newText?.trim() ?: "")
+        val correctedText = newText
+            ?.trim()
+            ?.toLowerCase(Locale.ROOT) ?: ""
+
+        viewModel.filterList(correctedText)
         return true
     }
 

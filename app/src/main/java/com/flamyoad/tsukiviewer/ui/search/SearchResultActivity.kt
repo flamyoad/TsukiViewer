@@ -54,8 +54,9 @@ class SearchResultActivity : AppCompatActivity(),
 
         val title = intent.getStringExtra(SearchActivity.SEARCH_TITLE) ?: ""
         val tags = intent.getStringExtra(SearchActivity.SEARCH_TAGS) ?: ""
+        val includeAllTags = intent.getBooleanExtra(SearchActivity.SEARCH_INCLUDE_ALL_TAGS, false)
 
-        viewModel.submitQuery(title, tags)
+        viewModel.submitQuery(title, tags, includeAllTags)
 
         initRecyclerView()
 

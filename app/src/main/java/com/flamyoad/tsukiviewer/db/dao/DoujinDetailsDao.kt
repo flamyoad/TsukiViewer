@@ -52,6 +52,8 @@ interface DoujinDetailsDao {
     //    WHERE name IN ('chinese', 'translated', 'dilf')
     //    GROUP BY doujinId
     //    HAVING COUNT(doujinId) = 3
+
+    // This method searches for doujins that have all the included tags (No more, no less)
     @Query("""
         SELECT * FROM doujin_tags as dt
         INNER JOIN doujin_details ON doujin_details.id = dt.doujinId
@@ -62,6 +64,17 @@ interface DoujinDetailsDao {
     """)
     suspend fun findByTags(tags: List<String>, tagCount: Int): List<DoujinDetails>
 
+    // This method searches for doujins that have at least 1 of the given tags
+    @Query("""
+        SELECT * FROM doujin_tags as dt
+        INNER JOIN doujin_details ON doujin_details.id = dt.doujinId
+        INNER JOIN tags ON tags.tagId = dt.tagId
+        WHERE name IN (:tags)
+        GROUP BY doujinId
+        HAVING COUNT(doujinId) = 1
+    """)
+    suspend fun findByTags(tags: List<String>): List<DoujinDetails>
+    
     @Query("SELECT * FROM doujin_details")
     suspend fun getAllShortDetails(): List<DoujinDetails>
 

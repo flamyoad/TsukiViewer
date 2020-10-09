@@ -27,6 +27,8 @@ class BookmarkViewModel(app: Application) : AndroidViewModel(app) {
     private var fetchJob: Job? = null
     private var filterJob: Job? = null
 
+    private var filterWord: String = ""
+
     private var bookmarkItemsBeforeFilter = mutableListOf<BookmarkItem>()
 
     private val bookmarkGroups = MutableLiveData<List<BookmarkGroup>>()
@@ -117,12 +119,15 @@ class BookmarkViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun fetchBookmarkItems(group: BookmarkGroup) {
+    fun fetchBookmarkItems(firstGroup: BookmarkGroup) {
         fetchJob?.cancel()
         isLoading.value = true
 
         fetchJob = viewModelScope.launch(Dispatchers.IO) {
-            val bookmarkList = bookmarkRepo.getAllItemsFrom(group)
+            val bookmarkList = when (selectedGroup == null) {
+                true -> bookmarkRepo.getAllItemsFrom(firstGroup)
+                false -> bookmarkRepo.getAllItemsFrom(selectedGroup!!)
+            }
 
             val itemList = mutableListOf<BookmarkItem>()
             for (bookmark in bookmarkList) {
@@ -139,6 +144,8 @@ class BookmarkViewModel(app: Application) : AndroidViewModel(app) {
                 bookmarkItemsBeforeFilter = itemList
 
                 isLoading.value = false
+
+                filterList(filterWord)
             }
         }
     }
@@ -162,6 +169,7 @@ class BookmarkViewModel(app: Application) : AndroidViewModel(app) {
 
     fun filterList(query: String) {
         filterJob?.cancel()
+        filterWord = query
 
         if (query.isBlank()) {
             processedBookmarks.value = bookmarkItemsBeforeFilter
@@ -230,8 +238,8 @@ class BookmarkViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun switchBookmarkGroup(group: BookmarkGroup) {
-        selectedBookmarkGroup.value = group
         selectedGroup = group
+        selectedBookmarkGroup.value = group
     }
 
     fun deleteGroup(group: BookmarkGroup) {

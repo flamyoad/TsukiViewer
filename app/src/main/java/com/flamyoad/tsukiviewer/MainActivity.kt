@@ -3,11 +3,13 @@ package com.flamyoad.tsukiviewer
 import android.animation.AnimatorInflater
 import android.content.DialogInterface
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
@@ -36,6 +38,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         )
         drawerLayout.addDrawerListener(toggle)
         drawerLayout.drawerElevation = 0f
+        drawerLayout.setScrimColor(ContextCompat.getColor(this, R.color.navDrawerScrim))
 
         toggle.syncState()
 
