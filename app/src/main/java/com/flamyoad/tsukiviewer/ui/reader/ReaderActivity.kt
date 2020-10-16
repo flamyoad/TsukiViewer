@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.*
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -38,15 +39,13 @@ import java.io.File
     I have no idea why. Perhaps I should post this on StackOverflow someday.
  */
 class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickListener {
-    private lateinit var viewModel: ReaderViewModel
+    private val viewModel: ReaderViewModel by viewModels()
 
     private var positionFromImageGrid = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reader)
-
-        viewModel = ViewModelProvider(this).get(ReaderViewModel::class.java)
 
         positionFromImageGrid = intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
 

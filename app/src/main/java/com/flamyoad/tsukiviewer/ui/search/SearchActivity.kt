@@ -4,27 +4,30 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.view.View
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.children
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.paging.PagedList
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.SearchHistoryAdapter
+import com.flamyoad.tsukiviewer.model.SearchHistory
 import com.google.android.material.chip.Chip
 import kotlinx.android.synthetic.main.activity_search.*
 import kotlinx.android.synthetic.main.search_bar.*
 
 class SearchActivity : AppCompatActivity(), TagSelectedListener {
-    private lateinit var viewModel: SearchViewModel
+    private val viewModel: SearchViewModel by viewModels()
 
     companion object {
         const val SEARCH_TITLE = "SearchActivity.SEARCH_TITLE"
         const val SEARCH_TAGS = "SearchActivity.SEARCH_TAGS"
         const val SEARCH_INCLUDE_ALL_TAGS = "SearchActivity.SEARCH_INCLUDE_ALL_TAGS"
-
 
         private const val DIALOG_FRAGMENT_TAG = "fragment_tag_list"
         private const val SELECTED_TAGS = "SearchActivity.SELECTED_TAGS"
@@ -33,8 +36,7 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search)
-        viewModel = ViewModelProvider(this).get(SearchViewModel::class.java)
-        
+
         savedInstanceState?.let { 
             val tags = it.getStringArray(SELECTED_TAGS)
             if (tags != null) {
@@ -128,6 +130,13 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
 
         val includeAllTags = checkbox.isChecked
 
+        val searchHistory = SearchHistory(
+            title = title,
+            tags = tags,
+            mustIncludeAllTags =  includeAllTags
+        )
+        viewModel.insertSearchHistory(searchHistory)
+
         val intent = Intent(this, SearchResultActivity::class.java).apply {
             putExtra(SEARCH_TITLE, title)
             putExtra(SEARCH_TAGS, tags)
@@ -158,7 +167,7 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
     }
 
     private fun initSearchHistory() {
-        val adapter = SearchHistoryAdapter()
+        val adapter = SearchHistoryAdapter(this::onHistoryItemClick)
 
         val linearLayoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
 
@@ -167,5 +176,18 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
         listSearchHistory.adapter = adapter
         listSearchHistory.layoutManager = linearLayoutManager
         listSearchHistory.addItemDecoration(itemDeco)
+
+        viewModel.searchHistories.observe(this, Observer {
+            adapter.submitList(it)
+        })
+    }
+
+    private fun onHistoryItemClick(item: SearchHistory) {
+        val intent = Intent(this, SearchResultActivity::class.java).apply {
+            putExtra(SEARCH_TITLE, item.title)
+            putExtra(SEARCH_TAGS, item.tags)
+            putExtra(SEARCH_INCLUDE_ALL_TAGS, item.mustIncludeAllTags)
+        }
+        startActivity(intent)
     }
 }

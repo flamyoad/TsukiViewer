@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.children
 import androidx.lifecycle.Observer
@@ -20,13 +21,11 @@ import kotlinx.android.synthetic.main.activity_editor.*
 private const val BACKMOST_POSITION = -1
 
 class EditorActivity : AppCompatActivity(), CreateTagListener {
-    private lateinit var viewModel: EditorViewModel
+    private val viewModel: EditorViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_editor)
-
-        viewModel = ViewModelProvider(this).get(EditorViewModel::class.java)
 
         initToolbar()
         initTagGroups()

@@ -7,6 +7,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.ProgressBar
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
 import androidx.appcompat.widget.SearchView
@@ -31,7 +32,7 @@ class SearchResultActivity : AppCompatActivity(),
     ActionModeListener<Doujin>,
     SearchView.OnQueryTextListener {
 
-    private lateinit var viewModel: SearchResultViewModel
+    private val viewModel: SearchResultViewModel by viewModels()
 
     private lateinit var adapter: LocalDoujinsAdapter
 
@@ -43,7 +44,6 @@ class SearchResultActivity : AppCompatActivity(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search_result)
-        viewModel = ViewModelProvider(this).get(SearchResultViewModel::class.java)
 
         initRecyclerView()
 

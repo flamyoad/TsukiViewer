@@ -12,11 +12,10 @@
         android:layout_height="0dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        app:layout_constraintBottom_toBottomOf="@+id/txtTags"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/txtTitle"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/txtTitle"
-        app:layout_constraintVertical_bias="0.39"
+        app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_history_gray_24dp" />
 
     <TextView
@@ -24,31 +23,23 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
+        android:gravity="center_vertical"
+        android:minLines="2"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        app:layout_constraintBottom_toBottomOf="@+id/imageView2"
         app:layout_constraintEnd_toStartOf="@+id/btnDelete"
         app:layout_constraintStart_toEndOf="@+id/imageView2"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Nagahama" />
-
-    <TextView
-        android:id="@+id/txtTags"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:textColor="@color/subLightTextColor"
-        android:textSize="12sp"
-        app:layout_constraintEnd_toEndOf="@+id/txtTitle"
-        app:layout_constraintStart_toStartOf="@+id/txtTitle"
-        app:layout_constraintTop_toBottomOf="@+id/txtTitle"
-        tools:text="sole female, netorare" />
 
     <ImageButton
         android:id="@+id/btnDelete"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:layout_marginEnd="8dp"
-        android:paddingHorizontal="4dp"
         android:background="?android:selectableItemBackground"
-        app:layout_constraintBottom_toBottomOf="@+id/imageView2"
+        android:paddingHorizontal="4dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_close_gray_24dp" />

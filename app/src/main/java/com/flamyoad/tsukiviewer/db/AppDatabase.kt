@@ -16,7 +16,8 @@ const val DATABASE_NAME = "com.flamyoad.android.tsukiviewer.AppDatabase"
     DoujinTag::class,
     IncludedFolder::class,
     BookmarkGroup::class,
-    BookmarkItem::class
+    BookmarkItem::class,
+    SearchHistory::class
     ), version = 1)
 
 abstract class AppDatabase: RoomDatabase() {
@@ -28,6 +29,7 @@ abstract class AppDatabase: RoomDatabase() {
     abstract fun folderDao(): IncludedFolderDao
     abstract fun bookmarkGroupDao(): BookmarkGroupDao
     abstract fun bookmarkItemDao(): BookmarkItemDao
+    abstract fun searchHistoryDao(): SearchHistoryDao
 
     companion object {
         @Volatile

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="6dp">
+
+    <!--Invisible TextView so that this row can have same height with
+        occupied items
+    -->
+    <TextView
+        android:id="@+id/txtTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:gravity="center_vertical"
+        android:minLines="2"
+        android:visibility="invisible"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        tools:text="Nagahama" />
+
+    <com.github.ybq.android.spinkit.SpinKitView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:SpinKit_Color="@color/middleBlueGreen"
+        style="@style/SpinKitView.Circle"/>
+</FrameLayout>

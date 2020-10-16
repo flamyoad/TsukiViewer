@@ -1,7 +1,13 @@
 package com.flamyoad.tsukiviewer.model
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "search_history")
 data class SearchHistory(
-    val id: Int? = null,
+    @PrimaryKey val id: Int? = null,
+
     val title: String,
-    val tags: String
+    val tags: String,
+    val mustIncludeAllTags: Boolean = false
 )

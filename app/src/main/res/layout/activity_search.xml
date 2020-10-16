@@ -10,20 +10,22 @@
 
     <include layout="@layout/search_bar" />
 
-    <androidx.core.widget.NestedScrollView
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:fillViewport="true"
-        android:fitsSystemWindows="true"
+        android:layout_height="match_parent"
         android:layout_weight="1">
 
-        <FrameLayout
+        <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp">
+            android:layout_height="wrap_content"
+            android:backgroundTint="@android:color/white"
+            app:elevation="0dp">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                app:layout_scrollFlags="scroll|enterAlways">
 
                 <TextView
                     android:id="@+id/lblSelectTag"
@@ -62,14 +64,14 @@
                     android:id="@+id/checkbox"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:layout_constraintTop_toBottomOf="@id/chipGroup"
-                    app:layout_constraintStart_toStartOf="@id/chipGroup"
-                    android:text="Must include all tags"
-                    android:visibility="gone"
-                    tools:visibility="visible"
-                    android:textColor="#89000000"
                     android:buttonTint="@color/colorPrimary"
-                    android:checked="true"/>
+                    android:checked="true"
+                    android:text="Must include all tags"
+                    android:textColor="#89000000"
+                    android:visibility="gone"
+                    app:layout_constraintStart_toStartOf="@id/chipGroup"
+                    app:layout_constraintTop_toBottomOf="@id/chipGroup"
+                    tools:visibility="visible" />
 
                 <View
                     android:id="@+id/divider"
@@ -83,40 +85,29 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/checkbox" />
 
-                <TextView
-                    android:id="@+id/lblHistory"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Search history"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                    android:textStyle="bold"
-                    app:layout_constraintStart_toStartOf="@+id/lblSelectTag"
-                    app:layout_constraintTop_toBottomOf="@+id/divider" />
-
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/searchHistoryBorder"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    app:cardCornerRadius="8dp"
-                    app:layout_constraintEnd_toEndOf="@+id/chipGroup"
-                    app:layout_constraintStart_toStartOf="@+id/chipGroup"
-                    app:layout_constraintTop_toBottomOf="@+id/lblHistory">
-
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/listSearchHistory"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:clipToPadding="false"/>
-
-                </androidx.cardview.widget.CardView>
-
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-        </FrameLayout>
+            <TextView
+                android:id="@+id/lblHistory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="12dp"
+                android:paddingBottom="8dp"
+                android:text="Search history"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="@+id/lblSelectTag"
+                app:layout_constraintTop_toBottomOf="@+id/divider" />
+        </com.google.android.material.appbar.AppBarLayout>
 
-    </androidx.core.widget.NestedScrollView>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/listSearchHistory"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     <Button
         android:id="@+id/btnSearch"
@@ -127,22 +118,9 @@
         android:layout_margin="0dp"
         android:backgroundTint="@color/colorAccent"
         android:insetLeft="0dp"
-        android:insetRight="0dp"
         android:insetTop="0dp"
+        android:insetRight="0dp"
         android:insetBottom="0dp"
         android:text="Search" />
 
 </LinearLayout>
-
-
-    <!--        <com.google.android.material.floatingactionbutton.FloatingActionButton-->
-    <!--            android:layout_width="wrap_content"-->
-    <!--            android:layout_height="wrap_content"-->
-    <!--            android:layout_gravity="bottom|end"-->
-    <!--            android:layout_marginTop="16dp"-->
-    <!--            android:layout_marginLeft="16dp"-->
-    <!--            android:layout_marginRight="16dp"-->
-    <!--            android:layout_marginBottom="48dp"-->
-    <!--            app:useCompatPadding="true"-->
-    <!--            app:fabSize="normal"-->
-    <!--            android:src="@drawable/ic_search_white_24dp"/>-->

@@ -368,8 +368,8 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 
     override fun onCleared() {
         super.onCleared()
-        if (serviceConnection != null) {
-            app.unbindService(serviceConnection)
+        serviceConnection?.let {
+            app.unbindService(it)
         }
     }
 

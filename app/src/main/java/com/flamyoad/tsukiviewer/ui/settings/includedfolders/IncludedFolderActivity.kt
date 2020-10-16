@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -24,7 +25,7 @@ class IncludedFolderActivity : AppCompatActivity(),
     AddFolderListener,
     RemoveFolderListener {
 
-    private lateinit var viewModel: IncludedFolderViewModel
+    private val viewModel: IncludedFolderViewModel by viewModels()
 
     private lateinit var adapter: IncludedFolderAdapter
 
@@ -34,8 +35,6 @@ class IncludedFolderActivity : AppCompatActivity(),
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowHomeEnabled(true)
-
-        viewModel = ViewModelProvider(this).get(IncludedFolderViewModel::class.java)
 
         initRecyclerview()
 

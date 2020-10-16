@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -22,13 +23,12 @@ import kotlinx.android.synthetic.main.activity_doujin_details.*
 
 class DoujinDetailsActivity : AppCompatActivity() {
 
-    private lateinit var viewModel: DoujinViewModel
+    private val viewModel: DoujinViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_doujin_details)
 
-        viewModel = ViewModelProvider(this).get(DoujinViewModel::class.java)
         handleIntent()
         initTabLayout()
         initToolbar()

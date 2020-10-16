@@ -55,10 +55,18 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/listSearchedDoujins"
+    <com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
+        android:id="@+id/fastScroller"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:listitem="@layout/doujin_list_item"/>
+        app:handleHeight="32dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/listSearchedDoujins"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:listitem="@layout/doujin_list_item"/>
+
+    </com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller>
 
 </LinearLayout>
