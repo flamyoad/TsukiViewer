@@ -10,4 +10,10 @@ data class SearchHistory(
     val title: String,
     val tags: String,
     val mustIncludeAllTags: Boolean = false
-)
+) {
+    fun sameWith(other: SearchHistory): Boolean {
+        return this.title == other.title &&
+                this.tags == other.tags &&
+                this.mustIncludeAllTags == other.mustIncludeAllTags
+    }
+}

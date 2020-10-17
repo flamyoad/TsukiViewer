@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.flamyoad.tsukiviewer.db.dao.*
 import com.flamyoad.tsukiviewer.model.*
 
@@ -18,7 +20,7 @@ const val DATABASE_NAME = "com.flamyoad.android.tsukiviewer.AppDatabase"
     BookmarkGroup::class,
     BookmarkItem::class,
     SearchHistory::class
-    ), version = 1)
+    ), version = 2)
 
 abstract class AppDatabase: RoomDatabase() {
 
@@ -35,18 +37,23 @@ abstract class AppDatabase: RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
+        val MIGRATION_1_2 = object: Migration(1, 2) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("CREATE TABLE IF NOT EXISTS `search_history` (`id` INTEGER, `title` TEXT NOT NULL, `tags` TEXT NOT NULL, `mustIncludeAllTags` INTEGER NOT NULL, PRIMARY KEY(`id`))")
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    DATABASE_NAME
-                )
-                    .fallbackToDestructiveMigration()
+                    DATABASE_NAME)
+                    .addMigrations(MIGRATION_1_2)
                     .build()
+
                 INSTANCE = instance
-                // return instance
-                instance
+                instance // return instance
             }
         }
     }

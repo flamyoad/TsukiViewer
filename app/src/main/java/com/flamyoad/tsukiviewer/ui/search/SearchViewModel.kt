@@ -48,7 +48,22 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
     fun insertSearchHistory(item: SearchHistory) {
         viewModelScope.launch(Dispatchers.IO) {
-            searchHistoryDao.insert(item)
+            val lastInsertedItem = searchHistoryDao.getLatestItem()
+
+            /* 1st condition: If last inserted item is null, means the search history has 0 items
+               2nd condition: If user inputs the same thing as previous search,
+                              then there is no need to insert into database
+            */
+            val shouldInsert = lastInsertedItem == null || !lastInsertedItem.sameWith(item)
+            if (shouldInsert) {
+                searchHistoryDao.insert(item)
+            }
+        }
+    }
+
+    fun deleteSearchHistory(item: SearchHistory) {
+        viewModelScope.launch(Dispatchers.IO) {
+            searchHistoryDao.delete(item)
         }
     }
 }

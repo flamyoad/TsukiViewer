@@ -13,7 +13,6 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 class ReaderViewModel(application: Application) : AndroidViewModel(application) {
-
     private val imageList = MutableLiveData<List<File>>()
     fun imageList(): LiveData<List<File>> = imageList
 

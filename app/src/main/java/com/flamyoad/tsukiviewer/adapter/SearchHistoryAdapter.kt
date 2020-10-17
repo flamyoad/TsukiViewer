@@ -20,7 +20,8 @@ private const val TITLE_AND_TAGS = 3
 private const val PLACEHOLDER = 4
 
 class SearchHistoryAdapter(
-    val onItemClick: (SearchHistory) -> Unit
+    val onItemClick: (SearchHistory) -> Unit,
+    val onItemDelete: (SearchHistory) -> Unit
 ) : PagedListAdapter<SearchHistory, RecyclerView.ViewHolder>(SearchHistoryCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -41,8 +42,23 @@ class SearchHistoryAdapter(
             else -> throw IllegalArgumentException("View type does not exist")
         }
 
+        if (viewType != PLACEHOLDER) {
+            val btnDelete: ImageButton = view.findViewById(R.id.btnDelete)
+
+            btnDelete.setOnClickListener {
+                val item = getItem(holder.bindingAdapterPosition)
+                if (item != null) {
+                    onItemDelete(item)
+                }
+            }
+        }
+
         view.setOnClickListener {
             val item = getItem(holder.bindingAdapterPosition) ?: return@setOnClickListener
+            if (viewType == PLACEHOLDER) {
+                return@setOnClickListener
+            }
+
             onItemClick(item)
         }
 

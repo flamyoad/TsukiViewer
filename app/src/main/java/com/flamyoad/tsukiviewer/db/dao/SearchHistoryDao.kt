@@ -16,6 +16,10 @@ interface SearchHistoryDao {
     @Delete
     fun delete(searchHistory: SearchHistory): Int
 
-    @Query("SELECT * FROM search_history")
+    // Returns null if no item
+    @Query("SELECT * FROM search_history ORDER BY id DESC LIMIT 1")
+    suspend fun getLatestItem(): SearchHistory?
+
+    @Query("SELECT * FROM search_history ORDER BY id DESC")
     fun getAll(): DataSource.Factory<Int, SearchHistory>
 }

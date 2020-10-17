@@ -85,15 +85,17 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
 
         loadingJob = viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                searchFromDatabase(keyword, tags, shouldIncludeAllTags)
+                val keywordLowerCase = keyword.toLowerCase(Locale.ROOT)
+
+                searchFromDatabase(keywordLowerCase, tags, shouldIncludeAllTags)
 
                 // If tags are not specified in the query, then we have to search from file explorer too
                 if (tags.isBlank()) {
                     val existingList = (app as MyApplication).fullDoujinList
                     if (existingList != null) {
-                        searchFromExistingList(existingList.toList(), keyword)
+                        searchFromExistingList(existingList.toList(), keywordLowerCase)
                     } else {
-                        searchFromFileExplorer(keyword)
+                        searchFromFileExplorer(keywordLowerCase)
                     }
                 }
             }

@@ -2,7 +2,6 @@ package com.flamyoad.tsukiviewer.ui.search
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -10,10 +9,9 @@ import androidx.appcompat.widget.SearchView
 import androidx.core.view.children
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
-import androidx.paging.PagedList
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.SearchHistoryAdapter
 import com.flamyoad.tsukiviewer.model.SearchHistory
@@ -37,7 +35,7 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search)
 
-        savedInstanceState?.let { 
+        savedInstanceState?.let {
             val tags = it.getStringArray(SELECTED_TAGS)
             if (tags != null) {
                 restoreTagList(tags)
@@ -66,7 +64,7 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
 
         outState.putStringArray(SELECTED_TAGS, selectedTags)
     }
-    
+
     private fun restoreTagList(tagNames: Array<String>) {
         for (tag in tagNames) {
             this.addChip(tag)
@@ -133,7 +131,7 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
         val searchHistory = SearchHistory(
             title = title,
             tags = tags,
-            mustIncludeAllTags =  includeAllTags
+            mustIncludeAllTags = includeAllTags
         )
         viewModel.insertSearchHistory(searchHistory)
 
@@ -167,14 +165,37 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
     }
 
     private fun initSearchHistory() {
-        val adapter = SearchHistoryAdapter(this::onHistoryItemClick)
+        val adapter = SearchHistoryAdapter(
+            this::onHistoryItemClick,
+            this::deleteHistory
+        )
 
-        val linearLayoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        val layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+
+        adapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+            /* RecyclerView does not scroll to top automatically if new item is present.
+                So, we have to scroll to top if the first item in old list is VISIBLE.
+
+                Otherwise, it will look like the new item is not visible because the list still shows items from
+                2th ~ nth position
+            */
+            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                if (positionStart != 0) {
+                    return
+                }
+
+                val firstVisible = layoutManager.findFirstVisibleItemPosition()
+                // Only scroll if first or second item in the new list is visible
+                if (firstVisible <= 1) {
+                    layoutManager.scrollToPosition(0)
+                }
+            }
+        })
 
         val itemDeco = DividerItemDecoration(this, LinearLayoutManager.VERTICAL)
 
         listSearchHistory.adapter = adapter
-        listSearchHistory.layoutManager = linearLayoutManager
+        listSearchHistory.layoutManager = layoutManager
         listSearchHistory.addItemDecoration(itemDeco)
 
         viewModel.searchHistories.observe(this, Observer {
@@ -189,5 +210,9 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
             putExtra(SEARCH_INCLUDE_ALL_TAGS, item.mustIncludeAllTags)
         }
         startActivity(intent)
+    }
+
+    private fun deleteHistory(item: SearchHistory) {
+        viewModel.deleteSearchHistory(item)
     }
 }

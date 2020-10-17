@@ -56,23 +56,6 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
         hideStatusBar()
     }
 
-    override fun onBackPressed() {
-        val positionInImageGrid = intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
-
-        val positionInViewPager = viewpager.currentItem
-
-        if (positionInImageGrid == positionInViewPager) {
-            setResult(Activity.RESULT_CANCELED)
-
-        } else {
-            val intent = Intent()
-            intent.putExtra(DoujinImagesAdapter.POSITION_AFTER_EXITING_READER, positionInViewPager)
-            setResult(Activity.RESULT_OK, intent)
-        }
-
-        super.onBackPressed()
-    }
-
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_activity_reader, menu)
         return true
@@ -143,11 +126,6 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
         })
     }
 
-    private fun hideStatusBar() {
-        window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
-        supportActionBar?.hide()
-    }
-
     private fun initPageIndicator() {
         viewpager.addOnPageChangeListener(object: ViewPager.SimpleOnPageChangeListener() {
             override fun onPageScrollStateChanged(state: Int) {
@@ -169,6 +147,11 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
         }
     }
 
+    private fun hideStatusBar() {
+        window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+        supportActionBar?.hide()
+    }
+
     private fun setPageIndicatorNumber(number: Int) {
         val pageNumber = "Page: ${number} / ${viewModel.totalImageCount().value}"
         txtCurrentPageNumber.text = pageNumber
@@ -176,17 +159,45 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
 
     private fun toggleBottomSheet(visibility: Int) {
         val transition = Slide(Gravity.TOP)
-//        transition.duration = 250
-        transition.addTarget(R.id.bottomListThumbnails)
+
+        transition.apply {
+            addTarget(R.id.bottomListThumbnails)
+            addTarget(R.id.readerStyleDialog)
+        }
 
         TransitionManager.beginDelayedTransition(parentLayout, transition)
 
         bottomSheetDialog.visibility = visibility
+        readerStyleDialog.visibility = visibility
 
         if (visibility == View.VISIBLE) {
             supportActionBar?.show()
         } else {
             supportActionBar?.hide()
+        }
+    }
+
+    override fun onBackPressed() {
+        // Hides bottom sheet and toolbar if they are present. Otherwise go back to previous activity.
+        if (bottomSheetDialog.visibility == View.VISIBLE) {
+            toggleBottomSheet(View.INVISIBLE)
+            return
+        }
+
+        val positionInImageGrid = intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
+
+        val positionInViewPager = viewpager.currentItem
+
+        // Sends back the position of image currently being viewed if it's different with
+        // the position of opened image in previous screen.
+        if (positionInImageGrid != positionInViewPager) {
+            val intent = Intent()
+            intent.putExtra(DoujinImagesAdapter.POSITION_AFTER_EXITING_READER, positionInViewPager)
+            setResult(Activity.RESULT_OK, intent)
+            setResult(Activity.RESULT_CANCELED)
+
+        } else {
+            setResult(Activity.RESULT_CANCELED)
         }
     }
 
