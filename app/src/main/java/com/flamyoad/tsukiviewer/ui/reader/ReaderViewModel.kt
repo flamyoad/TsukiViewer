@@ -19,13 +19,19 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
     private val totalImageCount = MutableLiveData<Int>(-1)
     fun totalImageCount(): LiveData<Int> = totalImageCount
 
+    private val bottomThumbnailSelectedItem = MutableLiveData(0)
+    fun bottomThumbnailSelectedItem(): LiveData<Int> = bottomThumbnailSelectedItem
+
+    var currentImagePosition: Int = 0
+
     var currentPath: String = ""
+
+    var currentMode: ReaderMode = ReaderMode.HorizontalSwipe
 
     fun scanForImages(dirPath: String) {
         if (dirPath == currentPath) {
             return
         }
-
         val dir = File(dirPath)
 
         viewModelScope.launch {
@@ -43,7 +49,15 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
                 }
             }
         }
+    }
 
+    fun onThumbnailClick(position: Int) {
+        currentImagePosition = position
+        bottomThumbnailSelectedItem.value = position
+    }
+
+    fun getTotalImagesCount(): Int {
+        return imageList.value?.size ?: 0
     }
 
 }

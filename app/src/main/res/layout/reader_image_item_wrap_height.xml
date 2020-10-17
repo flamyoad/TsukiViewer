@@ -3,7 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/photoView"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
+    android:adjustViewBounds="true"
+    android:scaleType="fitCenter"
     tools:src="@drawable/himekawa">
 
 </com.github.chrisbanes.photoview.PhotoView>

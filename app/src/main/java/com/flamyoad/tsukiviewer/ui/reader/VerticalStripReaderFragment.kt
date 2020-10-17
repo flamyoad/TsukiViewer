@@ -1,16 +1,29 @@
 package com.flamyoad.tsukiviewer.ui.reader
 
+import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_DRAGGING
 
 import com.flamyoad.tsukiviewer.R
+import com.flamyoad.tsukiviewer.adapter.ReaderImageAdapter
+import kotlinx.android.synthetic.main.fragment_vertical_strip_reader.*
 
 class VerticalStripReaderFragment : Fragment() {
     private val viewModel: ReaderViewModel by activityViewModels()
+
+    private var listener: ReaderListener? = null
+
+    private val imageAdapter = ReaderImageAdapter()
+    private lateinit var linearLayoutManager: LinearLayoutManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,11 +37,78 @@ class VerticalStripReaderFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_vertical_strip_reader, container, false)
     }
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        try {
+            listener = context as ReaderListener
+        } catch (ignored: ClassCastException) { }
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        initReader()
+        setupPageIndicator()
+
+        viewModel.bottomThumbnailSelectedItem().observe(viewLifecycleOwner, Observer {
+            if (!this::linearLayoutManager.isInitialized) return@Observer
+
+            linearLayoutManager.scrollToPosition(it)
+        })
+    }
+
+    private fun initReader() {
+        val currentDir = arguments?.getString(CURRENT_DIR) ?: ""
+        val positionFromImageGrid = arguments?.getInt(POSITION_BEFORE_OPENING_READER, 0) ?: 0
+
+        linearLayoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+
+        listImages.adapter = imageAdapter
+        listImages.layoutManager = linearLayoutManager
+        listImages.setHasFixedSize(true)
+
+//        imageAdapter.setHasStableIds(true)
+
+        viewModel.imageList().observe(viewLifecycleOwner, Observer {
+            imageAdapter.setList(it)
+            if (viewModel.currentPath.isBlank()) {
+//                linearLayoutManager.scrollToPosition(positionFromImageGrid)
+                listener?.onPageChange(positionFromImageGrid)
+            }
+            viewModel.currentPath = currentDir
+        })
+    }
+
+    private fun setupPageIndicator() {
+        val currentPage = viewModel.currentImagePosition
+        listener?.onPageChange(currentPage)
+
+        listImages.addOnScrollListener(object: RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                if (newState == SCROLL_STATE_DRAGGING) {
+                    listener?.toggleBottomSheet(View.INVISIBLE)
+                }
+            }
+
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                val lastVisiblePosition = linearLayoutManager.findLastVisibleItemPosition()
+                listener?.onPageChange(lastVisiblePosition)
+            }
+        })
+    }
+
     companion object {
+        const val CURRENT_DIR = "current_dir"
+        const val POSITION_BEFORE_OPENING_READER = "position_before_opening_reader"
+
         @JvmStatic
-        fun newInstance() =
+        fun newInstance(currentDir: String, positionBeforeOpenReader: Int) =
             VerticalStripReaderFragment().apply {
-                arguments = Bundle()
+                arguments = Bundle().apply {
+                    putString(CURRENT_DIR, currentDir)
+                    putInt(POSITION_BEFORE_OPENING_READER, positionBeforeOpenReader)
+                }
             }
     }
 }

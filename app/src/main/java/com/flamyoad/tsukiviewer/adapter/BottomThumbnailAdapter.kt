@@ -54,7 +54,7 @@ class BottomThumbnailAdapter(private val listener: OnItemClickListener)
 //                .sizeMultiplier(0.75f)
                 .into(imageView)
 
-            txtPageNumber.text = adapterPosition.toString()
+            txtPageNumber.text = (adapterPosition + 1).toString()
         }
     }
 

@@ -7,13 +7,10 @@ import android.view.*
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSnapHelper
 import androidx.transition.Slide
 import androidx.transition.TransitionManager
-import androidx.viewpager.widget.ViewPager
-import androidx.viewpager.widget.ViewPager.SCROLL_STATE_DRAGGING
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.BottomThumbnailAdapter
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter
@@ -38,7 +35,14 @@ import java.io.File
 
     I have no idea why. Perhaps I should post this on StackOverflow someday.
  */
-class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickListener {
+
+private const val SWIPE_READER = "swipe_reader"
+private const val VERTICAL_READER = "vertical_reader"
+
+class ReaderActivity : AppCompatActivity(),
+    ReaderListener,
+    BottomThumbnailAdapter.OnItemClickListener {
+
     private val viewModel: ReaderViewModel by viewModels()
 
     private var positionFromImageGrid = 0
@@ -47,13 +51,23 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reader)
 
-        positionFromImageGrid = intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
+        positionFromImageGrid =
+            intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
 
+        setupReader(ReaderMode.VerticalStrip)
         initToolbar()
-        initReaderScreen()
         initBottomThumbnails()
         initPageIndicator()
         hideStatusBar()
+
+        btnReadMode.setOnClickListener {
+            // Inverses the reading mode
+            if (viewModel.currentMode == ReaderMode.HorizontalSwipe) {
+                setupReader(ReaderMode.VerticalStrip)
+            } else {
+                setupReader(ReaderMode.HorizontalSwipe)
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -63,13 +77,34 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
-            R.id.action_show_exif -> {}
+            R.id.action_show_exif -> {
+
+            }
         }
         return true
     }
 
+    private fun setupReader(mode: ReaderMode) {
+        viewModel.currentMode = mode
+
+        val currentDir = intent.getStringExtra(DoujinImagesAdapter.DIRECTORY_PATH) ?: ""
+        val positionInGrid = intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
+
+        viewModel.scanForImages(currentDir)
+
+        val fragment = when (mode) {
+            ReaderMode.HorizontalSwipe -> SwipeReaderFragment.newInstance(currentDir, positionInGrid)
+            ReaderMode.VerticalStrip -> VerticalStripReaderFragment.newInstance(currentDir, positionInGrid)
+        }
+
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.container, fragment, SWIPE_READER)
+//            .addToBackStack("stack")
+            .commit()
+    }
+
     private fun initToolbar() {
-        val currentDir = intent.getStringExtra(DoujinImagesAdapter.DIRECTORY_PATH)
+        val currentDir = intent.getStringExtra(DoujinImagesAdapter.DIRECTORY_PATH) ?: ""
 
         val file = File(currentDir)
 
@@ -83,30 +118,6 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowHomeEnabled(true)
         }
-    }
-
-    private fun initReaderScreen() {
-        viewpager.offscreenPageLimit = 2
-
-        val currentDir = intent.getStringExtra(DoujinImagesAdapter.DIRECTORY_PATH)
-
-        viewModel.scanForImages(currentDir)
-
-        val imageAdapter = ImageFragmentStateAdapter(supportFragmentManager)
-        viewpager.adapter = imageAdapter
-
-        viewModel.imageList().observe(this, Observer {
-            imageAdapter.setList(it)
-            if (viewModel.currentPath.isBlank()) {
-                viewpager.setCurrentItem(positionFromImageGrid, false)
-            }
-
-            viewModel.currentPath = currentDir
-        })
-
-        viewModel.totalImageCount().observe(this, Observer {
-            setPageIndicatorNumber(1)
-        })
     }
 
     private fun initBottomThumbnails() {
@@ -127,21 +138,6 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
     }
 
     private fun initPageIndicator() {
-        viewpager.addOnPageChangeListener(object: ViewPager.SimpleOnPageChangeListener() {
-            override fun onPageScrollStateChanged(state: Int) {
-                if (state == SCROLL_STATE_DRAGGING) {
-                    toggleBottomSheet(View.INVISIBLE)
-                }
-            }
-
-            override fun onPageSelected(position: Int) {
-                setPageIndicatorNumber(position + 1)
-
-                val thumbnailLayoutManager = bottomListThumbnails.layoutManager as LinearLayoutManager
-                thumbnailLayoutManager.scrollToPosition(position)
-            }
-        })
-
         bottomSheetOpener.setOnClickListener {
             toggleBottomSheet(View.VISIBLE)
         }
@@ -152,28 +148,44 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
         supportActionBar?.hide()
     }
 
-    private fun setPageIndicatorNumber(number: Int) {
-        val pageNumber = "Page: ${number} / ${viewModel.totalImageCount().value}"
+    private fun setPageIndicatorNumber(pageNum: Int) {
+        val pageNumber = "Page: ${pageNum} / ${viewModel.getTotalImagesCount()}"
         txtCurrentPageNumber.text = pageNumber
     }
 
-    private fun toggleBottomSheet(visibility: Int) {
-        val transition = Slide(Gravity.TOP)
+    override fun onThumbnailClick(adapterPosition: Int) {
+        viewModel.onThumbnailClick(adapterPosition)
 
-        transition.apply {
-            addTarget(R.id.bottomListThumbnails)
-            addTarget(R.id.readerStyleDialog)
+        val thumbnailLayoutManager = bottomListThumbnails.layoutManager as LinearLayoutManager
+        thumbnailLayoutManager.scrollToPosition(adapterPosition)
+    }
+
+    override fun onPageChange(pageNum: Int) {
+        viewModel.currentImagePosition = pageNum
+        setPageIndicatorNumber(pageNum + 1)
+
+        val bottomLayoutManager = bottomListThumbnails.layoutManager as LinearLayoutManager
+        bottomLayoutManager.scrollToPosition(pageNum)
+    }
+
+    override fun toggleBottomSheet(visibility: Int) {
+        val btmSlide = Slide(Gravity.BOTTOM).apply {
+            addTarget(R.id.bottomSheetDialog)
         }
 
-        TransitionManager.beginDelayedTransition(parentLayout, transition)
+        val rightSlide = Slide(Gravity.END).apply {
+            addTarget(R.id.readerModeDialog)
+        }
+
+        TransitionManager.beginDelayedTransition(bottomSheetDialog, btmSlide)
+        TransitionManager.beginDelayedTransition(readerModeDialog, rightSlide)
 
         bottomSheetDialog.visibility = visibility
-        readerStyleDialog.visibility = visibility
+        readerModeDialog.visibility = visibility
 
-        if (visibility == View.VISIBLE) {
-            supportActionBar?.show()
-        } else {
-            supportActionBar?.hide()
+        when (visibility) {
+            View.VISIBLE -> supportActionBar?.show()
+            else -> supportActionBar?.hide()
         }
     }
 
@@ -184,27 +196,26 @@ class ReaderActivity : AppCompatActivity(), BottomThumbnailAdapter.OnItemClickLi
             return
         }
 
-        val positionInImageGrid = intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
+        exitActivity()
+        super.onBackPressed() // onBackPressed() quits current activity so it must be called last.
+                              // Otherwise, lines below onBackPressed() won't be called
+    }
 
-        val positionInViewPager = viewpager.currentItem
+    private fun exitActivity() {
+        val positionInImageGrid =
+            intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
+
+        val positionInReader = viewModel.currentImagePosition
 
         // Sends back the position of image currently being viewed if it's different with
         // the position of opened image in previous screen.
-        if (positionInImageGrid != positionInViewPager) {
+        if (positionInImageGrid != positionInReader) {
             val intent = Intent()
-            intent.putExtra(DoujinImagesAdapter.POSITION_AFTER_EXITING_READER, positionInViewPager)
+            intent.putExtra(DoujinImagesAdapter.POSITION_AFTER_EXITING_READER, positionInReader)
             setResult(Activity.RESULT_OK, intent)
-            setResult(Activity.RESULT_CANCELED)
 
         } else {
             setResult(Activity.RESULT_CANCELED)
         }
-    }
-
-    override fun onThumbnailClick(adapterPosition: Int) {
-        viewpager.setCurrentItem(adapterPosition, false)
-
-        val thumbnailLayoutManager = bottomListThumbnails.layoutManager as LinearLayoutManager
-        thumbnailLayoutManager.scrollToPosition(adapterPosition)
     }
 }
