@@ -31,6 +31,9 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
     private val collectionList = MutableLiveData<List<BookmarkGroup>>()
     fun collectionList(): LiveData<List<BookmarkGroup>> = collectionList
 
+    private val directoryNoLongerExists = MutableLiveData<Boolean>(false)
+    fun directoryNoLongerExists(): LiveData<Boolean> = directoryNoLongerExists
+
     val newCollectionName = MutableLiveData<String>()
 
     val collectionNameExists: LiveData<Boolean> = newCollectionName.switchMap { name ->
@@ -75,6 +78,12 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
                     Sort filenames in directory in ascending order [duplicate]
                     https://stackoverflow.com/questions/33159106/sort-filenames-in-directory-in-ascending-order
                 */
+                if (fetchedImages == null) {
+                    withContext(Dispatchers.Main) {
+                        directoryNoLongerExists.value = true
+                    }
+                    return@withContext
+                }
 
                 val sortedImages = fetchedImages.sortedWith(naturalSort)
 

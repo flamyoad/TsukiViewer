@@ -80,8 +80,7 @@
                 style="@style/appcompat_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="0dp"
-                android:backgroundTint="#C35A5757"
+                android:backgroundTint="@color/read_mode_button_inactive"
                 android:drawableTop="@drawable/ic_swap_horiz_white_24dp"
                 android:drawablePadding="4dp"
                 android:lines="2"
@@ -94,14 +93,13 @@
                 style="@style/appcompat_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="0dp"
-                android:backgroundTint="#C35A5757"
+                android:backgroundTint="@color/read_mode_button_inactive"
                 android:drawableTop="@drawable/ic_swap_vert_white_24dp"
                 android:drawablePadding="4dp"
                 android:lines="2"
                 android:paddingTop="16dp"
-                app:cornerRadius="0dp"
-                android:text="Read \nvertically" />
+                android:text="Read \nvertically"
+                app:cornerRadius="0dp" />
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>

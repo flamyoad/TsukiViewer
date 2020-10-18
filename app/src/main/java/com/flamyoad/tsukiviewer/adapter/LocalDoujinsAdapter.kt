@@ -73,9 +73,7 @@ class LocalDoujinsAdapter(private val listener: ActionModeListener<Doujin>) :
                 val coverImage: ImageView = it.findViewById(R.id.imgCover)
 
                 coverImage.startAnimation(zoomIn)
-
                 listener.startActionMode()
-
                 coverImage.startAnimation(zoomOut)
             }
 

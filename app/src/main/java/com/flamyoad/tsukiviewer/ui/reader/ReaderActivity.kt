@@ -16,6 +16,7 @@ import androidx.transition.TransitionManager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.BottomThumbnailAdapter
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter
+import com.flamyoad.tsukiviewer.utils.toast
 import kotlinx.android.synthetic.main.activity_reader.*
 import java.io.File
 
@@ -52,6 +53,13 @@ class ReaderActivity : AppCompatActivity(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reader)
+
+        viewModel.directoryNoLongerExists().observe(this, Observer {  notExists ->
+            if (notExists) {
+                toast("Directory not found. Renamed or deleted?")
+                finish()
+            }
+        })
 
         positionFromImageGrid =
             intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
@@ -92,8 +100,33 @@ class ReaderActivity : AppCompatActivity(),
     private fun setupReader(mode: ReaderMode) {
         viewModel.readerMode = mode
 
+        setupSideMenu()
+
+        val currentDir = intent.getStringExtra(DoujinImagesAdapter.DIRECTORY_PATH) ?: ""
+        val positionInGrid =
+            intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
+
+        viewModel.scanForImages(currentDir)
+
+        val fragment = when (mode) {
+            ReaderMode.HorizontalSwipe -> HorizontalSwipeReaderFragment.newInstance(
+                currentDir,
+                positionInGrid
+            )
+            ReaderMode.VerticalStrip -> VerticalStripReaderFragment.newInstance(
+                currentDir,
+                positionInGrid
+            )
+        }
+
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.container, fragment, SWIPE_READER)
+            .commit()
+    }
+
+    private fun setupSideMenu() {
         // Changes button color according to active/inactive state
-        val activeBtnColor = ContextCompat.getColor(this, R.color.wine_red)
+        val activeBtnColor = ContextCompat.getColor(this, R.color.read_mode_button_active)
         val inactiveBtnColor = ContextCompat.getColor(this, R.color.read_mode_button_inactive)
 
         when (viewModel.readerMode) {
@@ -106,28 +139,6 @@ class ReaderActivity : AppCompatActivity(),
                 btnHorizReader.background.setTint(inactiveBtnColor)
             }
         }
-
-        val currentDir = intent.getStringExtra(DoujinImagesAdapter.DIRECTORY_PATH) ?: ""
-        val positionInGrid =
-            intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
-
-        viewModel.scanForImages(currentDir)
-
-        val fragment = when (mode) {
-            ReaderMode.HorizontalSwipe -> SwipeReaderFragment.newInstance(
-                currentDir,
-                positionInGrid
-            )
-            ReaderMode.VerticalStrip -> VerticalStripReaderFragment.newInstance(
-                currentDir,
-                positionInGrid
-            )
-        }
-
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.container, fragment, SWIPE_READER)
-//            .addToBackStack("stack")
-            .commit()
     }
 
     private fun initToolbar() {

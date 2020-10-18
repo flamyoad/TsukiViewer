@@ -12,17 +12,17 @@ import com.flamyoad.tsukiviewer.ui.settings.GalleryAppPickerDialog
 import com.flamyoad.tsukiviewer.ui.settings.SettingsViewModel
 
 class FolderPreferences : PreferenceFragmentCompat(), SharedPreferences.OnSharedPreferenceChangeListener {
+    companion object {
+        const val USE_EXTERNAL_GALLERY = "use_external_gallery"
+        const val EXTERNAL_GALLERY_PKG_NAME = "external_gallery_package_name"
+    }
+
     private val viewModel: SettingsViewModel by activityViewModels()
 
     private lateinit var prefs: SharedPreferences
 
     private var externalGallerySwitch: SwitchPreference? = null
     private var externalGalleryPicker: Preference? = null
-
-    companion object {
-        const val USE_EXTERNAL_GALLERY = "use_external_gallery"
-        const val EXTERNAL_GALLERY_PKG_NAME = "external_gallery_package_name"
-    }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preference_main, rootKey)

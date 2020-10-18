@@ -34,7 +34,7 @@
     <color name="subtleGray">#E4E4E4</color>
     <color name="headerGray">#42464b</color>
 
-    <color name="read_mode_button_active">#C35A5757</color>
+    <color name="read_mode_button_active">#c3b33e5c</color>
     <color name="read_mode_button_inactive">#C35A5757</color>
 
 </resources>

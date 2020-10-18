@@ -64,6 +64,13 @@ class FragmentGridImages : Fragment() {
             .getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
 
         setListToScaled(dirPath)
+
+        viewModel.directoryNoLongerExists().observe(viewLifecycleOwner, Observer { notExists ->
+            if (notExists) {
+                // this line doesnt work lul.
+                adapter.setList(emptyList()) // Removes existing list if directory is removed/renamed
+            }
+        })
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

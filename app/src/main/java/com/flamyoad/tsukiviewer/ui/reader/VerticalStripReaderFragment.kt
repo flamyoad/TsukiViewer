@@ -17,7 +17,6 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.ReaderImageAdapter
 import kotlinx.android.synthetic.main.fragment_vertical_strip_reader.*
 
-// doesnt save value properly when switching . same for both fragments
 class VerticalStripReaderFragment : Fragment() {
     private val viewModel: ReaderViewModel by activityViewModels()
 
@@ -34,7 +33,6 @@ class VerticalStripReaderFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_vertical_strip_reader, container, false)
     }
 

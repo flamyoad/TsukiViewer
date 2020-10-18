@@ -62,14 +62,16 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         setTitle(fragmentTag)
     }
 
-    // Note to self: onOptionsItemSelected() event actually bubbles up from Activity to Fragment
-    // So we have to return false here to allow menu processing to proceed.
+    // Note to self: onOptionsItemSelected() event actually bubbles up from Activity to Fragment.
+    //               So we have to return false here to allow menu processing to proceed.
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
             R.id.action_search_local -> {
                 /*  There is no need to animate the closing of DrawerLayout if we start a new activity.
                     This is because the animation has to be completed before the new activity can be started.
                     It can cause delay and is bad for UX
+
+                    Activity starting code is in LocalDoujinFragment.kt
                  */
                 drawerLayout.closeDrawer(GravityCompat.START, false)
                 return false
@@ -114,8 +116,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     item.isChecked = true
 
                     removeAppBarShadow()
-
-//                    supportFragmentManager.findFragmentByTag()
                 }
             }
 
@@ -172,13 +172,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
+    // Todo: Consider replacing with DialogFragment
     private fun showQuitAppDialog() {
         val builder = AlertDialog.Builder(this)
         builder.apply {
             setTitle("Quit")
             setMessage("Do you want to close this application?")
             setPositiveButton("Yes", DialogInterface.OnClickListener { dialog, which ->
-                finish() // Quit the application
+                finish() // Quits the application
             })
             setNegativeButton("Return", DialogInterface.OnClickListener { dialog, which ->
                 // do nothing

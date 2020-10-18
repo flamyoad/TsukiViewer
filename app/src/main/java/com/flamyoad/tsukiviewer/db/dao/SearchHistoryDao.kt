@@ -22,4 +22,7 @@ interface SearchHistoryDao {
 
     @Query("SELECT * FROM search_history ORDER BY id DESC")
     fun getAll(): DataSource.Factory<Int, SearchHistory>
+
+    @Query("DELETE FROM search_history")
+    fun deleteAll()
 }

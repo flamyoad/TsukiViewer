@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -42,6 +43,13 @@ class DoujinDetailsActivity : AppCompatActivity() {
                 .show()
 
             viewModel.snackbarText.value = ""
+        })
+
+        viewModel.directoryNoLongerExists().observe(this, Observer { notExists ->
+            if (notExists) {
+                toast("Directory does not exist. Renamed or deleted?")
+                finish()
+            }
         })
     }
 

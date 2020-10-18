@@ -14,19 +14,17 @@ import org.threeten.bp.Instant
 import java.io.File
 
 class BookmarkRepository(private val context: Context) {
-
     companion object {
         const val DEFAULT_BOOKMARK_GROUP = "Default Bookmark Group"
     }
 
-    private val db: AppDatabase
+    private val db: AppDatabase = AppDatabase.getInstance(context)
 
     val groupDao: BookmarkGroupDao
 
     val itemDao: BookmarkItemDao
 
     init {
-        db = AppDatabase.getInstance(context)
         groupDao = db.bookmarkGroupDao()
         itemDao = db.bookmarkItemDao()
     }
@@ -45,6 +43,10 @@ class BookmarkRepository(private val context: Context) {
 
     suspend fun getAllItemsFrom(groupName: String): List<BookmarkItem> {
         return itemDao.selectFrom(groupName)
+    }
+
+    fun getGroup(name: String): LiveData<BookmarkGroup> {
+        return groupDao.get(name)
     }
 
     fun getAllGroups(): LiveData<List<BookmarkGroup>> {

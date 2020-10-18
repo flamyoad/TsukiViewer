@@ -2,6 +2,7 @@ package com.flamyoad.tsukiviewer.adapter
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.util.Log
 import android.view.LayoutInflater
@@ -12,7 +13,12 @@ import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.ui.reader.ReaderActivity
 import com.flamyoad.tsukiviewer.ui.settings.preferences.FolderPreferences
@@ -112,7 +118,6 @@ class DoujinImagesAdapter(
         } catch (e: Exception) {
             Toast.makeText(context, "Can't open the external application", Toast.LENGTH_SHORT)
                 .show()
-            Log.d("fileprovider", e.message)
         }
     }
 
@@ -123,7 +128,6 @@ class DoujinImagesAdapter(
             Glide.with(itemView.context)
                 .load(file.toUri())
                 .transition(withCrossFade())
-                .thumbnail(0.5f)
                 .into(imageView)
         }
     }

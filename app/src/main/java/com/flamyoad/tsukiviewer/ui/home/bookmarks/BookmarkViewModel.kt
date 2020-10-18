@@ -243,7 +243,7 @@ class BookmarkViewModel(app: Application) : AndroidViewModel(app) {
         selectedGroup = group
         selectedGroupName = group.name
 
-        selectedBookmarkGroup.value = group
+        selectedBookmarkGroup.value = group // replace
     }
 
     fun deleteGroup(group: BookmarkGroup) {

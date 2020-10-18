@@ -13,7 +13,7 @@ import androidx.viewpager.widget.ViewPager.SCROLL_STATE_DRAGGING
 import com.flamyoad.tsukiviewer.R
 import kotlinx.android.synthetic.main.fragment_swipe_reader.*
 
-class SwipeReaderFragment : Fragment() {
+class HorizontalSwipeReaderFragment : Fragment() {
     private val viewModel: ReaderViewModel by activityViewModels()
 
     private var listener: ReaderListener? = null
@@ -29,9 +29,7 @@ class SwipeReaderFragment : Fragment() {
         super.onAttach(context)
         try {
             listener = context as ReaderListener
-        } catch (ignored: ClassCastException) {
-
-        }
+        } catch (ignored: ClassCastException) { }
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -93,7 +91,7 @@ class SwipeReaderFragment : Fragment() {
 
         @JvmStatic
         fun newInstance(currentDir: String, positionBeforeOpenReader: Int) =
-            SwipeReaderFragment().apply {
+            HorizontalSwipeReaderFragment().apply {
                 arguments = Bundle().apply {
                     putString(CURRENT_DIR, currentDir)
                     putInt(POSITION_BEFORE_OPENING_READER, positionBeforeOpenReader)

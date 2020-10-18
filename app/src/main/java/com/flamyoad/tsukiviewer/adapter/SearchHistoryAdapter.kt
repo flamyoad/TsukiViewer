@@ -46,7 +46,12 @@ class SearchHistoryAdapter(
             val btnDelete: ImageButton = view.findViewById(R.id.btnDelete)
 
             btnDelete.setOnClickListener {
-                val item = getItem(holder.bindingAdapterPosition)
+                val position = holder.bindingAdapterPosition
+                if (position == RecyclerView.NO_POSITION) {
+                    return@setOnClickListener
+                }
+
+                val item = getItem(position)
                 if (item != null) {
                     onItemDelete(item)
                 }

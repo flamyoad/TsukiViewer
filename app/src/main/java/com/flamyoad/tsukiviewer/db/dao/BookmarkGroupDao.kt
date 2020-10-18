@@ -29,6 +29,9 @@ interface BookmarkGroupDao {
         """)
     suspend fun changeName(oldName: String, newName: String)
 
+    @Query("SELECT * FROM bookmark_group WHERE name = :name")
+    fun get(name: String): LiveData<BookmarkGroup>
+
     @Query("SELECT * FROM bookmark_group")
     fun getAll(): LiveData<List<BookmarkGroup>>
 

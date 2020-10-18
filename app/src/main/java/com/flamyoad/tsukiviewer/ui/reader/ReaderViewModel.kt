@@ -16,6 +16,9 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
     private val bottomThumbnailSelectedItem = MutableLiveData(-1)
     fun bottomThumbnailSelectedItem(): LiveData<Int> = bottomThumbnailSelectedItem
 
+    private val directoryNoLongerExists = MutableLiveData<Boolean>(false)
+    fun directoryNoLongerExists(): LiveData<Boolean> = directoryNoLongerExists
+
     var currentImagePosition: Int = 0
 
     var currentPath: String = ""
@@ -34,11 +37,20 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
                     compareBy<File> { it.name.length } // If you don't first compare by length, it won't work
                         .then(naturalOrder())
 
+                // If fetchedImages is null means directory has been renamed or deleted
                 val fetchedImages = dir.listFiles(ImageFileFilter())
-                    .sortedWith(naturalSort)
+
+                if (fetchedImages == null) {
+                    withContext(Dispatchers.Main) {
+                        directoryNoLongerExists.value = true
+                    }
+                    return@withContext
+                }
+
+                val sortedImages = fetchedImages.sortedWith(naturalSort)
 
                 withContext(Dispatchers.Main) {
-                    imageList.value = fetchedImages
+                    imageList.value = sortedImages
                 }
             }
         }

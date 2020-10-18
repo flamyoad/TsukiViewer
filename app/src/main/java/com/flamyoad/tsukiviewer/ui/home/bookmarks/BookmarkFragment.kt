@@ -3,6 +3,7 @@ package com.flamyoad.tsukiviewer.ui.home.bookmarks
 import android.content.DialogInterface
 import android.content.res.Configuration
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -120,6 +121,10 @@ class BookmarkFragment : BaseFragment(),
             if (it.isNullOrEmpty()) {
                 header.text = "No bookmark exists"
                 btnContextMenu.visibility = View.GONE
+            } else {
+                if (viewModel.selectedGroupName.isNotBlank()) {
+                    header.text = viewModel.selectedGroupName
+                }
             }
         })
 

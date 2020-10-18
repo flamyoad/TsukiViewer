@@ -3,22 +3,18 @@ package com.flamyoad.tsukiviewer.ui.search
 import android.app.Application
 import androidx.lifecycle.*
 import androidx.paging.PagedList
-import androidx.paging.toLiveData
 import com.flamyoad.tsukiviewer.db.AppDatabase
-import com.flamyoad.tsukiviewer.db.dao.SearchHistoryDao
-import com.flamyoad.tsukiviewer.db.dao.TagDao
 import com.flamyoad.tsukiviewer.model.SearchHistory
 import com.flamyoad.tsukiviewer.model.Tag
-import kotlinx.coroutines.Dispatchers
+import com.flamyoad.tsukiviewer.repository.SearchHistoryRepository
+import com.flamyoad.tsukiviewer.repository.TagRepository
 import kotlinx.coroutines.launch
 
 class SearchViewModel(application: Application) : AndroidViewModel(application) {
-
     private val db: AppDatabase = AppDatabase.getInstance(application)
 
-    private val tagDao: TagDao
-
-    private val searchHistoryDao: SearchHistoryDao
+    private val searchHistoryRepo = SearchHistoryRepository(application.applicationContext)
+    private val tagRepo = TagRepository(application.applicationContext)
 
     private val tagQuery = MutableLiveData<String>("")
 
@@ -27,14 +23,10 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     val searchHistories: LiveData<PagedList<SearchHistory>>
 
     init {
-        tagDao = db.tagsDao()
-        searchHistoryDao = db.searchHistoryDao()
-
-        searchHistories = searchHistoryDao.getAll()
-            .toLiveData(pageSize = 4)
+        searchHistories = searchHistoryRepo.getAll(pageSize = 8)
 
         tagList = Transformations.switchMap(tagQuery) {
-            return@switchMap tagDao.getAllWithFilter(it)
+            return@switchMap tagRepo.getAllWithFilter(it)
         }
     }
 
@@ -47,23 +39,14 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun insertSearchHistory(item: SearchHistory) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val lastInsertedItem = searchHistoryDao.getLatestItem()
-
-            /* 1st condition: If last inserted item is null, means the search history has 0 items
-               2nd condition: If user inputs the same thing as previous search,
-                              then there is no need to insert into database
-            */
-            val shouldInsert = lastInsertedItem == null || !lastInsertedItem.sameWith(item)
-            if (shouldInsert) {
-                searchHistoryDao.insert(item)
-            }
+        viewModelScope.launch {
+            searchHistoryRepo.insertSearchHistory(item)
         }
     }
 
     fun deleteSearchHistory(item: SearchHistory) {
-        viewModelScope.launch(Dispatchers.IO) {
-            searchHistoryDao.delete(item)
+        viewModelScope.launch {
+            searchHistoryRepo.deleteSingle(item)
         }
     }
 }
