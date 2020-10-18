@@ -136,7 +136,7 @@
         i.   Spaces between letters
         ii.  Ugly margin around the button
         iii. Sets 'textAllCaps' to false-->
-    <style name="appcompat_button">
+    <style name="appcompat_button" parent="@style/Widget.MaterialComponents.Button">
         <item name="android:insetTop">0dp</item>
         <item name="android:insetBottom">0dp</item>
         <item name="android:insetRight">0dp</item>

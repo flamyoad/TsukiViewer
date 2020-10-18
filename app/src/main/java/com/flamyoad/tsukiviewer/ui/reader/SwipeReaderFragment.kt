@@ -40,7 +40,10 @@ class SwipeReaderFragment : Fragment() {
         setupPageIndicator()
 
         viewModel.bottomThumbnailSelectedItem().observe(viewLifecycleOwner, Observer {
+            if (it == -1) return@Observer
+
             viewpager.setCurrentItem(it, false)
+            viewModel.resetBottomThumbnailState()
         })
     }
 
@@ -55,10 +58,14 @@ class SwipeReaderFragment : Fragment() {
 
         viewModel.imageList().observe(viewLifecycleOwner, Observer {
             imageAdapter.setList(it)
+
             if (viewModel.currentPath.isBlank()) {
                 viewpager.setCurrentItem(positionFromImageGrid, false)
                 listener?.onPageChange(positionFromImageGrid)
+            } else {
+                viewpager.setCurrentItem(viewModel.currentImagePosition)
             }
+
             viewModel.currentPath = currentDir
         })
     }

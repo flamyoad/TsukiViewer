@@ -17,6 +17,7 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.ReaderImageAdapter
 import kotlinx.android.synthetic.main.fragment_vertical_strip_reader.*
 
+// doesnt save value properly when switching . same for both fragments
 class VerticalStripReaderFragment : Fragment() {
     private val viewModel: ReaderViewModel by activityViewModels()
 
@@ -51,8 +52,11 @@ class VerticalStripReaderFragment : Fragment() {
 
         viewModel.bottomThumbnailSelectedItem().observe(viewLifecycleOwner, Observer {
             if (!this::linearLayoutManager.isInitialized) return@Observer
+            if (it == -1) return@Observer
 
             linearLayoutManager.scrollToPosition(it)
+
+            viewModel.resetBottomThumbnailState()
         })
     }
 
@@ -66,14 +70,16 @@ class VerticalStripReaderFragment : Fragment() {
         listImages.layoutManager = linearLayoutManager
         listImages.setHasFixedSize(true)
 
-//        imageAdapter.setHasStableIds(true)
-
         viewModel.imageList().observe(viewLifecycleOwner, Observer {
             imageAdapter.setList(it)
+
             if (viewModel.currentPath.isBlank()) {
-//                linearLayoutManager.scrollToPosition(positionFromImageGrid)
+                linearLayoutManager.scrollToPosition(positionFromImageGrid)
                 listener?.onPageChange(positionFromImageGrid)
+            } else {
+                linearLayoutManager.scrollToPosition(viewModel.currentImagePosition)
             }
+
             viewModel.currentPath = currentDir
         })
     }
@@ -92,8 +98,14 @@ class VerticalStripReaderFragment : Fragment() {
 
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                val lastVisiblePosition = linearLayoutManager.findLastVisibleItemPosition()
-                listener?.onPageChange(lastVisiblePosition)
+                val lastCompletelyVisible = linearLayoutManager.findLastCompletelyVisibleItemPosition()
+                val firstVisible = linearLayoutManager.findFirstVisibleItemPosition()
+
+                if (lastCompletelyVisible != RecyclerView.NO_POSITION) {
+                    listener?.onPageChange(lastCompletelyVisible)
+                } else {
+                    listener?.onPageChange(firstVisible)
+                }
             }
         })
     }

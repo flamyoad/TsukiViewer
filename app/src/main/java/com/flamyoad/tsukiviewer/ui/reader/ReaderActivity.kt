@@ -3,9 +3,11 @@ package com.flamyoad.tsukiviewer.ui.reader
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSnapHelper
@@ -60,12 +62,15 @@ class ReaderActivity : AppCompatActivity(),
         initPageIndicator()
         hideStatusBar()
 
-        btnReadMode.setOnClickListener {
-            // Inverses the reading mode
-            if (viewModel.currentMode == ReaderMode.HorizontalSwipe) {
-                setupReader(ReaderMode.VerticalStrip)
-            } else {
+        btnHorizReader.setOnClickListener {
+            if (viewModel.readerMode != ReaderMode.HorizontalSwipe) {
                 setupReader(ReaderMode.HorizontalSwipe)
+            }
+        }
+
+        btnVertReader.setOnClickListener {
+            if (viewModel.readerMode != ReaderMode.VerticalStrip) {
+                setupReader(ReaderMode.VerticalStrip)
             }
         }
     }
@@ -85,16 +90,38 @@ class ReaderActivity : AppCompatActivity(),
     }
 
     private fun setupReader(mode: ReaderMode) {
-        viewModel.currentMode = mode
+        viewModel.readerMode = mode
+
+        // Changes button color according to active/inactive state
+        val activeBtnColor = ContextCompat.getColor(this, R.color.wine_red)
+        val inactiveBtnColor = ContextCompat.getColor(this, R.color.read_mode_button_inactive)
+
+        when (viewModel.readerMode) {
+            ReaderMode.HorizontalSwipe -> {
+                btnHorizReader.background.setTint(activeBtnColor)
+                btnVertReader.background.setTint(inactiveBtnColor)
+            }
+            ReaderMode.VerticalStrip -> {
+                btnVertReader.background.setTint(activeBtnColor)
+                btnHorizReader.background.setTint(inactiveBtnColor)
+            }
+        }
 
         val currentDir = intent.getStringExtra(DoujinImagesAdapter.DIRECTORY_PATH) ?: ""
-        val positionInGrid = intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
+        val positionInGrid =
+            intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
 
         viewModel.scanForImages(currentDir)
 
         val fragment = when (mode) {
-            ReaderMode.HorizontalSwipe -> SwipeReaderFragment.newInstance(currentDir, positionInGrid)
-            ReaderMode.VerticalStrip -> VerticalStripReaderFragment.newInstance(currentDir, positionInGrid)
+            ReaderMode.HorizontalSwipe -> SwipeReaderFragment.newInstance(
+                currentDir,
+                positionInGrid
+            )
+            ReaderMode.VerticalStrip -> VerticalStripReaderFragment.newInstance(
+                currentDir,
+                positionInGrid
+            )
         }
 
         supportFragmentManager.beginTransaction()
@@ -161,6 +188,7 @@ class ReaderActivity : AppCompatActivity(),
     }
 
     override fun onPageChange(pageNum: Int) {
+        Log.d("readeractivity1", "Page Num: $pageNum")
         viewModel.currentImagePosition = pageNum
         setPageIndicatorNumber(pageNum + 1)
 
@@ -198,7 +226,7 @@ class ReaderActivity : AppCompatActivity(),
 
         exitActivity()
         super.onBackPressed() // onBackPressed() quits current activity so it must be called last.
-                              // Otherwise, lines below onBackPressed() won't be called
+        // Otherwise, lines below onBackPressed() won't be called
     }
 
     private fun exitActivity() {
