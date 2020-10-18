@@ -18,7 +18,7 @@ interface NHService {
        Documentation link: https://nhentai.net/info/
     */
 
-    // %22 decodes to "
+    // %22 decodes to " (double quote)
     @GET("api/galleries/search")
     fun getMetadata(@Query("query") fullTitle: String): Call<Metadata>
 }

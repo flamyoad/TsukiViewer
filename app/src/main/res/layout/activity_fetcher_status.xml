@@ -64,6 +64,7 @@
                 app:layout_constraintStart_toEndOf="@+id/lblProgress"
                 app:layout_constraintTop_toTopOf="@+id/lblProgress"
                 app:layout_constraintVertical_bias="1.0"
+                android:text="0"
                 tools:text="45/3999" />
 
             <TextView
@@ -76,6 +77,7 @@
                 app:layout_constraintBottom_toBottomOf="@+id/lblProgress"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/lblProgress"
+                android:text="0%"
                 tools:text="33%" />
 
             <ProgressBar
@@ -111,6 +113,7 @@
                     android:paddingHorizontal="10dp"
                     android:paddingVertical="10dp"
                     android:textColor="@color/white"
+                    android:text="Scanning for directories..."
                     tools:text="Processed Items (1892)" />
 
             </LinearLayout>
@@ -124,9 +127,40 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/listLayout"
         tools:listitem="@layout/fetcher_list_item" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/loadingIndicator"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        tools:visibility="invisible">
+
+        <com.github.ybq.android.spinkit.SpinKitView
+            android:id="@+id/spinKitView"
+            style="@style/SpinKitView.CubeGrid"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            app:SpinKit_Color="@color/colorPrimary"
+            app:layout_constraintBottom_toTopOf="@+id/textView5"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/textView5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Waiting for directories to be scanned..."
+            android:textColor="@color/mainTextColor"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

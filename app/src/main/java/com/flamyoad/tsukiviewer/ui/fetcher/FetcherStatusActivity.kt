@@ -1,5 +1,6 @@
 package com.flamyoad.tsukiviewer.ui.fetcher
 
+import android.view.View
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -63,19 +64,26 @@ class FetcherStatusActivity : AppCompatActivity() {
                     txtProgress.text = it.getProgress()
                     txtPercentage.text = it.getPercentString()
                     progressBar.progress = it.getPercent()
+
+                    loadingIndicator.visibility = View.GONE
                 }
             })
 
             service.fetchHistories().observe(this, Observer {
-                adapter.submitList(it)
+                /*
+                   https://stackoverflow.com/questions/49726385/listadapter-not-updating-item-in-recyclerview
+
+                   In the Service class, the same reference of ArrayList reused and passed into the MutableLiveData.
+                   toList() is needed because submitList() assumes each new list is different.
+                   If the new list has same reference as the previous list, the call is silently ignored by submitList()
+                */
+                adapter.submitList(it.toList())
                 txtProcessed.text = getString(R.string.processed_item_text, it.size)
             })
 
             service.currentItem().observe(this, Observer {
                 txtCurrentItem.text = it.name
             })
-
-            service.dirList().observe(this, Observer {})
         }
     }
 

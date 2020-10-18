@@ -8,9 +8,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.repository.MetadataRepository
 import com.flamyoad.tsukiviewer.ui.fetcher.FetcherStatusActivity
@@ -29,16 +27,13 @@ class FetchMetadataService : Service() {
 
     private val binder = FetchBinder()
 
-    private val dirList: MutableLiveData<List<File>> = MutableLiveData()
-    fun dirList(): LiveData<List<File>> = dirList
-
     private val currentItem: MutableLiveData<File> = MutableLiveData()
     fun currentItem(): LiveData<File> = currentItem
 
     private val fetchHistories = MutableLiveData<MutableList<FetchHistory>>()
     fun fetchHistories(): LiveData<MutableList<FetchHistory>> = fetchHistories
 
-    val fetchPercentage = MediatorLiveData<FetchPercentage>()
+    val fetchPercentage: LiveData<FetchPercentage>
 
     private var notificationBuilder: NotificationCompat.Builder? = null
 
@@ -46,15 +41,12 @@ class FetchMetadataService : Service() {
 
     private var singleJob: Job? = null
 
-    init {
-        fetchPercentage.addSource(fetchHistories) { fetched ->
-            val prev = fetchPercentage.value
-            fetchPercentage.value = prev?.copy(fetched = fetched.size)
-        }
+    private var dirItemCount: Int = 0
 
-        fetchPercentage.addSource(dirList) { dir ->
-            val prev = fetchPercentage.value
-            fetchPercentage.value = prev?.copy(total = dir.size)
+    // Data class's copy() method returns null if the object to copy from is null
+    init {
+        fetchPercentage = fetchHistories.map {
+            return@map FetchPercentage(it.size, dirItemCount)
         }
     }
 
@@ -124,7 +116,7 @@ class FetchMetadataService : Service() {
 
     // todo: consider making 2nd request without the [] {} all the brackets. if first request is failed
     fun enqueueList(dirList: List<File>) {
-        this.dirList.value = dirList
+        dirItemCount = dirList.size
 
         batchJob = coroutineScope.launch {
             for ((index, dir) in dirList.withIndex()) {

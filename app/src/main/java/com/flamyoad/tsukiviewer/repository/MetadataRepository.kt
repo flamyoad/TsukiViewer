@@ -27,7 +27,6 @@ import java.io.File
 import java.io.IOException
 
 class MetadataRepository(private val context: Context) {
-
     private lateinit var nhService: NHService
 
     private val db: AppDatabase
@@ -101,7 +100,6 @@ class MetadataRepository(private val context: Context) {
                 return@withContext
             }
 
-            // Consider running DB in another coroutine
             val firstTry = getDataFromApi(dir.name)
             if (firstTry != null && firstTry.result.isNotEmpty()) {
                 doujinName = storeMetadata(firstTry, dir)
