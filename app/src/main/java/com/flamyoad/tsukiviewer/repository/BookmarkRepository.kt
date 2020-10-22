@@ -213,8 +213,8 @@ class BookmarkRepository(private val context: Context) {
 
             val ignoreCount = doujinList.size - insertCount
             when {
-                ignoreCount == 1 -> builder.append("$insertCount item ignored")
-                ignoreCount > 1 -> builder.append("$insertCount items ignored")
+                ignoreCount == 1 -> builder.append("$ignoreCount duplicate item ignored")
+                ignoreCount > 1 -> builder.append("$ignoreCount duplicate items ignored")
             }
 
             return@withTransaction builder.toString()

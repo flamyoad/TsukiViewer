@@ -22,9 +22,7 @@ class FetchHistoryAdapter :
         val inflater = LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.fetcher_list_item, parent, false)
         return FetchViewHolder(view)
-
     }
-
 
     override fun onBindViewHolder(holder: FetchViewHolder, position: Int) {
         holder.bindTo(getItem(position))
@@ -52,6 +50,11 @@ class FetchHistoryAdapter :
                 FetchStatus.NO_MATCH -> ContextCompat.getDrawable(
                     itemView.context,
                     R.drawable.ic_triangle
+                )
+
+                FetchStatus.ALREADY_EXISTS -> ContextCompat.getDrawable(
+                    itemView.context,
+                    R.drawable.ic_sd_card_gray_24dp
                 )
                 else -> ContextCompat.getDrawable(itemView.context, R.drawable.ic_triangle)
             }

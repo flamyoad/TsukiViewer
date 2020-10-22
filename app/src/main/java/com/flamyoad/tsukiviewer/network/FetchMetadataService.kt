@@ -8,6 +8,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.core.util.toAndroidPair
 import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.repository.MetadataRepository
@@ -125,19 +126,13 @@ class FetchMetadataService : Service() {
                     createNotification(dir.name, index + 1, dirList.size)
                 }
 
-                val result: Pair<FetchStatus, String> = metadataRepo!!.fetchMetadata(dir)
-//                val result = Pair(FetchStatus.SUCCESS, "Emptty String")
+                val result = metadataRepo!!.fetchMetadata(dir)
 
-                val history = FetchHistory(
-                    dir = dir,
-                    status = result.first,
-                    doujinName = result.second
-                )
-
-                val fetchStatus = result.first
+                val fetchStatus = result.status
                 when (fetchStatus) {
-                    FetchStatus.SUCCESS -> postFetchHistory(history)
-                    FetchStatus.NO_MATCH -> postFetchHistory(history)
+                    FetchStatus.SUCCESS -> postFetchHistory(result)
+                    FetchStatus.ALREADY_EXISTS -> postFetchHistory(result)
+                    FetchStatus.NO_MATCH -> postFetchHistory(result)
                 }
 
                 if (fetchStatus != FetchStatus.ALREADY_EXISTS) {
@@ -147,7 +142,8 @@ class FetchMetadataService : Service() {
         }
 
         batchJob?.invokeOnCompletion {
-            createNotification("All directories have been processed")
+            // Seems liek the notification from here cannot be dismissed?
+//            createNotification("All directories have been processed")
             stopForeground(false)
             stopSelf()
         }
@@ -157,8 +153,7 @@ class FetchMetadataService : Service() {
         singleJob = coroutineScope.launch {
             val result = metadataRepo!!.fetchMetadata(dir)
 
-            val fetchStatus = result.first
-            when (fetchStatus) {
+            when (result.status) {
                 FetchStatus.NO_MATCH -> showToast("No matching result for this directory")
             }
         }
@@ -244,6 +239,7 @@ class FetchMetadataService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        Log.d("fetchService", "onDestroy() is called")
         coroutineScope.cancel()
     }
 

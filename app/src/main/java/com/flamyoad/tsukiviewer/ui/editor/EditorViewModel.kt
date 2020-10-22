@@ -194,7 +194,7 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
         ).flatten()
 
         viewModelScope.launch {
-            metadataRepo.storeMetadata(doujinDetail, tags)
+            metadataRepo.saveEditedMetadata(doujinDetail, tags)
         }
 
         hasCompletedSaving.value = false

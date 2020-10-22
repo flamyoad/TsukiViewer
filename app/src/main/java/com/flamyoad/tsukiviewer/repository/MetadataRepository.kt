@@ -10,12 +10,9 @@ import androidx.room.withTransaction
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.*
 import com.flamyoad.tsukiviewer.model.DoujinDetails
-import com.flamyoad.tsukiviewer.model.DoujinDetailsWithTags
 import com.flamyoad.tsukiviewer.model.DoujinTag
 import com.flamyoad.tsukiviewer.model.Tag
-import com.flamyoad.tsukiviewer.network.FetchStatus
-import com.flamyoad.tsukiviewer.network.Metadata
-import com.flamyoad.tsukiviewer.network.NHService
+import com.flamyoad.tsukiviewer.network.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Dispatcher
@@ -30,6 +27,8 @@ class MetadataRepository(private val context: Context) {
     private lateinit var nhService: NHService
 
     private val db: AppDatabase
+
+    private var toast: Toast? = null
 
     /*
         Regex used to remove text between parentheses and brackets
@@ -88,40 +87,62 @@ class MetadataRepository(private val context: Context) {
         nhService = retrofit.create(NHService::class.java)
     }
 
-    suspend fun fetchMetadata(dir: File): Pair<FetchStatus, String> {
-        var status = FetchStatus.NONE
-        var doujinName = dir.name // Gets replaced by real doujin name if fetched successfully
-
-        withContext(Dispatchers.IO) {
-            if (doujinDetailsDao.existsByTitle(dir.name) || doujinDetailsDao.existsByAbsolutePath(
-                    dir.toString())) {
-                // Should be updating existing instead of just doing nothing
-                status = FetchStatus.ALREADY_EXISTS
-                return@withContext
-            }
-
-            val firstTry = getDataFromApi(dir.name)
-            if (firstTry != null && firstTry.result.isNotEmpty()) {
-                doujinName = storeMetadata(firstTry, dir)
-                status = FetchStatus.SUCCESS
+    suspend fun fetchMetadata(dir: File): FetchHistory {
+        return withContext(Dispatchers.IO) {
+            if (doujinDetailsDao.existsByTitle(dir.name) || doujinDetailsDao.existsByAbsolutePath(dir.toString())) {
+                return@withContext FetchHistory(dir, dir.name, FetchStatus.ALREADY_EXISTS)
 
             } else {
-                // Rerun with extracted directory name
-                val extractedName = dir.name.replace(regex, "")
-                val secondTry = getDataFromApi(extractedName)
+                val fetchResult = requestMetadata(dir.name)
+                val title = fetchResult.getDoujinTitle() ?: dir.name
 
-                if (secondTry != null && secondTry.result.isNotEmpty()) {
-                    doujinName = storeMetadata(secondTry, dir)
-                    status = FetchStatus.SUCCESS
+                val metadata = fetchResult.metadata
+
+                if (metadata == null) {
+                    return@withContext FetchHistory(dir, title, FetchStatus.NO_MATCH)
                 } else {
-                    status = FetchStatus.NO_MATCH
+                    saveMetadata(metadata, dir)
+                    return@withContext FetchHistory(dir, title, fetchResult.status)
                 }
             }
         }
-        return Pair(status, doujinName)
     }
 
-    private suspend fun storeMetadata(metadata: Metadata, dir: File): String {
+    private fun requestMetadata(fullTitle: String): FetchResult {
+        // First try is attempted with title which contains all these , | [] {} symbols
+        val queryWithDirName = requestFromNhentai(fullTitle)
+        if (queryWithDirName.status == FetchStatus.SUCCESS) {
+            return queryWithDirName
+        }
+
+        val cleanedTitle = fullTitle.replace(regex, "")
+
+        if (cleanedTitle == fullTitle) {
+            return queryWithDirName // No point retrying if same string
+        }
+
+        // Retry with cleaned title without symbols
+        return requestFromNhentai(cleanedTitle)
+    }
+
+    private fun requestFromNhentai(fullTitle: String): FetchResult {
+        try {
+            // Wraps query parameter with double quotes to perform exact search
+            val response = nhService.getMetadata("\"" + fullTitle + "\"").execute()
+            val json = response.body() ?: return FetchResult(status = FetchStatus.NETWORK_ERROR)
+
+            return when (json.result.isEmpty()) {
+                true -> FetchResult(status = FetchStatus.NO_MATCH)
+                false -> FetchResult(json, status = FetchStatus.SUCCESS)
+            }
+
+        } catch (e: IOException) {
+            showToast("Failed to fetch metadata")
+            return FetchResult(status = FetchStatus.NETWORK_ERROR)
+        }
+    }
+
+    private suspend fun saveMetadata(metadata: Metadata, dir: File): String {
         // Api might return a list of duplicate results. We only want the first one
         val item = metadata.result.first()
 
@@ -134,61 +155,11 @@ class MetadataRepository(private val context: Context) {
             folderName = dir.name
         )
 
-        val doujinId = doujinDetailsDao.insert(doujinDetails)
+        db.withTransaction {
+            val doujinId = doujinDetailsDao.insert(doujinDetails)
 
-        for (tag in item.tags) {
-            var tagId: Long
-
-            if (tagDao.exists(tag.type, tag.name)) {
-                tagDao.incrementCount(tag.type, tag.name)
-                tagId = tagDao.getId(tag.type, tag.name)
-
-            } else {
-                tagId = tagDao.insert(
-                    Tag(
-                        tagId = null,
-                        name = tag.name,
-                        type = tag.type,
-                        url = tag.url,
-                        count = 1
-                    )
-                )
-            }
-
-            doujinTagDao.insert(
-                DoujinTag(doujinId, tagId)
-            )
-        }
-
-        return item.title.english
-    }
-
-    // Erases previous existing tags and adds new ones
-    suspend fun storeMetadata(doujinDetails: DoujinDetails, tags: List<Tag>) {
-        withContext(Dispatchers.IO) {
-            // todo: Rename this garbage
-            val absolutePath = doujinDetails.absolutePath.absolutePath
-
-            val doujinId: Long
-
-            // Insert into db if a record identified by its absolute path does not exist yet
-            if (!doujinDetailsDao.existsByAbsolutePath(absolutePath)) {
-                doujinId = doujinDetailsDao.insert(doujinDetails)
-            } else {
-                val fetchedItems: List<DoujinDetails> =
-                    doujinDetailsDao.findByAbsolutePath(absolutePath)
-                doujinId = fetchedItems.first().id ?: -1
-            }
-
-            // Decrements book count for all tags in the previous data
-            doujinTagDao.decrementTagCount(doujinId)
-
-            // Removes all rows related to chosen id in the table
-            doujinTagDao.deleteAll(doujinId)
-
-            // Inserts new tag if has any, increments count for tags that already exist
-            tags.forEach { tag ->
-                val tagId: Long
+            for (tag in item.tags) {
+                var tagId: Long
 
                 if (tagDao.exists(tag.type, tag.name)) {
                     tagDao.incrementCount(tag.type, tag.name)
@@ -205,10 +176,64 @@ class MetadataRepository(private val context: Context) {
                         )
                     )
                 }
-                doujinTagDao.insert(
-                    DoujinTag(doujinId, tagId)
+                doujinTagDao.insert(DoujinTag(doujinId, tagId))
+            }
+        }
+        return item.title.english
+    }
+
+    // Erases previous existing tags and adds tags edited by user
+    suspend fun saveEditedMetadata(doujinDetails: DoujinDetails, tags: List<Tag>) {
+        withContext(Dispatchers.IO) {
+            db.withTransaction {
+                val absolutePath = doujinDetails.absolutePath.absolutePath
+
+                val doujinId: Long
+
+                // Insert into db if a record identified by its absolute path does not exist yet
+                if (!doujinDetailsDao.existsByAbsolutePath(absolutePath)) {
+                    doujinId = doujinDetailsDao.insert(doujinDetails)
+                } else {
+                    val fetchedItems: List<DoujinDetails> = doujinDetailsDao.findByAbsolutePath(absolutePath)
+                    doujinId = fetchedItems.first().id ?: -1
+                }
+
+                // Decrements book count for all tags in the previous data
+                doujinTagDao.decrementTagCount(doujinId)
+
+                // Removes all rows related to chosen id in the table
+                doujinTagDao.deleteAll(doujinId)
+
+                // Inserts new tag if has any, increments count for tags that already exist
+                tags.forEach { tag ->
+                    insertTagElseIncrement(doujinId, tag)
+                }
+            }
+        }
+    }
+
+    private suspend fun insertTagElseIncrement(doujinId: Long, tag: Tag) {
+        db.withTransaction {
+            val tagId: Long
+
+            if (tagDao.exists(tag.type, tag.name)) {
+                tagDao.incrementCount(tag.type, tag.name)
+                tagId = tagDao.getId(tag.type, tag.name)
+
+            } else {
+                tagId = tagDao.insert(
+                    Tag(
+                        tagId = null,
+                        name = tag.name,
+                        type = tag.type,
+                        url = tag.url,
+                        count = 1
+                    )
                 )
             }
+            doujinTagDao.insert(
+                DoujinTag(doujinId, tagId)
+            )
         }
     }
 
@@ -224,47 +249,32 @@ class MetadataRepository(private val context: Context) {
 
     suspend fun resetTags(dir: File) {
         withContext(Dispatchers.IO) {
-            val response = getDataFromApi(dir.name)
+            val result = requestFromNhentai(dir.name)
 
-            if (response != null && response.result.isNotEmpty()) {
-                val result = response.result.first()
-
+            if (result.status == FetchStatus.SUCCESS) {
                 val doujinDetails = doujinDetailsDao
                     .findByAbsolutePath(dir.absolutePath)
                     .first()
 
-                val tagList = result.tags
-                    .map { x -> Tag(type = x.type, name = x.name, url = x.url, count = 1) }
+                if (result.metadata == null) return@withContext
 
-                storeMetadata(doujinDetails, tagList)
+                val tagList = result.metadata.getTags()
+                    .map { x -> Tag(type = x.type, name = x.name, url = x.url, count = 1) }
+                saveEditedMetadata(doujinDetails, tagList)
             } else {
                 Log.d("retrofit", "Can't find this sauce in NH.net")
             }
         }
     }
 
-    private fun getDataFromApi(fullTitle: String): Metadata? {
-        // Wraps query parameter with double quotes to perform exact search
-        try {
-            val response = nhService.getMetadata("\"" + fullTitle + "\"")
-                .execute()
-            return response.body()
-
-        } catch (e: IOException) {
-            Log.d("retrofit", e.message)
-            showToast("Failed to fetch metadata")
-
-            e.printStackTrace()
-        }
-        return null
-    }
-
     // Need this because we are running in non-UI thread
     private fun showToast(message: String) {
         val handler = Handler(Looper.getMainLooper())
         handler.post {
-            Toast.makeText(context, message, Toast.LENGTH_SHORT)
-                .show()
+            toast?.cancel()
+
+            toast = Toast.makeText(context, message, Toast.LENGTH_SHORT)
+            toast?.show()
         }
     }
 }

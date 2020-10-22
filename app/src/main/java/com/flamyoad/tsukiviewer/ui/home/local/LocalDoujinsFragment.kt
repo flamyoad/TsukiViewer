@@ -121,6 +121,8 @@ class LocalDoujinsFragment : BaseFragment(), ActionModeListener<Doujin> {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        initRecyclerView()
+
         if (savedInstanceState != null) {
             val shouldRestartActionMode = savedInstanceState.getBoolean(ACTION_MODE, false)
             if (shouldRestartActionMode) {
@@ -128,8 +130,6 @@ class LocalDoujinsFragment : BaseFragment(), ActionModeListener<Doujin> {
                 actionMode?.title = viewModel.selectedCount().toString() + " selected"
             }
         }
-
-        initRecyclerView()
 
         toast = Toast.makeText(context, "", Toast.LENGTH_LONG)
 

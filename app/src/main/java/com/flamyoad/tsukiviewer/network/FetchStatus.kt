@@ -4,6 +4,6 @@ enum class FetchStatus {
     SUCCESS,
     NO_MATCH,
     ALREADY_EXISTS,
-    IO_ERROR,
+    NETWORK_ERROR,
     NONE
 }

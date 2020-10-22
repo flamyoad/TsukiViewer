@@ -2,7 +2,6 @@ package com.flamyoad.tsukiviewer.ui.search
 
 import android.content.res.Configuration
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -13,7 +12,6 @@ import androidx.appcompat.view.ActionMode
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.ActionModeListener
@@ -47,16 +45,6 @@ class SearchResultActivity : AppCompatActivity(),
 
         initRecyclerView()
 
-        if (savedInstanceState != null) {
-            val shouldRestartActionMode = savedInstanceState.getBoolean(ACTION_MODE, false)
-            if (shouldRestartActionMode) {
-                startActionMode()
-                actionMode?.title = viewModel.selectedCount().toString() + " selected"
-            }
-
-            previousSearchQuery = savedInstanceState.getString(SEARCH_VIEW) ?: ""
-        }
-
         initToolbar()
 
         val title = intent.getStringExtra(SearchActivity.SEARCH_TITLE) ?: ""
@@ -66,7 +54,7 @@ class SearchResultActivity : AppCompatActivity(),
         viewModel.submitQuery(title, tags, includeAllTags)
 
         viewModel.snackbarText.observe(this, Observer { text ->
-            if (text.isNullOrBlank()) return@Observer
+            if (text.isBlank()) return@Observer
 
             Snackbar.make(parentLayout, text, Snackbar.LENGTH_LONG)
                 .show()
@@ -81,6 +69,15 @@ class SearchResultActivity : AppCompatActivity(),
 
         outState.putBoolean(ACTION_MODE, isInActionMode)
         outState.putString(SEARCH_VIEW, searchView?.query.toString())
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        val shouldRestartActionMode = savedInstanceState.getBoolean(ACTION_MODE, false)
+        if (shouldRestartActionMode) {
+            startActionMode()
+            actionMode?.title = viewModel.selectedCount().toString() + " selected"
+        }
+        previousSearchQuery = savedInstanceState.getString(SEARCH_VIEW) ?: ""
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -225,7 +222,8 @@ class SearchResultActivity : AppCompatActivity(),
                     val dialog = BookmarkGroupDialog.newInstance()
                     dialog.show(supportFragmentManager, ADD_BOOKMARK_DIALOG)
                 }
-                R.id.action_edit -> {}
+                R.id.action_edit -> {
+                }
 
                 R.id.action_select_all -> {
 

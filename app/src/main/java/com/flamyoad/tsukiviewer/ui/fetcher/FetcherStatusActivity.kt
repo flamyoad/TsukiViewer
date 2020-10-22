@@ -1,12 +1,11 @@
 package com.flamyoad.tsukiviewer.ui.fetcher
 
-import android.view.View
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -20,6 +19,8 @@ class FetcherStatusActivity : AppCompatActivity() {
 
     private var fetchService: FetchMetadataService? = null
 
+    private var connection: ServiceConnection? = null
+
     private val adapter = FetchHistoryAdapter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,6 +28,11 @@ class FetcherStatusActivity : AppCompatActivity() {
         setContentView(R.layout.activity_fetcher_status)
 
         doBindService()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        connection?.let { unbindService(it) }
     }
 
     private fun doBindService() {
@@ -42,7 +48,8 @@ class FetcherStatusActivity : AppCompatActivity() {
         }
 
         val bindIntent = Intent(this@FetcherStatusActivity, FetchMetadataService::class.java)
-        bindService(bindIntent, connection, Context.BIND_AUTO_CREATE)
+//        bindService(bindIntent, connection, Context.BIND_AUTO_CREATE)
+        bindService(bindIntent, connection, 0)
 
         initList()
     }
@@ -82,7 +89,7 @@ class FetcherStatusActivity : AppCompatActivity() {
             })
 
             service.currentItem().observe(this, Observer {
-                txtCurrentItem.text = it.name
+                txtCurrentItem.text = it.absolutePath
             })
         }
     }

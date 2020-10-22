@@ -4,8 +4,16 @@ import com.google.gson.annotations.SerializedName
 
 // List of POJOs required for Retrofit
 data class Metadata(
-    @SerializedName("result") val result: List<Result>
-)
+    @SerializedName("result") val result: List<Result>) {
+
+    fun getDoujinTitle(): String? {
+        return result.first().title.english
+    }
+
+    fun getTags(): List<Tags> {
+        return result.first().tags
+    }
+}
 
 data class Result(
     @SerializedName("id") val nukeCode: Int,

@@ -59,6 +59,8 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 
     private var loadingJob: Job? = null
 
+    private var shouldSendDirsToService: Boolean = false
+
     val snackbarText = MutableLiveData<String>("")
 
     val bookmarkGroupList: LiveData<List<BookmarkGroup>>
@@ -124,10 +126,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
                     (app as MyApplication).fullDoujinList = doujinListBuffer
                     isLoading.value = false
 
-                    val newListSize = doujinListBuffer.size
-//                    postRefreshResult(newListSize - prevListSize)
-
-                    if (fetchService != null) {
+                    if (shouldSendDirsToService) {
                         enqueueDirs()
                     }
                 }
@@ -207,34 +206,37 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
     // Todo: check which method inside is blocking UI thread
     fun fetchMetadataAll() {
         val context = app.applicationContext
-
         FetchMetadataService.startService(context)
 
-        serviceConnection = object : ServiceConnection {
-            override fun onServiceConnected(className: ComponentName?, service: IBinder?) {
-                fetchService = (service as FetchMetadataService.FetchBinder).getService()
-
-                // If all doujins have been loaded
-                if (isLoading.value == false) {
-                    enqueueDirs()
-                }
-            }
-
-            override fun onServiceDisconnected(className: ComponentName?) {
-                fetchService = null
-            }
+        if (isLoading.value == true) {
+            shouldSendDirsToService = true
+        } else {
+            enqueueDirs()
         }
-
-        val bindIntent = Intent(context, FetchMetadataService::class.java)
-        context.bindService(bindIntent, serviceConnection!!, Context.BIND_AUTO_CREATE)
     }
 
     private fun enqueueDirs() {
+        val context = app.applicationContext
+
         viewModelScope.launch(Dispatchers.Default) {
             val dirList = doujinListBuffer.map { x -> x.path }
 
             withContext(Dispatchers.Main) {
-                fetchService?.enqueueList(dirList)
+                serviceConnection = object : ServiceConnection {
+                    override fun onServiceConnected(className: ComponentName?, service: IBinder?) {
+                        fetchService = (service as FetchMetadataService.FetchBinder).getService()
+
+                        fetchService?.enqueueList(dirList)
+                        context.unbindService(this)
+                    }
+
+                    override fun onServiceDisconnected(className: ComponentName?) {
+                        fetchService = null
+                    }
+                }
+
+                val bindIntent = Intent(context, FetchMetadataService::class.java)
+                context.bindService(bindIntent, serviceConnection!!, Context.BIND_AUTO_CREATE)
             }
         }
     }
@@ -356,21 +358,8 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
         }
     }
 
-    private fun postRefreshResult(amountNewItems: Int) {
-        val message = if (amountNewItems < 0) {
-            "No new items found!"
-        } else if (amountNewItems > 1) {
-            "${amountNewItems} items are found!"
-        } else {
-            "${amountNewItems} item is found!"
-        }
-    }
-
     override fun onCleared() {
         super.onCleared()
-        serviceConnection?.let {
-            app.unbindService(it)
-        }
     }
 
 }
