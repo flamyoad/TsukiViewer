@@ -1,29 +1,56 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?><!--https://developer.android.com/guide/topics/ui/settings/organize-your-settings -->
 <androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <androidx.preference.SwitchPreference
-        android:key="pref_external_gallery_switch"
-        android:summary="Turn this on if you wish to read using external image viewers"
-        android:title="View using external application" />
+    <PreferenceCategory
+        app:icon="@drawable/ic_general_settings_24dp"
+        app:title="General">
+
+        <Preference
+            app:summary="Select folders to scan"
+            app:title="Included folders">
+
+            <intent
+                android:targetClass="com.flamyoad.tsukiviewer.ui.settings.includedfolders.IncludedFolderActivity"
+                android:targetPackage="com.flamyoad.tsukiviewer" />
+        </Preference>
+
+        <androidx.preference.SwitchPreference
+            app:key="pref_confirm_before_quit"
+            app:title="Show confirmation dialog before quitting" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:icon="@drawable/ic_chrome_reader_settings_24dp"
+        app:title="Reader">
+
+        <androidx.preference.SwitchPreference
+            app:key="pref_external_gallery_switch"
+            app:summary="Turn this on if you wish to read using external image viewers"
+            app:title="View using external application" />
+
+        <Preference
+            app:enabled="false"
+            app:key="pref_external_img_viewer"
+            app:title="Choose external image viewer" />
+
+    </PreferenceCategory>
 
     <Preference
-        android:enabled="false"
-        android:key="pref_external_img_viewer"
-        android:title="Choose external image viewer" />
-
-    <!--To make category slection, try to replace fragment on preference click -->
+        app:allowDividerAbove="true"
+        app:fragment="com.flamyoad.tsukiviewer.ui.settings.preferences.ClearDataPreferences"
+        app:icon="@drawable/ic_delete_settings_24dp"
+        app:title="Clear data" />
 
     <Preference
-        android:key="pref_included_folders"
-        android:summary="Select folders to scan"
-        android:title="Included folders">
+        app:allowDividerAbove="true"
+        app:allowDividerBelow="true"
+        app:fragment="com.flamyoad.tsukiviewer.ui.settings.preferences.AboutPreference"
+        app:icon="@drawable/ic_info_settings_24dp"
+        app:title="About" />
 
-        <intent
-            android:targetClass="com.flamyoad.tsukiviewer.ui.settings.includedfolders.IncludedFolderActivity"
-            android:targetPackage="com.flamyoad.tsukiviewer" />
-
-    </Preference>
 
 </androidx.preference.PreferenceScreen>

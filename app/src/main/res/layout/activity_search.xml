@@ -121,6 +121,7 @@
         android:insetTop="0dp"
         android:insetRight="0dp"
         android:insetBottom="0dp"
-        android:text="Search" />
+        android:text="Search"
+        app:cornerRadius="0dp" />
 
 </LinearLayout>

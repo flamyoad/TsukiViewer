@@ -2,7 +2,6 @@ package com.flamyoad.tsukiviewer.adapter
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,15 +12,10 @@ import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.target.Target
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.ui.reader.ReaderActivity
-import com.flamyoad.tsukiviewer.ui.settings.preferences.FolderPreferences
+import com.flamyoad.tsukiviewer.ui.settings.preferences.MainPreferences
 import java.io.File
 
 
@@ -63,7 +57,7 @@ class DoujinImagesAdapter(
             val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
 
             val shouldUseExternalApps =
-                prefs.getBoolean(FolderPreferences.USE_EXTERNAL_GALLERY, false)
+                prefs.getBoolean(MainPreferences.USE_EXTERNAL_GALLERY, false)
 
             if (shouldUseExternalApps) {
                 launchExternalGallery(context, image)
@@ -100,7 +94,7 @@ class DoujinImagesAdapter(
 
     private fun launchExternalGallery(context: Context, file: File) {
         val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
-        val packageName = prefs.getString(FolderPreferences.EXTERNAL_GALLERY_PKG_NAME, "")
+        val packageName = prefs.getString(MainPreferences.EXTERNAL_GALLERY_PKG_NAME, "")
 
         try {
             val intent = Intent()

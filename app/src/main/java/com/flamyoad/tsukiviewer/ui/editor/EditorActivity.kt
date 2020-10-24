@@ -53,7 +53,7 @@ class EditorActivity : AppCompatActivity(), CreateTagListener {
             }
 
             R.id.action_undo_edits -> {
-                popUndoStack()
+                viewModel.popUndo()
             }
 
             R.id.action_save_edits -> {
@@ -153,10 +153,6 @@ class EditorActivity : AppCompatActivity(), CreateTagListener {
         this.addView(chip)
 
         return chip
-    }
-
-    private fun popUndoStack() {
-        viewModel.popUndo()
     }
 
     override fun onTagCreated(name: String, category: String) {

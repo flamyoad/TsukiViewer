@@ -61,10 +61,10 @@ class ReaderActivity : AppCompatActivity(),
             }
         })
 
-        positionFromImageGrid =
-            intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
+        positionFromImageGrid = intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
 
-        setupReader(ReaderMode.VerticalStrip)
+        setupReader(viewModel.readerMode)
+
         initToolbar()
         initBottomThumbnails()
         initPageIndicator()
@@ -196,10 +196,20 @@ class ReaderActivity : AppCompatActivity(),
 
         val thumbnailLayoutManager = bottomListThumbnails.layoutManager as LinearLayoutManager
         thumbnailLayoutManager.scrollToPosition(adapterPosition)
+
+        hideReaderModeDialog()
+    }
+
+    // Triggers when user selects image in bottom dialog. We do not want the right side dialog to continue blocking the screen
+    private fun hideReaderModeDialog() {
+        val rightSlide = Slide(Gravity.END).apply {
+            addTarget(R.id.readerModeDialog)
+        }
+        TransitionManager.beginDelayedTransition(readerModeDialog, rightSlide)
+        readerModeDialog.visibility = View.GONE
     }
 
     override fun onPageChange(pageNum: Int) {
-        Log.d("readeractivity1", "Page Num: $pageNum")
         viewModel.currentImagePosition = pageNum
         setPageIndicatorNumber(pageNum + 1)
 

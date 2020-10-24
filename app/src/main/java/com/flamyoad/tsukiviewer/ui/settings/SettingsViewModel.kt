@@ -8,7 +8,7 @@ import android.content.pm.ResolveInfo
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.flamyoad.tsukiviewer.ui.settings.preferences.FolderPreferences
+import com.flamyoad.tsukiviewer.ui.settings.preferences.MainPreferences
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
     private val prefs: SharedPreferences
@@ -28,7 +28,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun setThirdPartyGallery(packageName: String) {
         prefs.edit()
-            .putString(FolderPreferences.EXTERNAL_GALLERY_PKG_NAME, packageName)
+            .putString(MainPreferences.EXTERNAL_GALLERY_PKG_NAME, packageName)
             .apply()
     }
 }

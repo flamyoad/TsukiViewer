@@ -51,6 +51,12 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
     private val sortMode = MutableLiveData<DoujinSortingMode>(DoujinSortingMode.NONE)
     fun sortMode(): LiveData<DoujinSortingMode> = sortMode.distinctUntilChanged()
 
+    val newGroupName = MutableLiveData<String>()
+
+    val groupNameIsUsed: LiveData<Boolean> = newGroupName.switchMap { name ->
+        return@switchMap bookmarkRepo.groupNameExists(name)
+    }
+
     private val imageExtensions = arrayOf("jpg", "png", "gif", "jpeg", "webp", "jpe", "bmp")
 
     private var fetchService: FetchMetadataService? = null
@@ -358,8 +364,10 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
         }
     }
 
-    override fun onCleared() {
-        super.onCleared()
+    fun createCollection(name: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            bookmarkRepo.insertGroup(BookmarkGroup(name))
+        }
     }
 
 }

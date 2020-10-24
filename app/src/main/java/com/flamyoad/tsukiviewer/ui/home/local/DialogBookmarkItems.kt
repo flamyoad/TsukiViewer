@@ -1,7 +1,6 @@
 package com.flamyoad.tsukiviewer.ui.home.local
 
 import android.app.Dialog
-import android.content.DialogInterface
 import android.graphics.Point
 import android.os.Bundle
 import android.view.Display
@@ -21,13 +20,7 @@ import com.flamyoad.tsukiviewer.ui.doujinpage.CollectionDialogListener
 import com.flamyoad.tsukiviewer.ui.doujinpage.CollectionListDialog
 import com.flamyoad.tsukiviewer.ui.doujinpage.DialogNewCollection
 
-class BookmarkGroupDialog : DialogFragment(), CollectionDialogListener {
-    companion object {
-        const val DEFAULT_COLLECTION_NAME = "Default Collection"
-        const val NEW_COLLECTION_DIALOG = "NEW_COLLECTION_DIALOG"
-
-        fun newInstance() = BookmarkGroupDialog()
-    }
+class DialogBookmarkItems : DialogFragment(), CollectionDialogListener {
 
     private val viewModel: LocalDoujinViewModel by activityViewModels()
 
@@ -71,6 +64,9 @@ class BookmarkGroupDialog : DialogFragment(), CollectionDialogListener {
 
             viewModel.insertItemIntoTickedCollections(bookmarkGroups)
             this.dismiss()
+
+            // Cancels action mode
+            (parentFragment as LocalDoujinsContextualListener).cancelActionMode()
         }
 
         btnCancel.setOnClickListener {
@@ -107,8 +103,16 @@ class BookmarkGroupDialog : DialogFragment(), CollectionDialogListener {
     override fun onAddCollectionClicked() {
         this.dismiss()
 
-        val dialog = DialogNewCollection()
-        dialog.show(parentFragmentManager, CollectionListDialog.NEW_COLLECTION_DIALOG)
+        val dialog = DialogNewGroup()
+        dialog.show(parentFragmentManager, DialogNewGroup.DIALOG_NEW_GROUP)
     }
+
+    companion object {
+        const val DEFAULT_COLLECTION_NAME = "Default Collection"
+        const val NEW_COLLECTION_DIALOG = "NEW_COLLECTION_DIALOG"
+
+        fun newInstance() = DialogBookmarkItems()
+    }
+
 
 }

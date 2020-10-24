@@ -49,8 +49,8 @@ class FolderPickerDialog : DialogFragment(),
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         if (savedInstanceState != null) {
-            val pathString = savedInstanceState.getString(CURRENT_PATH_STRING)
-            currentDir = File(pathString)
+            val path = savedInstanceState.getString(CURRENT_PATH_STRING)
+            currentDir = File(path ?: "")
         }
 
         val dialogBuilder = AlertDialog.Builder(requireActivity())

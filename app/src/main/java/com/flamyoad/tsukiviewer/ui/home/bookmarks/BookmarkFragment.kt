@@ -3,7 +3,6 @@ package com.flamyoad.tsukiviewer.ui.home.bookmarks
 import android.content.DialogInterface
 import android.content.res.Configuration
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -17,7 +16,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSnapHelper
 import com.flamyoad.tsukiviewer.ActionModeListener
 import com.flamyoad.tsukiviewer.BaseFragment
-
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.BookmarkGroupAdapter
 import com.flamyoad.tsukiviewer.adapter.BookmarkItemsAdapter
@@ -31,7 +29,9 @@ private const val ACTION_MODE = "action_mode"
 private const val SEARCH_VIEW = "search_view"
 
 class BookmarkFragment : BaseFragment(),
-    ActionModeListener<BookmarkItem>, SearchView.OnQueryTextListener {
+    DeleteItemsListener,
+    ActionModeListener<BookmarkItem>,
+    SearchView.OnQueryTextListener {
 
     private val viewModel: BookmarkViewModel by activityViewModels()
     private val groupAdapter = BookmarkGroupAdapter(this::onGroupChange, this::showNewGroupDialog)
@@ -187,7 +187,7 @@ class BookmarkFragment : BaseFragment(),
         }
 
         fab.setOnClickListener {
-            showNewGroupDialog()
+            listItems.scrollToPosition(0) // Scrolls to top
         }
     }
 
@@ -244,56 +244,18 @@ class BookmarkFragment : BaseFragment(),
         dialog.show()
     }
 
-    private fun showDeleteItemsDialog(mode: ActionMode?) {
-        val builder = AlertDialog.Builder(requireContext())
+    private fun showDeleteItemsDialog() {
+        val dialog = DialogDeleteItems.newInstance()
+        dialog.show(childFragmentManager, DIALOG_DELETE_ITEMS)
+    }
 
-        val count = viewModel.selectedBookmarkCount()
-        val title = if (count > 1)
-            "Remove $count bookmarks?"
-        else
-            "Remove $count bookmark?"
-
-        builder.apply {
-            setTitle(title)
-            setPositiveButton("Delete", DialogInterface.OnClickListener { dialog, which ->
-                viewModel.deleteItems()
-                mode?.finish()
-            })
-            setNegativeButton("Return", DialogInterface.OnClickListener { dialogInterface, i ->
-
-            })
-            setItems(
-                viewModel.selectedBookmarkNames(),
-                DialogInterface.OnClickListener { dialogInterface, i -> })
-        }
-
-        val dialog = builder.create()
-
-        dialog.listView.setOnItemClickListener { adapterView, view, i, l ->
-            // Does nothing. Replaces the default listener just to prevent the
-            // dialog from closing itself when clicking on one of the items
-        }
-
-        dialog.show()
+    override fun deleteItems() {
+        viewModel.deleteItems()
+        actionMode?.finish()
     }
 
     override fun getTitle(): String {
         return APPBAR_TITLE
-    }
-
-    companion object {
-        const val MENU_CHANGE_NAME = "Change Name"
-        const val MENU_DELETE_COLLECTION = "Delete Collection"
-
-        const val DIALOG_NEW_GROUP = "new_group_dialog"
-        const val DIALOG_CHANGE_NAME = "change_name_dialog"
-        const val DIALOG_DELETE_GROUP = "delete_group_dialog"
-
-        const val APPBAR_TITLE = "Bookmarks"
-
-        @JvmStatic
-        fun newInstance() =
-            BookmarkFragment()
     }
 
     override fun startActionMode() {
@@ -333,9 +295,8 @@ class BookmarkFragment : BaseFragment(),
     inner class ActionModeCallback : ActionMode.Callback {
         override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
             when (item?.itemId) {
-                R.id.action_delete -> showDeleteItemsDialog(mode)
+                R.id.action_delete -> showDeleteItemsDialog()
             }
-
             return true
         }
 
@@ -365,6 +326,21 @@ class BookmarkFragment : BaseFragment(),
 
             viewModel.clearSelectedBookmarks()
         }
+    }
 
+    companion object {
+        const val MENU_CHANGE_NAME = "Change Name"
+        const val MENU_DELETE_COLLECTION = "Delete Collection"
+
+        const val DIALOG_NEW_GROUP = "new_group_dialog"
+        const val DIALOG_CHANGE_NAME = "change_name_dialog"
+        const val DIALOG_DELETE_GROUP = "delete_group_dialog"
+        const val DIALOG_DELETE_ITEMS = "delete_items_dialog"
+
+        const val APPBAR_TITLE = "Bookmarks"
+
+        @JvmStatic
+        fun newInstance() =
+            BookmarkFragment()
     }
 }

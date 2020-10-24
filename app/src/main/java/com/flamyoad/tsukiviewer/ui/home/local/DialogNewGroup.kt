@@ -1,4 +1,4 @@
-package com.flamyoad.tsukiviewer.ui.home.bookmarks
+package com.flamyoad.tsukiviewer.ui.home.local
 
 import android.app.Dialog
 import android.content.DialogInterface
@@ -10,18 +10,17 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import com.flamyoad.tsukiviewer.R
+import com.flamyoad.tsukiviewer.ui.home.bookmarks.BookmarkViewModel
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 
-class DialogChangeGroupName: DialogFragment() {
-    private val viewModel: BookmarkViewModel by activityViewModels()
+class DialogNewGroup: DialogFragment() {
+    private val viewModel: LocalDoujinViewModel by activityViewModels()
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val oldName = requireArguments().getString(COLLECTION_NAME)
-
         val builder = AlertDialog.Builder(requireContext())
 
-        val view = layoutInflater.inflate(R.layout.dialog_add_collection, null, false)
+        val view = layoutInflater.inflate(R.layout.dialog_add_collection,null , false)
 
         val fieldName: TextInputEditText = view.findViewById(R.id.fieldName)
         val fieldLayout: TextInputLayout = view.findViewById(R.id.fieldNameLayout)
@@ -36,19 +35,15 @@ class DialogChangeGroupName: DialogFragment() {
             }
         })
 
-        builder.setTitle(oldName)
+        builder.setTitle("Create new collection")
         builder.setView(view)
         builder.setNegativeButton("Return", DialogInterface.OnClickListener { dialogInterface, i ->
             viewModel.newGroupName.value = ""
         })
 
         builder.setPositiveButton("Ok", DialogInterface.OnClickListener { dialogInterface, i ->
-            if (oldName.isNullOrBlank()) {
-                return@OnClickListener
-            }
-
-            val newName = fieldName.text.toString()
-            viewModel.changeGroupName(oldName, newName)
+            val name = fieldName.text.toString()
+            viewModel.createCollection(name)
             viewModel.newGroupName.value = ""
         })
 
@@ -70,18 +65,14 @@ class DialogChangeGroupName: DialogFragment() {
         return dialog
     }
 
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        viewModel.newGroupName.value = ""
+    }
+
     companion object {
-        const val COLLECTION_NAME = "collection_name"
-
-        fun newInstance(name: String): DialogChangeGroupName {
-            val bundle = Bundle()
-            bundle.putString(COLLECTION_NAME, name)
-
-            val dialog =
-                DialogChangeGroupName()
-            dialog.arguments = bundle
-
-            return dialog
-        }
+        const val DIALOG_NEW_GROUP = "dialog_new_group"
+        fun newInstance() =
+            DialogNewGroup()
     }
 }

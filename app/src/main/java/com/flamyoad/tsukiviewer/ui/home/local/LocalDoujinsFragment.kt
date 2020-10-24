@@ -32,7 +32,10 @@ private const val ACTION_MODE = "action_mode"
 private const val ADD_BOOKMARK_DIALOG = "add_bookmark_dialog"
 
 // onResume() is called after onActivityCreated() in Fragment
-class LocalDoujinsFragment : BaseFragment(), ActionModeListener<Doujin> {
+class LocalDoujinsFragment : BaseFragment(),
+    ActionModeListener<Doujin>,
+    LocalDoujinsContextualListener {
+
     private val viewModel: LocalDoujinViewModel by activityViewModels()
 
     private var adapter = LocalDoujinsAdapter(this)
@@ -264,7 +267,7 @@ class LocalDoujinsFragment : BaseFragment(), ActionModeListener<Doujin> {
         override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
             when (item?.itemId) {
                 R.id.action_bookmark -> {
-                    val dialog = BookmarkGroupDialog.newInstance()
+                    val dialog = DialogBookmarkItems.newInstance()
                     dialog.show(childFragmentManager, ADD_BOOKMARK_DIALOG)
                 }
                 R.id.action_edit -> {}
@@ -319,6 +322,11 @@ class LocalDoujinsFragment : BaseFragment(), ActionModeListener<Doujin> {
 
         actionMode?.title = count.toString() + " selected"
         actionMode?.invalidate()
+    }
+
+    override fun cancelActionMode() {
+        actionMode?.finish()
+        viewModel.clearSelectedDoujins()
     }
 
 }

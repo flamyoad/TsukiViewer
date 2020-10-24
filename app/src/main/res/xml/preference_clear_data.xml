@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+    <Preference
+        android:title="Clear image cache"
+        app:allowDividerBelow="true"
+        app:iconSpaceReserved="false"
+        tools:summary="24.5 MB" />
+
+    <Preference
+        android:summary="Metadata of all doujins will be cleared"
+        android:title="Clear all metadata"
+        app:allowDividerAbove="true"
+        app:allowDividerBelow="true"
+        app:iconSpaceReserved="false" />
+
+    <Preference
+        android:summary="All tags will be cleared"
+        android:title="Clear all tags"
+        app:allowDividerAbove="true"
+        app:allowDividerBelow="true"
+        app:iconSpaceReserved="false">
+
+    </Preference>
+
+</androidx.preference.PreferenceScreen>

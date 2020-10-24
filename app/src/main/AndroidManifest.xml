@@ -52,7 +52,8 @@
 
         <activity
             android:name=".ui.settings.SettingsActivity"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/SettingsTheme"/>
 
         <activity
             android:name=".MainActivity">

@@ -8,6 +8,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.flamyoad.tsukiviewer.db.dao.*
 import com.flamyoad.tsukiviewer.model.*
+import com.flamyoad.tsukiviewer.model.Collection
 
 const val DATABASE_NAME = "com.flamyoad.android.tsukiviewer.AppDatabase"
 
@@ -19,8 +20,9 @@ const val DATABASE_NAME = "com.flamyoad.android.tsukiviewer.AppDatabase"
     IncludedFolder::class,
     BookmarkGroup::class,
     BookmarkItem::class,
-    SearchHistory::class
-    ), version = 2)
+    SearchHistory::class,
+    Collection::class
+    ), version = 3)
 
 abstract class AppDatabase: RoomDatabase() {
 
@@ -43,13 +45,19 @@ abstract class AppDatabase: RoomDatabase() {
             }
         }
 
+        val MIGRATION_2_3 = object: Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("CREATE TABLE IF NOT EXISTS `collection` (`id` INTEGER, `title` TEXT NOT NULL, `tags` TEXT NOT NULL, `coverPhoto` TEXT NOT NULL, PRIMARY KEY(`id`))")
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
                     DATABASE_NAME)
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .build()
 
                 INSTANCE = instance

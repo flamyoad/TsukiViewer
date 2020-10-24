@@ -17,6 +17,25 @@ import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.GalleryPickerAdapter
 
+/*
+CanaryLeak report:
+
+Leak pattern: instance field android.os.Message#obj
+├─ android.os.MessageQueue instance
+├─ android.os.Message instance
+├─ android.os.Message instance
+├─ android.os.Message instance
+├─ android.os.Message instance
+├─ android.os.Message instance
+│    Library leak match: instance field android.os.Message#obj
+Leak pattern: instance field android.os.Message#obj
+├─ android.os.Message instance
+│    Library leak match: instance field android.os.Message#obj
+Leak pattern: instance field android.os.Message#obj
+├─ android.os.Message instance
+│    Library leak match: instance field android.os.Message#obj
+
+ */
 class GalleryAppPickerDialog() : DialogFragment() {
 
     private val viewModel: SettingsViewModel by activityViewModels()
@@ -59,7 +78,7 @@ class GalleryAppPickerDialog() : DialogFragment() {
 
         val adapter = GalleryPickerAdapter {
             viewModel.setThirdPartyGallery(it)
-            dialog?.dismiss()
+            dismiss()
         }
 
         val linearLayoutManager =
@@ -78,3 +97,4 @@ class GalleryAppPickerDialog() : DialogFragment() {
         fun newInstance() = GalleryAppPickerDialog()
     }
 }
+

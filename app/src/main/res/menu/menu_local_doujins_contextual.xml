@@ -6,9 +6,9 @@
         android:icon="@drawable/ic_bookmark_white_24dp"
         app:showAsAction="always"/>
 
-    <item android:id="@+id/action_edit"
-        android:title="Edit"
-        android:icon="@drawable/ic_edit_white_24dp"
-        app:showAsAction="always"/>
+<!--    <item android:id="@+id/action_edit"-->
+<!--        android:title="Edit"-->
+<!--        android:icon="@drawable/ic_edit_white_24dp"-->
+<!--        app:showAsAction="always"/>-->
 
 </menu>

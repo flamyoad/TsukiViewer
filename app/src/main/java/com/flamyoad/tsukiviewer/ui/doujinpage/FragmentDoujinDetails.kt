@@ -1,11 +1,13 @@
 package com.flamyoad.tsukiviewer.ui.doujinpage
 
+import android.graphics.Typeface
 import android.os.Bundle
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.app.ActivityOptionsCompat
-import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
@@ -13,18 +15,15 @@ import com.bumptech.glide.Glide
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinTagsAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
+import com.flamyoad.tsukiviewer.model.DoujinDetails
 import com.flamyoad.tsukiviewer.model.DoujinDetailsWithTags
 import com.flamyoad.tsukiviewer.utils.TimeUtils
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
-import com.google.android.flexbox.FlexboxItemDecoration
 import com.google.android.flexbox.FlexboxLayoutManager
 import kotlinx.android.synthetic.main.doujin_details_tags_group.*
 import kotlinx.android.synthetic.main.fragment_doujin_details.*
-import org.threeten.bp.Instant
-import org.threeten.bp.ZoneId
 import java.io.File
-import java.util.*
 
 private const val COLLECTION_DIALOG_TAG = "collection_dialog"
 
@@ -59,13 +58,14 @@ class FragmentDoujinDetails : Fragment() {
             val currentPath = requireActivity().intent
                 .getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
 
-            val dir = File(currentPath)
+            val dir = File(currentPath ?: "")
 
             txtDirectory.text = dir.absolutePath
             txtDateModified.text = TimeUtils.getReadableDate(dir.lastModified())
 
             if (it == null) {
-                setDefaultToolbarText(dir)
+                // Show directory name if metadata not yet obtained from API
+                txtTitleEng.text = dir.name
 
                 // Hides the tag group in case the user deletes the title & tags
                 tagGroup.visibility = View.GONE
@@ -87,13 +87,8 @@ class FragmentDoujinDetails : Fragment() {
         }
     }
 
-    // Show directory name if metadata not yet obtained from API
-    private fun setDefaultToolbarText(dir: File) {
-        txtTitleEng.text = dir.name
-    }
-
     private fun initDoujinDetails(item: DoujinDetailsWithTags) {
-        txtTitleEng.text = item.doujinDetails.fullTitleEnglish
+        initColoredEnglishTitle(item.doujinDetails)
 
         txtTitleJap.text = item.doujinDetails.fullTitleJapanese
 
@@ -138,6 +133,32 @@ class FragmentDoujinDetails : Fragment() {
             // Disables scrolling of the recyclerviews
             recyclerView?.suppressLayout(true)
         }
+    }
+
+    private fun initColoredEnglishTitle(doujinDetails: DoujinDetails) {
+        val fullTitleEnglish = doujinDetails.fullTitleEnglish
+        val shortTitleEnglish = doujinDetails.shortTitleEnglish
+
+        // No need to prettify the title if short title does not exist
+        if (shortTitleEnglish.isBlank()) {
+            txtTitleEng.text = doujinDetails.fullTitleEnglish
+            return
+        }
+
+        val indexOfShortTitle = fullTitleEnglish.indexOf(shortTitleEnglish)
+        val indexAfterShortTitle = indexOfShortTitle + shortTitleEnglish.length
+
+        val coloredTitle = SpannableString(fullTitleEnglish)
+        coloredTitle.apply {
+            setSpan(
+                StyleSpan(Typeface.BOLD),
+                indexOfShortTitle,
+                +indexAfterShortTitle,
+                Spannable.SPAN_INCLUSIVE_INCLUSIVE
+            )
+        }
+
+        txtTitleEng.text = coloredTitle
     }
 
     private fun openCollectionDialog() {

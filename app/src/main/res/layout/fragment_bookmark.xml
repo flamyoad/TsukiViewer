@@ -66,7 +66,7 @@
         android:layout_margin="16dp"
         android:layout_gravity="end|bottom"
         app:backgroundTint="@color/nh_favourite_button_pink"
-        app:srcCompat="@drawable/ic_add_white_24dp"
+        app:srcCompat="@drawable/ic_keyboard_arrow_up_white_24dp"
         app:tint="@android:color/white" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
