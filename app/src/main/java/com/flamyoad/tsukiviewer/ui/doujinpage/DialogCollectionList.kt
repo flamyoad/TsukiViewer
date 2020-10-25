@@ -18,7 +18,7 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.CollectionPickerAdapter
 import com.flamyoad.tsukiviewer.model.BookmarkGroup
 
-class CollectionListDialog: DialogFragment(), CollectionDialogListener {
+class DialogCollectionList: DialogFragment(), CollectionDialogListener {
     private val viewModel: DoujinViewModel by activityViewModels()
 
     companion object {

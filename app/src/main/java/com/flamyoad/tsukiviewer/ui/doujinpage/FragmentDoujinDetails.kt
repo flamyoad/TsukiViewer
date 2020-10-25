@@ -5,9 +5,7 @@ import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.StyleSpan
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
@@ -37,8 +35,14 @@ class FragmentDoujinDetails : Fragment() {
         return inflater.inflate(R.layout.fragment_doujin_details, container, false)
     }
 
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.menu_doujin_details_main, menu)
+    }
+
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        setHasOptionsMenu(true)
         initUi()
     }
 
@@ -148,6 +152,12 @@ class FragmentDoujinDetails : Fragment() {
         val indexOfShortTitle = fullTitleEnglish.indexOf(shortTitleEnglish)
         val indexAfterShortTitle = indexOfShortTitle + shortTitleEnglish.length
 
+        // If the short title is not found inside full title. Then we don't have to prettify it.
+        if (indexOfShortTitle == -1) {
+            txtTitleEng.text = doujinDetails.fullTitleEnglish
+            return
+        }
+
         val coloredTitle = SpannableString(fullTitleEnglish)
         coloredTitle.apply {
             setSpan(
@@ -162,7 +172,7 @@ class FragmentDoujinDetails : Fragment() {
     }
 
     private fun openCollectionDialog() {
-        val dialog = CollectionListDialog()
+        val dialog = DialogCollectionList()
         dialog.show(childFragmentManager, COLLECTION_DIALOG_TAG)
     }
 

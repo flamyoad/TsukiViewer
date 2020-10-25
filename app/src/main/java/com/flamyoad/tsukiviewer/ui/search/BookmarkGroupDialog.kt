@@ -1,7 +1,6 @@
 package com.flamyoad.tsukiviewer.ui.search
 
 import android.app.Dialog
-import android.content.DialogInterface
 import android.graphics.Point
 import android.os.Bundle
 import android.view.Display
@@ -18,7 +17,7 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.CollectionPickerAdapter
 import com.flamyoad.tsukiviewer.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.ui.doujinpage.CollectionDialogListener
-import com.flamyoad.tsukiviewer.ui.doujinpage.CollectionListDialog
+import com.flamyoad.tsukiviewer.ui.doujinpage.DialogCollectionList
 import com.flamyoad.tsukiviewer.ui.doujinpage.DialogNewCollection
 
 class BookmarkGroupDialog : DialogFragment(), CollectionDialogListener {
@@ -105,7 +104,7 @@ class BookmarkGroupDialog : DialogFragment(), CollectionDialogListener {
         this.dismiss()
 
         val dialog = DialogNewCollection()
-        dialog.show(parentFragmentManager, CollectionListDialog.NEW_COLLECTION_DIALOG)
+        dialog.show(parentFragmentManager, DialogCollectionList.NEW_COLLECTION_DIALOG)
     }
 
 }

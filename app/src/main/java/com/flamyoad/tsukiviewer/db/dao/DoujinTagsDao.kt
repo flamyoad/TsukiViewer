@@ -22,4 +22,7 @@ interface DoujinTagsDao {
         WHERE tagId IN (SELECT tagId FROM doujin_tags WHERE doujinId = :doujinId)
     """)
     suspend fun decrementTagCount(doujinId: Long)
+
+    @Query("DELETE FROM doujin_tags")
+    suspend fun deleteAll()
 }

@@ -3,6 +3,7 @@ package com.flamyoad.tsukiviewer.ui.settings.preferences
 import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.fragment.app.activityViewModels
+import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
@@ -12,11 +13,6 @@ import com.flamyoad.tsukiviewer.ui.settings.GalleryAppPickerDialog
 import com.flamyoad.tsukiviewer.ui.settings.SettingsViewModel
 
 class MainPreferences : PreferenceFragmentCompat(), SharedPreferences.OnSharedPreferenceChangeListener {
-    companion object {
-        const val USE_EXTERNAL_GALLERY = "use_external_gallery"
-        const val EXTERNAL_GALLERY_PKG_NAME = "external_gallery_package_name"
-    }
-
     private val viewModel: SettingsViewModel by activityViewModels()
 
     private lateinit var appPreference: MyAppPreference
@@ -24,6 +20,7 @@ class MainPreferences : PreferenceFragmentCompat(), SharedPreferences.OnSharedPr
 
     private var externalGallerySwitch: SwitchPreference? = null
     private var externalGalleryPicker: Preference? = null
+    private var gridViewStyle: ListPreference? = null
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preference_main, rootKey)
@@ -69,6 +66,15 @@ class MainPreferences : PreferenceFragmentCompat(), SharedPreferences.OnSharedPr
                 externalGalleryPicker?.summary = prefs?.getString(key, "")
             }
         }
+    }
+
+    companion object {
+        const val USE_EXTERNAL_GALLERY = "pref_external_gallery_switch"
+        const val EXTERNAL_GALLERY_PKG_NAME = "external_gallery_package_name"
+        const val DEFAULT_GRID_VIEW_STYLE= "pref_grid_view_style"
+        const val CONFIRM_BEFORE_QUIT = "pref_confirm_before_quit"
+        const val DEFAULT_READER_MODE = "pref_reader_mode"
+        const val USE_WINDOWS_EXPLORER_SORT = "pref_use_windows_explorer_sort"
     }
 }
 

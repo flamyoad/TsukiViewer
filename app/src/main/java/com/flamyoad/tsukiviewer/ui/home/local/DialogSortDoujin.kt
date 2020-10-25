@@ -12,7 +12,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import com.flamyoad.tsukiviewer.R
 
-class SortDoujinDialog : DialogFragment() {
+class DialogSortDoujin : DialogFragment() {
 
     private val viewModel: LocalDoujinViewModel by activityViewModels()
 
@@ -60,7 +60,7 @@ class SortDoujinDialog : DialogFragment() {
     }
 
     companion object {
-        fun newInstance() = SortDoujinDialog().apply {
+        fun newInstance() = DialogSortDoujin().apply {
             arguments = Bundle().apply {
 
             }

@@ -14,22 +14,22 @@
         app:showAsAction="always"
         android:orderInCategory="101"/>
 
-    <item android:id="@+id/action_mode"
-        android:title="Mode"
-        app:showAsAction="never"
-        android:orderInCategory="102">
+<!--    <item android:id="@+id/action_mode"-->
+<!--        android:title="Mode"-->
+<!--        app:showAsAction="never"-->
+<!--        android:orderInCategory="102">-->
 
-        <menu>
-            <item android:id="@+id/action_switch_to_grid"
-                android:title="Grid"/>
+<!--        <menu>-->
+<!--            <item android:id="@+id/action_switch_to_grid"-->
+<!--                android:title="Grid"/>-->
 
-            <item android:id="@+id/action_switch_to_scaled"
-                android:title="Scaled"/>
+<!--            <item android:id="@+id/action_switch_to_scaled"-->
+<!--                android:title="Scaled"/>-->
 
-            <item android:id="@+id/action_switch_to_row"
-                android:title="Row"/>
-        </menu>
-    </item>
+<!--            <item android:id="@+id/action_switch_to_row"-->
+<!--                android:title="Row"/>-->
+<!--        </menu>-->
+<!--    </item>-->
 
     <item android:id="@+id/action_open_in_browser"
         android:title="Open in browser"

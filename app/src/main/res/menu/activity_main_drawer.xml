@@ -14,7 +14,7 @@
             android:title="Bookmarks"/>
         <item
             android:id="@+id/nav_tags"
-            android:icon="@drawable/ic_cast_connected_gray_24dp"
+            android:icon="@drawable/ic_widgets_white_24dp"
             android:title="Tags"/>
         <item
             android:id="@+id/nav_settings"

@@ -4,11 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
-import androidx.core.app.ActivityOptionsCompat
+import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
@@ -30,6 +26,8 @@ const val ROW_ITEM_SPAN = 1
 
 const val IMAGE_POSITION_REQUEST_CODE = 100
 
+const val DIALOG_VIEW_STYLE = "dialog_view_style"
+
 class FragmentGridImages : Fragment() {
     private val viewModel by activityViewModels<DoujinViewModel>()
 
@@ -41,7 +39,6 @@ class FragmentGridImages : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
     }
 
     override fun onResume() {
@@ -56,20 +53,51 @@ class FragmentGridImages : Fragment() {
         return inflater.inflate(R.layout.fragment_grid_images, container, false)
     }
 
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.menu_doujin_detail_imagegrid, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.action_view_grid -> {
+                val fragment = DialogViewStyle.newInstance()
+                fragment.show(childFragmentManager, DIALOG_VIEW_STYLE)
+            }
+        }
+        return true
+    }
+
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        setHasOptionsMenu(true)
 
         val dirPath = requireActivity()
             .intent
-            .getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
-
-        setListToScaled(dirPath)
+            .getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH) ?: ""
 
         viewModel.directoryNoLongerExists().observe(viewLifecycleOwner, Observer { notExists ->
             if (notExists) {
                 // this line doesnt work lul.
                 adapter.setList(emptyList()) // Removes existing list if directory is removed/renamed
             }
+        })
+
+        viewModel.gridViewStyle().observe(viewLifecycleOwner, Observer { style ->
+            when (style) {
+                GridViewStyle.Grid -> setListToGrid(dirPath)
+                GridViewStyle.Scaled -> setListToScaled(dirPath)
+                GridViewStyle.Row -> setListToRow(dirPath)
+                GridViewStyle.List -> setListToList(dirPath)
+                else -> {}
+            }
+
+            if (this::gridLayoutManager.isInitialized) {
+                // Gets the current item position before replacing the adapter
+                val currentPosition = gridLayoutManager.findFirstVisibleItemPosition()
+                gridLayoutManager.scrollToPosition(currentPosition)
+            }
+
         })
     }
 
@@ -88,34 +116,6 @@ class FragmentGridImages : Fragment() {
                 }
             }
         }
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val dirPath = requireActivity()
-            .intent
-            .getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
-
-        // Gets the current item position before replacing the adapter
-        val currentPosition = gridLayoutManager.findFirstVisibleItemPosition()
-
-        // Replaces the current adapter and layout manager with new ones
-        when (item.itemId) {
-            R.id.action_switch_to_grid -> {
-                setListToGrid(dirPath)
-                gridLayoutManager.scrollToPosition(currentPosition) // If we put this method outside of the block, it will be triggered on the parent menuItem click.
-            }
-
-            R.id.action_switch_to_scaled -> {
-                setListToScaled(dirPath)
-                gridLayoutManager.scrollToPosition(currentPosition)
-            }
-
-            R.id.action_switch_to_row -> {
-                setListToRow(dirPath)
-                gridLayoutManager.scrollToPosition(currentPosition)
-            }
-        }
-        return true
     }
 
     private fun setListToGrid(dirPath: String) {
@@ -138,6 +138,10 @@ class FragmentGridImages : Fragment() {
 
     private fun setListToRow(dirPath: String) {
         setupRecyclerview(dirPath, ItemType.Row, ROW_ITEM_SPAN)
+    }
+
+    fun setListToList(dirPath: String) {
+        setupRecyclerview(dirPath, ItemType.List, ROW_ITEM_SPAN)
     }
 
     private fun setupRecyclerview(dirPath: String, type: ItemType, spanCount: Int) {

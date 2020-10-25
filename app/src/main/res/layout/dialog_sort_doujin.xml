@@ -51,13 +51,13 @@
             <ImageView
                 android:id="@+id/btnSortDateDesc"
                 style="@style/doujin_sort_item_style"
-                android:src="@drawable/ic_sort_amount_up_alt_solid" />
+                android:src="@drawable/ic_sort_numeric_up_solid" />
 
 
             <ImageView
                 android:id="@+id/btnSortDateAsc"
                 style="@style/doujin_sort_item_style"
-                android:src="@drawable/ic_sort_amount_down_alt_solid" />
+                android:src="@drawable/ic_sort_numeric_down_solid" />
 
         </LinearLayout>
 
@@ -103,14 +103,14 @@
             <ImageView
                 android:id="@+id/btnPagesDesc"
                 style="@style/doujin_sort_item_style"
-                android:src="@drawable/ic_sort_numeric_up_solid"
+                android:src="@drawable/ic_sort_amount_up_alt_solid"
                 />
 
 
             <ImageView
                 android:id="@+id/btnPagesAsc"
                 style="@style/doujin_sort_item_style"
-                android:src="@drawable/ic_sort_numeric_down_solid" />
+                android:src="@drawable/ic_sort_amount_down_alt_solid" />
 
         </LinearLayout>
 

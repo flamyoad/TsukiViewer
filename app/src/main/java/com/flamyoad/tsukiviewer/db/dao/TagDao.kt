@@ -13,6 +13,9 @@ interface TagDao {
     @Insert
     suspend fun insert(tag: Tag): Long
 
+    @Query("DELETE FROM tags")
+    suspend fun deleteAll()
+
     @Query("SELECT * FROM tags ORDER BY name")
     fun getAll(): LiveData<List<Tag>>
 

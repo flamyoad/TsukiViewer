@@ -14,11 +14,16 @@ import com.flamyoad.tsukiviewer.ActionModeListener
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.ui.doujinpage.DoujinDetailsActivity
+import com.flamyoad.tsukiviewer.ui.settings.includedfolders.IncludedFolderActivity
+import com.flamyoad.tsukiviewer.utils.EmptyViewHolder
 import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
 
 
+const val EMPTY_LIST_INDICATOR = 0
+const val LIST_ITEM = 1
+
 class LocalDoujinsAdapter(private val listener: ActionModeListener<Doujin>) :
-    RecyclerView.Adapter<LocalDoujinsAdapter.DoujinViewHolder>(),
+    RecyclerView.Adapter<RecyclerView.ViewHolder>(),
     RecyclerViewFastScroller.OnPopupTextUpdate {
 
     companion object {
@@ -30,68 +35,101 @@ class LocalDoujinsAdapter(private val listener: ActionModeListener<Doujin>) :
 
     var actionModeEnabled: Boolean = false
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DoujinViewHolder {
-        val layout = LayoutInflater.from(parent.context)
-            .inflate(R.layout.doujin_list_item, parent, false)
-        val holder = DoujinViewHolder(layout)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        val inflater = LayoutInflater.from(parent.context)
+        when (viewType) {
+            EMPTY_LIST_INDICATOR -> {
+                val layout = inflater.inflate(R.layout.doujin_list_empty_indicator, parent, false)
+                val holder = EmptyViewHolder(layout)
 
-        layout.setOnClickListener {
-            val context = parent.context
-            val adapterPosition = holder.adapterPosition
+                layout.setOnClickListener {
+                    val context = parent.context
+                    val intent = Intent(context, IncludedFolderActivity::class.java)
 
-            // Sometiems return -1 after we include new directory and the recyclerview gets invalidated
-            if (adapterPosition == RecyclerView.NO_POSITION) {
-                return@setOnClickListener
-            }
-
-            val doujin = doujinList[adapterPosition]
-
-            when (actionModeEnabled) {
-                true -> {
-                    listener.onMultiSelectionClick(doujin)
-                }
-                false -> {
-                    val intent = Intent(context, DoujinDetailsActivity::class.java).apply {
-                        putExtra(DOUJIN_FILE_PATH, doujin.path.toString())
-                        putExtra(DOUJIN_NAME, doujin.title)
-                    }
                     context.startActivity(intent)
                 }
+
+                return holder
             }
+
+            LIST_ITEM -> {
+                val layout = inflater.inflate(R.layout.doujin_list_item, parent, false)
+                val holder = DoujinViewHolder(layout)
+
+                layout.setOnClickListener {
+                    val context = parent.context
+                    val adapterPosition = holder.adapterPosition
+
+                    // Sometiems return -1 after we include new directory and the recyclerview gets invalidated
+                    if (adapterPosition == RecyclerView.NO_POSITION) {
+                        return@setOnClickListener
+                    }
+
+                    val doujin = doujinList[adapterPosition]
+
+                    when (actionModeEnabled) {
+                        true -> {
+                            listener.onMultiSelectionClick(doujin)
+                        }
+                        false -> {
+                            val intent = Intent(context, DoujinDetailsActivity::class.java).apply {
+                                putExtra(DOUJIN_FILE_PATH, doujin.path.toString())
+                                putExtra(DOUJIN_NAME, doujin.title)
+                            }
+                            context.startActivity(intent)
+                        }
+                    }
+                }
+
+                layout.setOnLongClickListener {
+                    val adapterPosition = holder.adapterPosition
+                    if (adapterPosition == RecyclerView.NO_POSITION) {
+                        return@setOnLongClickListener true
+                    }
+
+                    if (!actionModeEnabled) {
+                        val zoomIn = AnimationUtils.loadAnimation(it.context, R.anim.doujin_img_zoom_in)
+                        val zoomOut = AnimationUtils.loadAnimation(it.context, R.anim.doujin_img_zoom_out)
+
+                        val coverImage: ImageView = it.findViewById(R.id.imgCover)
+
+                        coverImage.startAnimation(zoomIn)
+                        listener.startActionMode()
+                        coverImage.startAnimation(zoomOut)
+                    }
+
+                    val item = doujinList[adapterPosition]
+
+                    listener.onMultiSelectionClick(item)
+                    return@setOnLongClickListener true
+                }
+                return holder
+            }
+
+            else -> throw IllegalArgumentException("View type doesn't exist")
         }
-
-        layout.setOnLongClickListener {
-            val adapterPosition = holder.adapterPosition
-            if (adapterPosition == RecyclerView.NO_POSITION) {
-                return@setOnLongClickListener true
-            }
-
-            if (!actionModeEnabled) {
-                val zoomIn = AnimationUtils.loadAnimation(it.context, R.anim.doujin_img_zoom_in)
-                val zoomOut = AnimationUtils.loadAnimation(it.context, R.anim.doujin_img_zoom_out)
-
-                val coverImage: ImageView = it.findViewById(R.id.imgCover)
-
-                coverImage.startAnimation(zoomIn)
-                listener.startActionMode()
-                coverImage.startAnimation(zoomOut)
-            }
-
-            val item = doujinList[adapterPosition]
-
-            listener.onMultiSelectionClick(item)
-            return@setOnLongClickListener true
-        }
-
-        return holder
     }
 
     override fun getItemCount(): Int {
-        return doujinList.size
+        if (doujinList.isEmpty()) {
+            return 1
+        } else {
+            return doujinList.size
+        }
     }
 
-    override fun onBindViewHolder(holder: DoujinViewHolder, position: Int) {
-        holder.bind(doujinList[holder.adapterPosition])
+    override fun getItemViewType(position: Int): Int {
+        if (doujinList.isEmpty()) {
+            return EMPTY_LIST_INDICATOR
+        } else {
+            return LIST_ITEM
+        }
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        when (holder.itemViewType) {
+            LIST_ITEM -> (holder as DoujinViewHolder).bind(doujinList[holder.adapterPosition])
+        }
     }
 
     fun setList(list: List<Doujin>) {
@@ -102,6 +140,10 @@ class LocalDoujinsAdapter(private val listener: ActionModeListener<Doujin>) :
     //java.lang.NullPointerException: Attempt to invoke virtual method 'java.io.File com.flamyoad.tsukiviewer.model.Doujin.getPath()' on a null object reference
 //    at com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter.getItemId(LocalDoujinsAdapter.kt:82)
     override fun getItemId(position: Int): Long {
+        if (doujinList.isEmpty()) {
+            return 0
+        }
+
         val pathName = doujinList[position].path.toString()
         return pathName.hashCode().toLong()
     }
@@ -139,6 +181,10 @@ class LocalDoujinsAdapter(private val listener: ActionModeListener<Doujin>) :
     }
 
     override fun onChange(position: Int): CharSequence {
+        if (doujinList.isEmpty()) {
+            return ""
+        }
+
         val doujin = doujinList[position]
         return doujin.title
     }

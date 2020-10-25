@@ -4,20 +4,17 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.view.Menu
 import android.view.MenuItem
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
+import androidx.viewpager.widget.ViewPager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinPagerAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.network.FetchMetadataService
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
-import com.flamyoad.tsukiviewer.utils.snackbar
 import com.flamyoad.tsukiviewer.utils.toast
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_doujin_details.*
@@ -31,7 +28,7 @@ class DoujinDetailsActivity : AppCompatActivity() {
         setContentView(R.layout.activity_doujin_details)
 
         handleIntent()
-        initTabLayout()
+        initViewPager()
         initToolbar()
 
         viewModel.snackbarText.observe(this, Observer { text ->
@@ -51,11 +48,6 @@ class DoujinDetailsActivity : AppCompatActivity() {
                 finish()
             }
         })
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu_doujin_details, menu)
-        return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
@@ -95,14 +87,24 @@ class DoujinDetailsActivity : AppCompatActivity() {
     }
 
     private fun handleIntent() {
-        val dirPath = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
+        val dirPath = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH) ?: ""
         viewModel.scanForImages(dirPath)
     }
 
-    private fun initTabLayout() {
+    private fun initViewPager() {
         val adapterViewPager = DoujinPagerAdapter(supportFragmentManager)
         viewpager.adapter = adapterViewPager
         tabLayout.setupWithViewPager(viewpager)
+
+        viewpager.addOnPageChangeListener(object: ViewPager.OnPageChangeListener {
+            override fun onPageScrollStateChanged(state: Int) {
+                invalidateOptionsMenu()
+            }
+
+            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
+
+            override fun onPageSelected(position: Int) {}
+        })
     }
 
     private fun initToolbar() {

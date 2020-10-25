@@ -8,14 +8,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.core.net.toUri
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.ui.reader.ReaderActivity
 import com.flamyoad.tsukiviewer.ui.settings.preferences.MainPreferences
+import com.flamyoad.tsukiviewer.utils.TimeUtils
+import org.w3c.dom.Text
 import java.io.File
 
 
@@ -24,7 +28,7 @@ class DoujinImagesAdapter(
     private val currentDir: String,
     private val startActivityForResult: (Intent) -> Unit // Function is passed from Activity to here since startActivityForResult() can only be called from Activity
 ) :
-    RecyclerView.Adapter<DoujinImagesAdapter.ImageViewHolder>() {
+    RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     companion object {
         const val POSITION_BEFORE_OPENING_READER =
@@ -36,25 +40,27 @@ class DoujinImagesAdapter(
 
     private var imageList: List<File> = emptyList()
 
-    private var count = 0
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
 
         val layout = when (itemType) {
             ItemType.Grid -> layoutInflater.inflate(R.layout.image_grid_item, parent, false)
             ItemType.Scaled -> layoutInflater.inflate(R.layout.image_scaled_item, parent, false)
             ItemType.Row -> layoutInflater.inflate(R.layout.image_row_item, parent, false)
+            ItemType.List -> layoutInflater.inflate(R.layout.image_list_item, parent, false)
         }
 
-        val holder = ImageViewHolder(layout)
+        val holder = when (itemType) {
+            ItemType.List -> DetailedImageViewHolder(layout)
+            else -> ImageViewHolder(layout)
+        }
 
         layout.setOnClickListener {
             val image = imageList[holder.adapterPosition]
 
             val context = parent.context
 
-            val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+            val prefs = PreferenceManager.getDefaultSharedPreferences(context)
 
             val shouldUseExternalApps =
                 prefs.getBoolean(MainPreferences.USE_EXTERNAL_GALLERY, false)
@@ -66,17 +72,19 @@ class DoujinImagesAdapter(
                 intent.putExtra(POSITION_BEFORE_OPENING_READER, holder.adapterPosition)
                 intent.putExtra(DIRECTORY_PATH, currentDir)
 
-                startActivityForResult(intent) // This is a lambda function in parameter
+                startActivityForResult(intent)
             }
         }
 
         return holder
     }
 
-    override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
-        holder.bind(imageList[holder.adapterPosition])
-        Log.d("bind", "Binded for $count times")
-        count++
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        val image = imageList[holder.adapterPosition]
+        when (itemType) {
+            ItemType.List -> (holder as DetailedImageViewHolder).bind(image)
+            else -> (holder as ImageViewHolder).bind(image)
+        }
     }
 
     override fun getItemCount(): Int {
@@ -93,7 +101,7 @@ class DoujinImagesAdapter(
     }
 
     private fun launchExternalGallery(context: Context, file: File) {
-        val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         val packageName = prefs.getString(MainPreferences.EXTERNAL_GALLERY_PKG_NAME, "")
 
         try {
@@ -126,7 +134,23 @@ class DoujinImagesAdapter(
         }
     }
 
+    inner class DetailedImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val imageView: ImageView = itemView.findViewById(R.id.imageView)
+        val txtName: TextView = itemView.findViewById(R.id.txtName)
+        val txtDate: TextView = itemView.findViewById(R.id.txtDate)
+
+        fun bind(file: File) {
+            Glide.with(itemView.context)
+                .load(file.toUri())
+                .transition(withCrossFade())
+                .into(imageView)
+
+            txtName.text = file.name
+            txtDate.text = TimeUtils.getReadableDate(file.lastModified())
+        }
+    }
+
     enum class ItemType {
-        Grid, Scaled, Row
+        Grid, Scaled, Row, List
     }
 }

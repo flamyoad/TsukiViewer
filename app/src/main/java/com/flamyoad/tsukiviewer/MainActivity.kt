@@ -168,7 +168,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             nav_view.setCheckedItem(R.id.nav_localdoujins)
 
         } else {
-            showQuitAppDialog()
+            if (MyAppPreference.getInstance(this).askBeforeQuit()) {
+                showQuitAppDialog()
+            } else {
+                finish()
+            }
         }
     }
 

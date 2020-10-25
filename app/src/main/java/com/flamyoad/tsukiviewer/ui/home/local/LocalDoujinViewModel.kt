@@ -304,18 +304,12 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
             compareBy<Doujin> { it.shortTitle.length } // If you don't first compare by length, it won't work
                 .then(naturalOrder())
 
-        when (ascending) {
-            true -> {
-                doujinList.sortWith(naturalSort)
-            }
-            false -> {
-                val naturalSortDesc =
-                    naturalSort.then(reverseOrder()) // doesnt reverse the list lul TODO: FIX IT
-                doujinList.sortWith(naturalSortDesc)
-            }
-        }
+        doujinList.sortWith(naturalSort)
 
-        return doujinList
+        return when (ascending) {
+            true -> doujinList
+            false -> doujinList.asReversed()
+        }
     }
 
     fun tickSelectedDoujin(doujin: Doujin) {

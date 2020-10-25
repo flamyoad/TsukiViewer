@@ -17,7 +17,22 @@
                 android:targetPackage="com.flamyoad.tsukiviewer" />
         </Preference>
 
+        <ListPreference
+            app:defaultValue="Scaled"
+            app:entries="@array/pref_image_grid_style"
+            app:entryValues="@array/pref_image_grid_style"
+            app:key="pref_grid_view_style"
+            app:summary="%s"
+            app:title="Default style for image grid" />
+
         <androidx.preference.SwitchPreference
+            app:defaultValue="true"
+            app:key="pref_use_windows_explorer_sort"
+            app:title="Use Windows Explorer sort pattern in image list"
+            android:summary="Reverts to length-based natural sort if disabled. Should not be disabled in most cases."/>
+
+        <androidx.preference.SwitchPreference
+            app:defaultValue="true"
             app:key="pref_confirm_before_quit"
             app:title="Show confirmation dialog before quitting" />
 
@@ -36,6 +51,14 @@
             app:enabled="false"
             app:key="pref_external_img_viewer"
             app:title="Choose external image viewer" />
+
+        <ListPreference
+            app:defaultValue="VerticalStrip"
+            app:entries="@array/pref_reader_mode_name"
+            app:entryValues="@array/pref_reader_mode_value"
+            app:key="pref_reader_mode"
+            app:summary="%s"
+            app:title="Default reader mode" />
 
     </PreferenceCategory>
 

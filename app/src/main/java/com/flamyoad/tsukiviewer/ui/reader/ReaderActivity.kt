@@ -63,7 +63,10 @@ class ReaderActivity : AppCompatActivity(),
 
         positionFromImageGrid = intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
 
-        setupReader(viewModel.readerMode)
+        viewModel.readerMode().observe(this, Observer {
+            setupReader(it)
+            setupSideMenu(it)
+        })
 
         initToolbar()
         initBottomThumbnails()
@@ -71,15 +74,11 @@ class ReaderActivity : AppCompatActivity(),
         hideStatusBar()
 
         btnHorizReader.setOnClickListener {
-            if (viewModel.readerMode != ReaderMode.HorizontalSwipe) {
-                setupReader(ReaderMode.HorizontalSwipe)
-            }
+            viewModel.setReaderMode(ReaderMode.HorizontalSwipe)
         }
 
         btnVertReader.setOnClickListener {
-            if (viewModel.readerMode != ReaderMode.VerticalStrip) {
-                setupReader(ReaderMode.VerticalStrip)
-            }
+            viewModel.setReaderMode(ReaderMode.VerticalStrip)
         }
     }
 
@@ -98,10 +97,6 @@ class ReaderActivity : AppCompatActivity(),
     }
 
     private fun setupReader(mode: ReaderMode) {
-        viewModel.readerMode = mode
-
-        setupSideMenu()
-
         val currentDir = intent.getStringExtra(DoujinImagesAdapter.DIRECTORY_PATH) ?: ""
         val positionInGrid =
             intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
@@ -124,12 +119,12 @@ class ReaderActivity : AppCompatActivity(),
             .commit()
     }
 
-    private fun setupSideMenu() {
+    private fun setupSideMenu(mode: ReaderMode) {
         // Changes button color according to active/inactive state
         val activeBtnColor = ContextCompat.getColor(this, R.color.read_mode_button_active)
         val inactiveBtnColor = ContextCompat.getColor(this, R.color.read_mode_button_inactive)
 
-        when (viewModel.readerMode) {
+        when (mode) {
             ReaderMode.HorizontalSwipe -> {
                 btnHorizReader.background.setTint(activeBtnColor)
                 btnVertReader.background.setTint(inactiveBtnColor)

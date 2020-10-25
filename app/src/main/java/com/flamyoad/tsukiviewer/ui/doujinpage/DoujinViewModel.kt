@@ -4,15 +4,19 @@ import android.app.Application
 import android.net.Uri
 import androidx.core.net.toUri
 import androidx.lifecycle.*
+import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.model.DoujinDetailsWithTags
 import com.flamyoad.tsukiviewer.repository.BookmarkRepository
 import com.flamyoad.tsukiviewer.repository.MetadataRepository
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
+import com.flamyoad.tsukiviewer.utils.WindowsExplorerComparator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.*
+import kotlin.collections.HashMap
 
 class DoujinViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -34,6 +38,11 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
     private val directoryNoLongerExists = MutableLiveData<Boolean>(false)
     fun directoryNoLongerExists(): LiveData<Boolean> = directoryNoLongerExists
 
+    private val gridViewStyle = MutableLiveData<GridViewStyle>()
+    fun gridViewStyle(): LiveData<GridViewStyle> = gridViewStyle
+
+    private var shouldUseWindowsSort: Boolean = false
+
     val newCollectionName = MutableLiveData<String>()
 
     val collectionNameExists: LiveData<Boolean> = newCollectionName.switchMap { name ->
@@ -44,6 +53,12 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
 
     var currentPath: String = ""
 
+    init {
+        val prefs = MyAppPreference.getInstance(application.applicationContext)
+
+        gridViewStyle.value = prefs.getDefaultViewStyle()
+        shouldUseWindowsSort = prefs.shouldUseWindowsSort()
+    }
 
     fun scanForImages(dirPath: String) {
         if (dirPath == currentPath) {
@@ -62,9 +77,6 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
             withContext(Dispatchers.Default) {
                 val fetchedImages = dir.listFiles(ImageFileFilter())
 
-                val naturalSort =
-                    compareBy<File> { it.name.length } // If you don't first compare by length, it won't work
-                        .then(naturalOrder())
                 /*
                     sortedBy { x -> x.name } will return the following wrong result:
                     ['0.jpg', '1.jpg', '10.jpg', '11.jpg', '12.jpg' . . .]
@@ -85,12 +97,32 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
                     return@withContext
                 }
 
-                val sortedImages = fetchedImages.sortedWith(naturalSort)
+                val sortedImages: List<File>
+                when (shouldUseWindowsSort) {
+                    true -> {
+                        Arrays.sort(fetchedImages, object : Comparator<File> {
+                            private val NATURAL_SORT: Comparator<String> =
+                                WindowsExplorerComparator()
+
+                            override fun compare(o1: File, o2: File): Int {
+                                return NATURAL_SORT.compare(o1.name, o2.name)
+                            }
+                        })
+                        sortedImages = fetchedImages.toList()
+                    }
+
+                    false -> {
+                        val naturalSort = compareBy<File> { it.name.length }
+                            .then(naturalOrder())
+                        sortedImages = fetchedImages.sortedWith(naturalSort)
+                    }
+                }
+
 
                 withContext(Dispatchers.Main) {
-                    imageList.value = sortedImages
+                    imageList.value = sortedImages.toList()
 
-                    val firstImage = fetchedImages.first().toUri()
+                    val firstImage = sortedImages.first().toUri()
                     coverImage.value = firstImage
                 }
             }
@@ -160,5 +192,9 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
             null
         else
             nukeCode
+    }
+
+    fun switchViewStyle(style: GridViewStyle) {
+        gridViewStyle.value = style
     }
 }

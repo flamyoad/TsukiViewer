@@ -15,11 +15,13 @@ import androidx.appcompat.view.ActionMode
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView.Adapter.StateRestorationPolicy
 import com.flamyoad.tsukiviewer.ActionModeListener
 import com.flamyoad.tsukiviewer.BaseFragment
 import com.flamyoad.tsukiviewer.R
+import com.flamyoad.tsukiviewer.adapter.EMPTY_LIST_INDICATOR
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.ui.search.SearchActivity
@@ -87,6 +89,8 @@ class LocalDoujinsFragment : BaseFragment(),
             } else {
                 progressBar.visibility = View.GONE
                 sortMenuItem.isVisible = true
+
+                listLocalDoujins.visibility = View.VISIBLE
             }
         })
     }
@@ -186,6 +190,15 @@ class LocalDoujinsFragment : BaseFragment(),
 
         val gridLayoutManager = GridLayoutManager(context, spanCount)
 
+        gridLayoutManager.spanSizeLookup = object: GridLayoutManager.SpanSizeLookup() {
+            override fun getSpanSize(position: Int): Int {
+                return when (adapter.getItemViewType(position)) {
+                    EMPTY_LIST_INDICATOR -> 2
+                    else -> 1
+                }
+            }
+        }
+
         listLocalDoujins.swapAdapter(adapter, false)
         listLocalDoujins.layoutManager = gridLayoutManager
 
@@ -199,6 +212,7 @@ class LocalDoujinsFragment : BaseFragment(),
 
         viewModel.doujinList().observe(viewLifecycleOwner, Observer { newList ->
             adapter.setList(newList)
+            listLocalDoujins.visibility = View.VISIBLE
         })
     }
 
@@ -227,7 +241,7 @@ class LocalDoujinsFragment : BaseFragment(),
     }
 
     private fun storeSyncDialogPreference(status: Boolean) {
-        val sharedPreferences = requireContext().getSharedPreferences("com.flamyoad.tsukiviewer", Context.MODE_PRIVATE)
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
         val editor = sharedPreferences.edit()
 
         editor.putBoolean("show_dialog_before_sync", status)
@@ -235,13 +249,12 @@ class LocalDoujinsFragment : BaseFragment(),
     }
 
     private fun shouldShowSyncDialog(): Boolean {
-        val sharedPreferences = requireContext().getSharedPreferences("com.flamyoad.tsukiviewer", Context.MODE_PRIVATE)
-//        PreferenceManager.getDefaultSharedPreferences(requireContext())
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
         return sharedPreferences.getBoolean("show_dialog_before_sync", true)
     }
 
     private fun openSortDialog() {
-        val dialog = SortDoujinDialog()
+        val dialog = DialogSortDoujin()
         dialog.show(childFragmentManager, "sortdialog")
     }
 

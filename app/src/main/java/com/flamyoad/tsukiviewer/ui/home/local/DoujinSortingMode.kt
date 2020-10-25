@@ -18,10 +18,10 @@ enum class DoujinSortingMode(private val buttonId: Int) {
     fun getLayoutId() = buttonId
 
     companion object {
-        private val layoutIdByMode = values().associateBy(DoujinSortingMode::buttonId)
+        private val modeByView = values().associateBy(DoujinSortingMode::buttonId)
 
         fun fromLayout(layoutId: Int): DoujinSortingMode {
-            return layoutIdByMode[layoutId] ?: NONE
+            return modeByView[layoutId] ?: NONE
         }
 
         fun getAllLayoutId(): List<Int> {

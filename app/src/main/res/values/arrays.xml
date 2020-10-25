@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="pref_image_grid_style">
+        <item>Grid</item>
+        <item>Scaled</item>
+        <item>Row</item>
+        <item>List</item>
+    </string-array>
+
+    <string-array name="pref_reader_mode_name">
+        <item>Vertical Strip</item>
+        <item>Horizontal Swipe</item>
+    </string-array>
+
+    <string-array name="pref_reader_mode_value">
+        <item>VerticalStrip</item>
+        <item>HorizontalSwipe</item>
+    </string-array>
+
+</resources>

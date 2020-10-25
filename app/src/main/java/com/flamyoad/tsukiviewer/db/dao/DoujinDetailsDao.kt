@@ -24,6 +24,9 @@ interface DoujinDetailsDao {
     @Delete
     suspend fun delete(doujinDetails: DoujinDetails)
 
+    @Query("DELETE FROM doujin_details")
+    suspend fun deleteAll()
+
     @Query("SELECT EXISTS(SELECT * FROM doujin_details WHERE fullTitleEnglish = :fullTitleEnglish)")
     suspend fun existsByTitle(fullTitleEnglish: String): Boolean
 

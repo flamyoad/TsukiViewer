@@ -17,7 +17,9 @@
             android:id="@+id/listLocalDoujins"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            tools:listitem="@layout/doujin_list_item" />
+            android:visibility="gone"
+            tools:listitem="@layout/doujin_list_item"
+            tools:visibility="visible" />
 
     </com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller>
 

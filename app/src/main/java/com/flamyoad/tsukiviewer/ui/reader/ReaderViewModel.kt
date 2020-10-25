@@ -1,13 +1,16 @@
 package com.flamyoad.tsukiviewer.ui.reader
 
 import android.app.Application
-import androidx.core.net.toUri
 import androidx.lifecycle.*
+import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
+import com.flamyoad.tsukiviewer.utils.WindowsExplorerComparator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.*
+
 
 class ReaderViewModel(application: Application) : AndroidViewModel(application) {
     private val imageList = MutableLiveData<List<File>>()
@@ -19,11 +22,22 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
     private val directoryNoLongerExists = MutableLiveData<Boolean>(false)
     fun directoryNoLongerExists(): LiveData<Boolean> = directoryNoLongerExists
 
+    private var shouldUseWindowsSort: Boolean = false
+
     var currentImagePosition: Int = 0
 
     var currentPath: String = ""
 
-    var readerMode: ReaderMode = ReaderMode.VerticalStrip
+    private val readerMode = MutableLiveData<ReaderMode>()
+    fun readerMode(): LiveData<ReaderMode> = readerMode.distinctUntilChanged()
+
+    init {
+        val prefs = MyAppPreference
+            .getInstance(application.applicationContext)
+
+        val defaultReaderMode = prefs.getDefaultReaderMode()
+        readerMode.value = defaultReaderMode
+    }
 
     fun scanForImages(dirPath: String) {
         if (dirPath == currentPath) {
@@ -33,12 +47,17 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
 
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
-                val naturalSort =
-                    compareBy<File> { it.name.length } // If you don't first compare by length, it won't work
-                        .then(naturalOrder())
-
                 // If fetchedImages is null means directory has been renamed or deleted
                 val fetchedImages = dir.listFiles(ImageFileFilter())
+
+                Arrays.sort(fetchedImages, object : Comparator<File> {
+                    private val NATURAL_SORT: Comparator<String> =
+                        WindowsExplorerComparator()
+
+                    override fun compare(o1: File, o2: File): Int {
+                        return NATURAL_SORT.compare(o1.name, o2.name)
+                    }
+                })
 
                 if (fetchedImages == null) {
                     withContext(Dispatchers.Main) {
@@ -47,13 +66,15 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
                     return@withContext
                 }
 
-                val sortedImages = fetchedImages.sortedWith(naturalSort)
-
                 withContext(Dispatchers.Main) {
-                    imageList.value = sortedImages
+                    imageList.value = fetchedImages.toList()
                 }
             }
         }
+    }
+
+    fun setReaderMode(mode: ReaderMode) {
+        readerMode.value = mode
     }
 
     fun onThumbnailClick(position: Int) {
