@@ -8,6 +8,12 @@ import androidx.preference.PreferenceFragmentCompat
 import com.flamyoad.tsukiviewer.R
 
 class AboutPreference: PreferenceFragmentCompat() {
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+
+    }
+
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preference_about_me, rootKey)
 

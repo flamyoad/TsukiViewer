@@ -3,6 +3,7 @@ package com.flamyoad.tsukiviewer.ui.settings
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.PersistableBundle
 import androidx.activity.viewModels
 import androidx.lifecycle.Observer
 import androidx.preference.Preference
@@ -11,6 +12,8 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.ui.settings.preferences.MainPreferences
 import com.flamyoad.tsukiviewer.utils.toast
 import kotlinx.android.synthetic.main.activity_settings.*
+
+private const val TOOLBAR_TITLE = "settings_toolbar_title"
 
 class SettingsActivity : AppCompatActivity(),
     PreferenceFragmentCompat.OnPreferenceStartFragmentCallback{
@@ -25,9 +28,19 @@ class SettingsActivity : AppCompatActivity(),
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowHomeEnabled(true)
 
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.container, MainPreferences())
-            .commit()
+        if (savedInstanceState == null) {
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.container, MainPreferences())
+                .commit()
+        } else {
+            setTitle(savedInstanceState.getString(TOOLBAR_TITLE))
+        }
+
+        supportFragmentManager.addOnBackStackChangedListener {
+            if (supportFragmentManager.backStackEntryCount == 0) {
+                supportActionBar?.title = "Settings"
+            }
+        }
 
         viewModel.isRemovingItems().observe(this, Observer { isRemoving ->
             when (isRemoving) {
@@ -43,6 +56,18 @@ class SettingsActivity : AppCompatActivity(),
                 }
             }
         })
+    }
+
+    override fun onSaveInstanceState(outState: Bundle, outPersistentState: PersistableBundle) {
+        super.onSaveInstanceState(outState, outPersistentState)
+        outState.putCharSequence(TOOLBAR_TITLE, getTitle())
+    }
+
+    override fun onNavigateUp(): Boolean {
+        if (supportFragmentManager.popBackStackImmediate()) {
+            return true
+        }
+        return super.onNavigateUp()
     }
 
     override fun onPreferenceStartFragment(caller: PreferenceFragmentCompat?, pref: Preference?): Boolean {
@@ -66,6 +91,8 @@ class SettingsActivity : AppCompatActivity(),
             .replace(R.id.container, fragment)
             .addToBackStack(null)
             .commit()
+
+        supportActionBar?.title = pref.title
 
         return true
     }
