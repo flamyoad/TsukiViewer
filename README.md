@@ -32,6 +32,7 @@ Local doujinshi viewer for Android.
 # Libraries
  List of libraries used in this project.
 * [Android Jetpack](https://developer.android.com/jetpack) *(ViewModel, LiveData, Room Database, Paging Library)*
+* [Kotlin Coroutines](https://kotlinlang.org/docs/reference/coroutines-overview.html)
 * [Retrofit](https://github.com/square/retrofit)
 * [PhotoView](https://github.com/chrisbanes/PhotoView)
 * [Glide](https://github.com/bumptech/glide)
