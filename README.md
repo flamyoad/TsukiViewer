@@ -1,6 +1,6 @@
 # Tsuki Viewer 🌙
 
-Local doujinshi viewer for Android. 
+Local doujinshi viewer for Android. <br/>
 
 # Features
 
@@ -28,6 +28,9 @@ Local doujinshi viewer for Android.
  </br>
 
 ![second](https://user-images.githubusercontent.com/35066207/97465168-bcda6300-197c-11eb-8922-d1e82347f70d.JPG)
+
+# Architecture
+Tsuki Viewer is coded in Kotlin and makes full use of [Android Jetpack](https://developer.android.com/jetpack) components such as ```ViewModel``` and ```LiveData``` to implement MVVM architecture. 
 
 # Libraries
  List of libraries used in this project.
