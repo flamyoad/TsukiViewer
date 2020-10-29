@@ -110,6 +110,7 @@ class BookmarkFragment : BaseFragment(),
         initUi()
 
         viewModel.groupList.observe(viewLifecycleOwner, Observer {
+            if (it == null) return@Observer
             viewModel.initializeGroups(it)
         })
 
@@ -129,11 +130,15 @@ class BookmarkFragment : BaseFragment(),
         })
 
         viewModel.selectedBookmarkGroup().observe(viewLifecycleOwner, Observer {
+            if (it == null) return@Observer
+
             viewModel.fetchBookmarkItems(it)
             header.text = it.name
         })
 
         viewModel.bookmarkItems.observe(viewLifecycleOwner, Observer {
+            if (it == null) return@Observer
+
             viewModel.selectedGroup?.let {
                 viewModel.fetchBookmarkItems(it)
                 viewModel.refreshGroupInfo()

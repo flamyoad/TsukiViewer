@@ -1,8 +1,5 @@
 package com.flamyoad.tsukiviewer.adapter
 
-import android.graphics.Color
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffColorFilter
 import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
@@ -12,17 +9,17 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.model.BookmarkGroup
 import de.hdodenhof.circleimageview.CircleImageView
-import java.lang.IllegalArgumentException
 
 private const val BTN_ADD_NEW_GROUP = 0
 private const val GROUP_ITEM = 1
 
-class BookmarkGroupAdapter(private val onGroupClick: (BookmarkGroup) -> Unit,
-                           private val showNewGroupDialog: () -> Unit) :
+class BookmarkGroupAdapter(
+    private val onGroupClick: (BookmarkGroup) -> Unit,
+    private val showNewGroupDialog: () -> Unit
+) :
     ListAdapter<BookmarkGroup, RecyclerView.ViewHolder>(BookmarkDiffUtil()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -88,8 +85,8 @@ class BookmarkGroupAdapter(private val onGroupClick: (BookmarkGroup) -> Unit,
 
         fun bindTo(group: BookmarkGroup) {
             txtGroupName.text = group.name
-            txtItemCount.text =  "( " + group.totalItems.toString() + " )"
-            txtPlaceHolder.text = group.name.first().toUpperCase().toString()
+            txtItemCount.text = "( " + group.totalItems.toString() + " )"
+            txtPlaceHolder.text = group.name.firstOrNull()?.toUpperCase().toString()
 
             if (group.pic != Uri.EMPTY) {
                 Glide.with(itemView)
@@ -103,7 +100,7 @@ class BookmarkGroupAdapter(private val onGroupClick: (BookmarkGroup) -> Unit,
         }
     }
 
-    inner class AddButtonHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
+    inner class AddButtonHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
     }
 }
