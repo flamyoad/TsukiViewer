@@ -62,18 +62,18 @@
 
     </PreferenceCategory>
 
+    <!--hardcoded app:fragment crashes in release because of ClassNameNotFound -->
     <Preference
         app:allowDividerAbove="true"
-        app:fragment="com.flamyoad.tsukiviewer.ui.settings.preferences.ClearDataPreferences"
+        android:fragment="com.flamyoad.tsukiviewer.ui.settings.preferences.ClearDataPreferences"
         app:icon="@drawable/ic_delete_settings_24dp"
         app:title="Clear data" />
 
     <Preference
         app:allowDividerAbove="true"
         app:allowDividerBelow="true"
-        app:fragment="com.flamyoad.tsukiviewer.ui.settings.preferences.AboutPreference"
+        android:fragment="com.flamyoad.tsukiviewer.ui.settings.preferences.AboutPreference"
         app:icon="@drawable/ic_info_settings_24dp"
         app:title="About" />
-
 
 </androidx.preference.PreferenceScreen>

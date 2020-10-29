@@ -118,7 +118,7 @@ class FolderPickerDialog : DialogFragment(),
         listFolders.layoutManager =
             LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
 
-        listFolders.setHasFixedSize(true)
+//        listFolders.setHasFixedSize(true)
 
         // Initialization code for recyclerview for list of parent directories
         topDirsAdapter = ParentDirectoriesAdapter(this)
