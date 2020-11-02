@@ -8,8 +8,9 @@ import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import androidx.core.util.toAndroidPair
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.map
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.repository.MetadataRepository
 import com.flamyoad.tsukiviewer.ui.fetcher.FetcherStatusActivity
@@ -38,6 +39,8 @@ class FetchMetadataService : Service() {
 
     private var notificationBuilder: NotificationCompat.Builder? = null
 
+    private var notificationManager: NotificationManager? = null
+
     private var batchJob: Job? = null
 
     private var singleJob: Job? = null
@@ -54,16 +57,10 @@ class FetchMetadataService : Service() {
     companion object {
         private const val DOUJIN_PATH = "doujin_path"
         private var metadataRepo: MetadataRepository? = null
-        private var notificationManager: NotificationManager? = null
 
         fun initComponents(context: Context) {
             if (metadataRepo == null) {
                 metadataRepo = MetadataRepository(context)
-            }
-
-            if (notificationManager == null) {
-                notificationManager =
-                    context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             }
         }
 
@@ -96,6 +93,9 @@ class FetchMetadataService : Service() {
                 stopSelf()
 
             } else {
+                notificationManager =
+                    applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
                 createNotificationChannel()
 
                 val doujinPath = it.getStringExtra(DOUJIN_PATH) ?: ""
@@ -104,6 +104,7 @@ class FetchMetadataService : Service() {
                     fetchSingle(doujinDir)
                 }
 
+                Log.d("fetchService", "createNotification()")
                 val notification = createNotification("")
                 startForeground(NOTIFICATION_ID, notification)
             }
@@ -124,6 +125,7 @@ class FetchMetadataService : Service() {
                 withContext(Dispatchers.Main) {
                     currentItem.value = dir
                     createNotification(dir.name, index + 1, dirList.size)
+                    Log.d("fetchService", "createNotification() in batchJob")
                 }
 
                 val result = metadataRepo!!.fetchMetadata(dir)
@@ -142,8 +144,6 @@ class FetchMetadataService : Service() {
         }
 
         batchJob?.invokeOnCompletion {
-            // Seems liek the notification from here cannot be dismissed?
-//            createNotification("All directories have been processed")
             stopForeground(false)
             stopSelf()
         }
@@ -159,7 +159,9 @@ class FetchMetadataService : Service() {
         }
 
         singleJob?.invokeOnCompletion {
+            Log.d("fetchService", "singleJob::invokeOnCompletion() for ${dir.absolutePath}")
             if (batchJob == null || batchJob?.isActive == false) {
+                Log.d("fetchService", "stopForeground() from singleJob::invokeOnCompletion()")
                 stopForeground(true)
                 stopSelf()
             }
@@ -185,8 +187,7 @@ class FetchMetadataService : Service() {
 
             serviceChannel.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
 
-            val manager = getSystemService(NotificationManager::class.java)
-            manager!!.createNotificationChannel(serviceChannel)
+            notificationManager!!.createNotificationChannel(serviceChannel)
         }
     }
 
@@ -224,7 +225,7 @@ class FetchMetadataService : Service() {
 
         val notification = notificationBuilder!!.build()
 
-        notificationManager?.notify(NOTIFICATION_ID, notification)
+        notificationManager!!.notify(NOTIFICATION_ID, notification)
 
         return notification
     }
@@ -240,7 +241,10 @@ class FetchMetadataService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         Log.d("fetchService", "onDestroy() is called")
-        coroutineScope.cancel()
+        batchJob?.cancel()
+        singleJob?.cancel()
+
+        notificationManager!!.cancelAll()
     }
 
     inner class FetchBinder : Binder() {
