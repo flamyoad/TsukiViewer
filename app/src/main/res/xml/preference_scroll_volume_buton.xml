@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+    <ListPreference
+        app:defaultValue="GoToPrevPage"
+        app:entries="@array/pref_volume_button_name"
+        app:entryValues="@array/pref_volume_button_value"
+        app:key="pref_volume_up_action"
+        app:summary="%s"
+        app:title="Volume up button action" />
+
+    <ListPreference
+        app:defaultValue="GoToNextPage"
+        app:entries="@array/pref_volume_button_name"
+        app:entryValues="@array/pref_volume_button_value"
+        app:key="pref_volume_down_action"
+        app:summary="%s"
+        app:title="Volume down button action" />
+
+    <ListPreference
+        app:defaultValue="PageByPage"
+        app:entries="@array/pref_volume_button_scroll_mode"
+        app:entryValues="@array/pref_volume_button_scroll_value"
+        app:key="pref_volume_scroll_mode"
+        app:summary="%s"
+        app:title="Scrolling method" />
+
+    <ListPreference
+        app:defaultValue="250"
+        app:entries="@array/pref_scrolling_distance_name"
+        app:entryValues="@array/pref_scrolling_distance_value"
+        app:key="pref_volume_scroll_distance"
+        app:summary="%s"
+        app:title="Scrolling distance on each key press" />
+</PreferenceScreen>

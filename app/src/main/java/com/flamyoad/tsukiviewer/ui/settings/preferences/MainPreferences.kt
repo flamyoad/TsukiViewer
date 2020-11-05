@@ -20,7 +20,7 @@ class MainPreferences : PreferenceFragmentCompat(), SharedPreferences.OnSharedPr
 
     private var externalGallerySwitch: SwitchPreference? = null
     private var externalGalleryPicker: Preference? = null
-    private var gridViewStyle: ListPreference? = null
+    private var volumeButtonScrollSwitch: SwitchPreference? = null
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preference_main, rootKey)
@@ -30,17 +30,18 @@ class MainPreferences : PreferenceFragmentCompat(), SharedPreferences.OnSharedPr
 
         sharedPrefs.registerOnSharedPreferenceChangeListener(this)
 
-        externalGallerySwitch = findPreference("pref_external_gallery_switch")
+        externalGallerySwitch = findPreference(USE_EXTERNAL_GALLERY)
+        externalGalleryPicker = findPreference(EXTERNAL_IMAGE_VIEWER)
+        volumeButtonScrollSwitch = findPreference(SCROLL_BY_VOLUME_BUTTONS)
+
         externalGallerySwitch?.isChecked = sharedPrefs.getBoolean(USE_EXTERNAL_GALLERY, false)
 
-        externalGalleryPicker = findPreference("pref_external_img_viewer")
         externalGalleryPicker?.isEnabled = sharedPrefs.getBoolean(USE_EXTERNAL_GALLERY, false)
 
         externalGallerySwitch?.setOnPreferenceChangeListener { preference, newValue ->
             val useExternalGallery = newValue as Boolean
             externalGalleryPicker?.isEnabled = useExternalGallery
             appPreference.put(USE_EXTERNAL_GALLERY, useExternalGallery)
-
             return@setOnPreferenceChangeListener true
         }
 
@@ -49,6 +50,11 @@ class MainPreferences : PreferenceFragmentCompat(), SharedPreferences.OnSharedPr
         externalGalleryPicker?.setOnPreferenceClickListener {
             showGalleryPicker()
             return@setOnPreferenceClickListener true
+        }
+
+        volumeButtonScrollSwitch?.setOnPreferenceChangeListener { preference, newValue ->
+            appPreference.put(SCROLL_BY_VOLUME_BUTTONS, newValue as Boolean)
+            return@setOnPreferenceChangeListener true
         }
 
     }
@@ -70,11 +76,13 @@ class MainPreferences : PreferenceFragmentCompat(), SharedPreferences.OnSharedPr
 
     companion object {
         const val USE_EXTERNAL_GALLERY = "pref_external_gallery_switch"
+        const val EXTERNAL_IMAGE_VIEWER = "pref_external_img_viewer"
         const val EXTERNAL_GALLERY_PKG_NAME = "external_gallery_package_name"
         const val DEFAULT_GRID_VIEW_STYLE= "pref_grid_view_style"
         const val CONFIRM_BEFORE_QUIT = "pref_confirm_before_quit"
         const val DEFAULT_READER_MODE = "pref_reader_mode"
         const val USE_WINDOWS_EXPLORER_SORT = "pref_use_windows_explorer_sort"
+        const val SCROLL_BY_VOLUME_BUTTONS = "pref_scroll_by_volume_button"
     }
 }
 

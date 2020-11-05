@@ -5,7 +5,10 @@ import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
 import com.flamyoad.tsukiviewer.ui.doujinpage.GridViewStyle
 import com.flamyoad.tsukiviewer.ui.reader.ReaderMode
+import com.flamyoad.tsukiviewer.ui.reader.VolumeButtonScrollDirection
+import com.flamyoad.tsukiviewer.ui.reader.VolumeButtonScrollMode
 import com.flamyoad.tsukiviewer.ui.settings.preferences.MainPreferences
+import com.flamyoad.tsukiviewer.ui.settings.preferences.VolumeButtonPreferences
 
 class MyAppPreference(context: Context) {
     val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
@@ -54,33 +57,51 @@ class MyAppPreference(context: Context) {
         return prefs.getBoolean(MainPreferences.CONFIRM_BEFORE_QUIT, true)
     }
 
+    fun shouldScrollWithVolumeButton(): Boolean {
+        return prefs.getBoolean(MainPreferences.SCROLL_BY_VOLUME_BUTTONS, true)
+    }
+
+    fun getVolumeButtonScrollMode(): VolumeButtonScrollMode {
+        val name = prefs.getString(VolumeButtonPreferences.SCROLL_MODE, "")
+        return if (name != null && name.isNotBlank()) {
+            VolumeButtonScrollMode.valueOf(name)
+        } else {
+            VolumeButtonScrollMode.PageByPage
+        }
+    }
+
+    fun getVolumeUpAction(): VolumeButtonScrollDirection {
+        val name = prefs.getString(VolumeButtonPreferences.VOLUME_UP_ACTION, "")
+        return if (name != null && name.isNotBlank()) {
+            VolumeButtonScrollDirection.valueOf(name)
+        } else {
+            VolumeButtonScrollDirection.Nothing
+        }
+    }
+
+    fun getVolumeDownAction(): VolumeButtonScrollDirection {
+        val name = prefs.getString(VolumeButtonPreferences.VOLUME_DOWN_ACTION, "")
+        return if (name != null && name.isNotBlank()) {
+            VolumeButtonScrollDirection.valueOf(name)
+        } else {
+            VolumeButtonScrollDirection.Nothing
+        }
+    }
+
+    fun getVolumeButtonScrollDistance(): Int {
+        val value = prefs.getString(VolumeButtonPreferences.SCROLLING_DISTANCE, "0")
+        return value?.toInt() ?: 0
+    }
+
     fun put(key: String, value: String) {
-        prefs.edit()
-            .putString(key, value)
-            .apply()
+        prefs.edit().putString(key, value).apply()
     }
 
     fun put(key: String, value: Int) {
-        prefs.edit()
-            .putInt(key, value)
-            .apply()
+        prefs.edit().putInt(key, value).apply()
     }
 
     fun put(key: String, value: Boolean) {
-        prefs.edit()
-            .putBoolean(key, value)
-            .apply()
-    }
-
-    fun put(key: String, value: Float) {
-        prefs.edit()
-            .putFloat(key, value)
-            .apply()
-    }
-
-    fun put(key: String, value: Long) {
-        prefs.edit()
-            .putLong(key, value)
-            .apply()
+        prefs.edit().putBoolean(key, value).apply()
     }
 }

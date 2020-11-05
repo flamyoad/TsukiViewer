@@ -1,13 +1,18 @@
 package com.flamyoad.tsukiviewer.ui.reader
 
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager.widget.ViewPager.SCROLL_STATE_DRAGGING
 import com.flamyoad.tsukiviewer.R
@@ -36,6 +41,7 @@ class HorizontalSwipeReaderFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         initReader()
         setupPageIndicator()
+        setupBroadcastReceiver()
 
         viewModel.bottomThumbnailSelectedItem().observe(viewLifecycleOwner, Observer {
             if (it == -1) return@Observer
@@ -83,6 +89,29 @@ class HorizontalSwipeReaderFragment : Fragment() {
                 listener?.onPageChange(position)
             }
         })
+    }
+
+    private fun setupBroadcastReceiver() {
+        val broadcastReceiver = object: BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val keyCode = intent?.getIntExtra(KEY_CODE, 0)
+                if (keyCode == 0) return
+
+                when (keyCode) {
+                    KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                        // Might be null if clicked too early
+                        viewpager?.arrowScroll(View.FOCUS_RIGHT)
+
+                    }
+                    KeyEvent.KEYCODE_VOLUME_UP -> {
+                        viewpager?.arrowScroll(View.FOCUS_LEFT)
+                    }
+                }
+            }
+        }
+
+        LocalBroadcastManager.getInstance(requireContext())
+            .registerReceiver(broadcastReceiver, IntentFilter(KEY_DOWN_INTENT))
     }
 
     companion object {

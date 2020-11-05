@@ -1,18 +1,21 @@
 package com.flamyoad.tsukiviewer.ui.reader
 
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
-import android.util.Log
-import androidx.fragment.app.Fragment
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_DRAGGING
-
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.ReaderImageAdapter
 import kotlinx.android.synthetic.main.fragment_vertical_strip_reader.*
@@ -23,6 +26,7 @@ class VerticalStripReaderFragment : Fragment() {
     private var listener: ReaderListener? = null
 
     private val imageAdapter = ReaderImageAdapter()
+
     private lateinit var linearLayoutManager: LinearLayoutManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,13 +44,15 @@ class VerticalStripReaderFragment : Fragment() {
         super.onAttach(context)
         try {
             listener = context as ReaderListener
-        } catch (ignored: ClassCastException) { }
+        } catch (ignored: ClassCastException) {
+        }
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         initReader()
         setupPageIndicator()
+        setupBroadcastReceiver()
 
         viewModel.bottomThumbnailSelectedItem().observe(viewLifecycleOwner, Observer {
             if (!this::linearLayoutManager.isInitialized) return@Observer
@@ -62,7 +68,8 @@ class VerticalStripReaderFragment : Fragment() {
         val currentDir = arguments?.getString(CURRENT_DIR) ?: ""
         val positionFromImageGrid = arguments?.getInt(POSITION_BEFORE_OPENING_READER, 0) ?: 0
 
-        linearLayoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+        linearLayoutManager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
 
         listImages.adapter = imageAdapter
         listImages.layoutManager = linearLayoutManager
@@ -86,7 +93,7 @@ class VerticalStripReaderFragment : Fragment() {
         val currentPage = viewModel.currentImagePosition
         listener?.onPageChange(currentPage)
 
-        listImages.addOnScrollListener(object: RecyclerView.OnScrollListener() {
+        listImages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
                 if (newState == SCROLL_STATE_DRAGGING) {
@@ -96,7 +103,8 @@ class VerticalStripReaderFragment : Fragment() {
 
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                val lastCompletelyVisible = linearLayoutManager.findLastCompletelyVisibleItemPosition()
+                val lastCompletelyVisible =
+                    linearLayoutManager.findLastCompletelyVisibleItemPosition()
                 val firstVisible = linearLayoutManager.findFirstVisibleItemPosition()
 
                 if (lastCompletelyVisible != RecyclerView.NO_POSITION) {
@@ -107,6 +115,92 @@ class VerticalStripReaderFragment : Fragment() {
             }
         })
     }
+
+    private fun setupBroadcastReceiver() {
+        if (!viewModel.shouldScrollWithVolumeButton) {
+            return
+        }
+
+        val broadcastReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val keyCode = intent?.getIntExtra(KEY_CODE, 0)
+                if (keyCode == 0) return
+
+                when (keyCode) {
+                    KeyEvent.KEYCODE_VOLUME_UP -> {
+                        handleVolumeKey(viewModel.volumeUpAction)
+                    }
+                    KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                        handleVolumeKey(viewModel.volumeDownAction)
+                    }
+                }
+            }
+        }
+
+        LocalBroadcastManager.getInstance(requireContext())
+            .registerReceiver(broadcastReceiver, IntentFilter(KEY_DOWN_INTENT))
+    }
+
+    private fun handleVolumeKey(scrollDirection: VolumeButtonScrollDirection) {
+        // Hides the bottom sheet when scrolling with volume button
+        listener?.toggleBottomSheet(View.GONE)
+
+        when (scrollDirection) {
+            VolumeButtonScrollDirection.GoToPrevPage -> {
+                when (viewModel.scrollingMode) {
+                    VolumeButtonScrollMode.PageByPage -> {
+                        scrollToPrevItem()
+                    }
+
+                    VolumeButtonScrollMode.FixedDistance -> {
+                        listImages?.scrollBy(0, viewModel.scrollDistance.unaryMinus())
+                    }
+                }
+            }
+
+            VolumeButtonScrollDirection.GoToNextPage -> {
+                when (viewModel.scrollingMode) {
+                    VolumeButtonScrollMode.PageByPage -> {
+                        scrollToNextItem()
+                    }
+
+                    VolumeButtonScrollMode.FixedDistance -> {
+                        listImages?.scrollBy(0, viewModel.scrollDistance)
+                    }
+                }
+            }
+
+        }
+    }
+
+    private fun scrollToNextItem() {
+        if (this::linearLayoutManager.isInitialized) {
+            val lastCompletelyVisible = linearLayoutManager.findLastCompletelyVisibleItemPosition()
+            val firstVisible = linearLayoutManager.findFirstVisibleItemPosition()
+
+            // Offset has to be 0, if not it scrolls to the middle of the item
+            if (lastCompletelyVisible != RecyclerView.NO_POSITION) {
+                linearLayoutManager.scrollToPositionWithOffset(lastCompletelyVisible + 1, 0)
+            } else {
+                linearLayoutManager.scrollToPositionWithOffset(firstVisible + 1, 0)
+            }
+        }
+    }
+
+    private fun scrollToPrevItem() {
+        if (this::linearLayoutManager.isInitialized) {
+            val firstCompletelyVisible = linearLayoutManager.findFirstCompletelyVisibleItemPosition()
+            val lastVisible = linearLayoutManager.findLastVisibleItemPosition()
+
+            // Offset has to be 0, if not it scrolls to the middle of the item
+            if (firstCompletelyVisible != RecyclerView.NO_POSITION) {
+                linearLayoutManager.scrollToPositionWithOffset(firstCompletelyVisible - 1, 0)
+            } else {
+                linearLayoutManager.scrollToPositionWithOffset(lastVisible -1, 0)
+            }
+        }
+    }
+
 
     companion object {
         const val CURRENT_DIR = "current_dir"

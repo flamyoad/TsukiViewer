@@ -17,4 +17,40 @@
         <item>HorizontalSwipe</item>
     </string-array>
 
+    <string-array name="pref_volume_button_name">
+        <item>Go to previous page</item>
+        <item>Go to next page</item>
+        <item>Do nothing</item>
+    </string-array>
+
+    <string-array name="pref_volume_button_value">
+        <item>GoToPrevPage</item>
+        <item>GoToNextPage</item>
+        <item>Nothing</item>
+    </string-array>
+
+    <string-array name="pref_volume_button_scroll_mode">
+        <item>Scroll by page</item>
+        <item>Scroll by fixed distance</item>
+    </string-array>
+
+    <string-array name="pref_volume_button_scroll_value">
+        <item>PageByPage</item>
+        <item>FixedDistance</item>
+    </string-array>
+
+    <string-array name="pref_scrolling_distance_name">
+        <item>250 pixels</item>
+        <item>500 pixels</item>
+        <item>750 pixels</item>
+        <item>1000 pixels</item>
+    </string-array>
+
+    <string-array name="pref_scrolling_distance_value">
+        <item>250</item>
+        <item>500</item>
+        <item>750</item>
+        <item>1000</item>
+    </string-array>
+
 </resources>

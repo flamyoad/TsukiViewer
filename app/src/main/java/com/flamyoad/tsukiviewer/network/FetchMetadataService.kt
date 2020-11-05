@@ -85,6 +85,13 @@ class FetchMetadataService : Service() {
         }
     }
 
+    override fun onCreate() {
+        super.onCreate()
+        // https://stackoverflow.com/questions/46375444/remoteserviceexception-context-startforegroundservice-did-not-then-call-servic
+        val notification = createNotification("")
+        startForeground(NOTIFICATION_ID, notification)
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.let {
             if (it.action == ACTION_CLOSE) {
@@ -104,7 +111,6 @@ class FetchMetadataService : Service() {
                     fetchSingle(doujinDir)
                 }
 
-                Log.d("fetchService", "createNotification()")
                 val notification = createNotification("")
                 startForeground(NOTIFICATION_ID, notification)
             }
