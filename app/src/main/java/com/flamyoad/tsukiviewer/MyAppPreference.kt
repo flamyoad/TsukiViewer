@@ -10,6 +10,7 @@ import com.flamyoad.tsukiviewer.ui.reader.VolumeButtonScrollMode
 import com.flamyoad.tsukiviewer.ui.settings.preferences.MainPreferences
 import com.flamyoad.tsukiviewer.ui.settings.preferences.VolumeButtonPreferences
 
+// Note: Preference.xml won't be created until the Settings Activity is opened for first time
 class MyAppPreference(context: Context) {
     val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
@@ -75,7 +76,7 @@ class MyAppPreference(context: Context) {
         return if (name != null && name.isNotBlank()) {
             VolumeButtonScrollDirection.valueOf(name)
         } else {
-            VolumeButtonScrollDirection.Nothing
+            VolumeButtonScrollDirection.GoToPrevPage
         }
     }
 
@@ -84,7 +85,7 @@ class MyAppPreference(context: Context) {
         return if (name != null && name.isNotBlank()) {
             VolumeButtonScrollDirection.valueOf(name)
         } else {
-            VolumeButtonScrollDirection.Nothing
+            VolumeButtonScrollDirection.GoToNextPage
         }
     }
 

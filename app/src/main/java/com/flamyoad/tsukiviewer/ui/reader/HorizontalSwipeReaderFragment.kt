@@ -23,6 +23,33 @@ class HorizontalSwipeReaderFragment : Fragment() {
 
     private var listener: ReaderListener? = null
 
+    private val broadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val keyCode = intent?.getIntExtra(KEY_CODE, 0)
+            if (keyCode == 0) return
+
+            when (keyCode) {
+                KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                    listener?.toggleBottomSheet(View.GONE) // Hides the bottom sheet when scrolling with volume button
+
+                    when (viewModel.volumeDownAction) {
+                        VolumeButtonScrollDirection.GoToNextPage -> viewpager?.arrowScroll(View.FOCUS_RIGHT)
+                        VolumeButtonScrollDirection.GoToPrevPage -> viewpager?.arrowScroll(View.FOCUS_LEFT)
+                    }
+                }
+                KeyEvent.KEYCODE_VOLUME_UP -> {
+                    listener?.toggleBottomSheet(View.GONE)
+
+                    when (viewModel.volumeDownAction) {
+                        VolumeButtonScrollDirection.GoToNextPage -> viewpager?.arrowScroll(View.FOCUS_RIGHT)
+                        VolumeButtonScrollDirection.GoToPrevPage -> viewpager?.arrowScroll(View.FOCUS_LEFT)
+                    }
+                }
+            }
+
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -34,7 +61,8 @@ class HorizontalSwipeReaderFragment : Fragment() {
         super.onAttach(context)
         try {
             listener = context as ReaderListener
-        } catch (ignored: ClassCastException) { }
+        } catch (ignored: ClassCastException) {
+        }
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -49,6 +77,12 @@ class HorizontalSwipeReaderFragment : Fragment() {
             viewpager.setCurrentItem(it, false)
             viewModel.resetBottomThumbnailState()
         })
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        LocalBroadcastManager.getInstance(requireContext())
+            .unregisterReceiver(broadcastReceiver)
     }
 
     private fun initReader() {
@@ -92,24 +126,6 @@ class HorizontalSwipeReaderFragment : Fragment() {
     }
 
     private fun setupBroadcastReceiver() {
-        val broadcastReceiver = object: BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                val keyCode = intent?.getIntExtra(KEY_CODE, 0)
-                if (keyCode == 0) return
-
-                when (keyCode) {
-                    KeyEvent.KEYCODE_VOLUME_DOWN -> {
-                        // Might be null if clicked too early
-                        viewpager?.arrowScroll(View.FOCUS_RIGHT)
-
-                    }
-                    KeyEvent.KEYCODE_VOLUME_UP -> {
-                        viewpager?.arrowScroll(View.FOCUS_LEFT)
-                    }
-                }
-            }
-        }
-
         LocalBroadcastManager.getInstance(requireContext())
             .registerReceiver(broadcastReceiver, IntentFilter(KEY_DOWN_INTENT))
     }

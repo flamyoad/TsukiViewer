@@ -29,6 +29,22 @@ class VerticalStripReaderFragment : Fragment() {
 
     private lateinit var linearLayoutManager: LinearLayoutManager
 
+    private val broadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val keyCode = intent?.getIntExtra(KEY_CODE, 0)
+            if (keyCode == 0) return
+
+            when (keyCode) {
+                KeyEvent.KEYCODE_VOLUME_UP -> {
+                    handleVolumeKey(viewModel.volumeUpAction)
+                }
+                KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                    handleVolumeKey(viewModel.volumeDownAction)
+                }
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
     }
@@ -62,6 +78,12 @@ class VerticalStripReaderFragment : Fragment() {
 
             viewModel.resetBottomThumbnailState()
         })
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        LocalBroadcastManager.getInstance(requireContext())
+            .unregisterReceiver(broadcastReceiver)
     }
 
     private fun initReader() {
@@ -121,22 +143,6 @@ class VerticalStripReaderFragment : Fragment() {
             return
         }
 
-        val broadcastReceiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                val keyCode = intent?.getIntExtra(KEY_CODE, 0)
-                if (keyCode == 0) return
-
-                when (keyCode) {
-                    KeyEvent.KEYCODE_VOLUME_UP -> {
-                        handleVolumeKey(viewModel.volumeUpAction)
-                    }
-                    KeyEvent.KEYCODE_VOLUME_DOWN -> {
-                        handleVolumeKey(viewModel.volumeDownAction)
-                    }
-                }
-            }
-        }
-
         LocalBroadcastManager.getInstance(requireContext())
             .registerReceiver(broadcastReceiver, IntentFilter(KEY_DOWN_INTENT))
     }
@@ -189,14 +195,15 @@ class VerticalStripReaderFragment : Fragment() {
 
     private fun scrollToPrevItem() {
         if (this::linearLayoutManager.isInitialized) {
-            val firstCompletelyVisible = linearLayoutManager.findFirstCompletelyVisibleItemPosition()
+            val firstCompletelyVisible =
+                linearLayoutManager.findFirstCompletelyVisibleItemPosition()
             val lastVisible = linearLayoutManager.findLastVisibleItemPosition()
 
             // Offset has to be 0, if not it scrolls to the middle of the item
             if (firstCompletelyVisible != RecyclerView.NO_POSITION) {
                 linearLayoutManager.scrollToPositionWithOffset(firstCompletelyVisible - 1, 0)
             } else {
-                linearLayoutManager.scrollToPositionWithOffset(lastVisible -1, 0)
+                linearLayoutManager.scrollToPositionWithOffset(lastVisible - 1, 0)
             }
         }
     }

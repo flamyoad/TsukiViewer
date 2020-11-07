@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--app:defaultValue is not initialized in the xml file on first creation find out why -->
     <ListPreference
         app:defaultValue="GoToPrevPage"
         app:entries="@array/pref_volume_button_name"

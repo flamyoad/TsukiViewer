@@ -88,7 +88,6 @@ class MetadataRepository(private val context: Context) {
     }
 
     suspend fun fetchMetadata(dir: File): FetchHistory {
-        Log.d("fetchService", "fetchMetadata for ${dir.absolutePath}")
         return withContext(Dispatchers.IO) {
             if (doujinDetailsDao.existsByTitle(dir.name) || doujinDetailsDao.existsByAbsolutePath(dir.toString())) {
                 return@withContext FetchHistory(dir, dir.name, FetchStatus.ALREADY_EXISTS)

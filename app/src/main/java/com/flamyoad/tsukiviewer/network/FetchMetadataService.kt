@@ -18,7 +18,7 @@ import kotlinx.coroutines.*
 import java.io.File
 
 private const val CHANNEL_ID = "FetchMetadataService"
-private const val NOTIFICATION_ID = 1010
+private const val NOTIFICATION_ID = 182051
 private const val ACTION_CLOSE = "action_close"
 private const val DELAY_BETWEEN_REQUEST: Long = 0 // ms
 
@@ -36,6 +36,8 @@ class FetchMetadataService : Service() {
     fun fetchHistories(): LiveData<MutableList<FetchHistory>> = fetchHistories
 
     val fetchPercentage: LiveData<FetchPercentage>
+
+    private var notification: Notification? = null
 
     private var notificationBuilder: NotificationCompat.Builder? = null
 
@@ -87,9 +89,10 @@ class FetchMetadataService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        // https://stackoverflow.com/questions/46375444/remoteserviceexception-context-startforegroundservice-did-not-then-call-servic
-        val notification = createNotification("")
-        startForeground(NOTIFICATION_ID, notification)
+        notificationManager =
+            applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        prepareNotificationAndStartForeground()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -100,38 +103,91 @@ class FetchMetadataService : Service() {
                 stopSelf()
 
             } else {
-                notificationManager =
-                    applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-                createNotificationChannel()
+                prepareNotificationAndStartForeground()
 
                 val doujinPath = it.getStringExtra(DOUJIN_PATH) ?: ""
                 if (doujinPath.isNotBlank()) {
                     val doujinDir = File(doujinPath)
                     fetchSingle(doujinDir)
                 }
-
-                val notification = createNotification("")
-                startForeground(NOTIFICATION_ID, notification)
             }
         }
         return START_NOT_STICKY
     }
 
-    override fun onBind(p0: Intent?): IBinder? {
-        return binder
+    private fun prepareNotificationAndStartForeground() {
+        // https://stackoverflow.com/questions/46375444/remoteserviceexception-context-startforegroundservice-did-not-then-call-servic
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            createNotificationChannel()
+            createNotification("")
+            startForeground(NOTIFICATION_ID, notification)
+        }
     }
 
-    // todo: consider making 2nd request without the [] {} all the brackets. if first request is failed
+    // You must create notification channel in Android O and above
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val serviceChannel = NotificationChannel(
+                CHANNEL_ID, "Tsuki Viewer",
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+
+            serviceChannel.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+
+            notificationManager!!.createNotificationChannel(serviceChannel)
+        }
+    }
+
+    private fun createNotification(text: String, progress: Int = 0, max: Int = 100) {
+        // First time building the notification. Initialize all necessary things
+        if (notificationBuilder == null) {
+            notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
+            val startActivityIntent = Intent(this, FetcherStatusActivity::class.java)
+
+            val pendingIntent = PendingIntent.getActivity(this, 0, startActivityIntent, 0)
+
+            val stopIntent = Intent(this, FetchMetadataService::class.java)
+            stopIntent.action = ACTION_CLOSE
+
+            val stopPendingIntent =
+                PendingIntent.getService(this, 0, stopIntent, PendingIntent.FLAG_CANCEL_CURRENT)
+
+            notificationBuilder!!
+                .setContentTitle("Scanning for directories")
+                .setOnlyAlertOnce(true) // So when data is updated don't make sound and alert in android 8.0+
+                .setOngoing(true) // Ongoing notifications cannot be dismissed by the user
+                .setSmallIcon(R.drawable.ic_sd_card_gray_24dp)
+                .setContentIntent(pendingIntent)
+                .setProgress(max, progress, true)
+                .addAction(R.drawable.ic_close_gray_24dp, "Stop", stopPendingIntent)
+
+        } else {
+            // Second time. Just modify the content of the builder
+            notificationBuilder!!.apply {
+                setContentTitle("Fetching metadata")
+                setContentText(text)
+                setProgress(max, progress, false)
+            }
+        }
+
+        notification = notificationBuilder!!.build()
+
+        notificationManager!!.notify(NOTIFICATION_ID, notification)
+    }
+
     fun enqueueList(dirList: List<File>) {
         dirItemCount = dirList.size
+
+        // Avoid starting the same job for second time
+        if (batchJob != null) {
+            return
+        }
 
         batchJob = coroutineScope.launch {
             for ((index, dir) in dirList.withIndex()) {
                 withContext(Dispatchers.Main) {
                     currentItem.value = dir
                     createNotification(dir.name, index + 1, dirList.size)
-                    Log.d("fetchService", "createNotification() in batchJob")
                 }
 
                 val result = metadataRepo!!.fetchMetadata(dir)
@@ -183,59 +239,6 @@ class FetchMetadataService : Service() {
         }
     }
 
-    // You must create notification channel in Android O and above
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val serviceChannel = NotificationChannel(
-                CHANNEL_ID, "Tsuki Viewer",
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
-
-            serviceChannel.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
-
-            notificationManager!!.createNotificationChannel(serviceChannel)
-        }
-    }
-
-    private fun createNotification(text: String, progress: Int = 0, max: Int = 100): Notification {
-        // First time building the notification. Initialize all necessary things
-        if (notificationBuilder == null) {
-            notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
-            val startActivityIntent = Intent(this, FetcherStatusActivity::class.java)
-
-            val pendingIntent = PendingIntent.getActivity(this, 0, startActivityIntent, 0)
-
-            val stopIntent = Intent(this, FetchMetadataService::class.java)
-            stopIntent.action = ACTION_CLOSE
-
-            val stopPendingIntent =
-                PendingIntent.getService(this, 0, stopIntent, PendingIntent.FLAG_CANCEL_CURRENT)
-
-            notificationBuilder!!
-                .setContentTitle("Scanning for directories")
-                .setOnlyAlertOnce(true) // So when data is updated don't make sound and alert in android 8.0+
-                .setOngoing(true) // Ongoing notifications cannot be dismissed by the user
-                .setSmallIcon(R.drawable.ic_sd_card_gray_24dp)
-                .setContentIntent(pendingIntent)
-                .setProgress(max, progress, true)
-                .addAction(R.drawable.ic_close_gray_24dp, "Stop", stopPendingIntent)
-
-        } else {
-            // Second time. Just modify the content of the builder
-            notificationBuilder!!.apply {
-                setContentTitle("Fetching metadata")
-                setContentText(text)
-                setProgress(max, progress, false)
-            }
-        }
-
-        val notification = notificationBuilder!!.build()
-
-        notificationManager!!.notify(NOTIFICATION_ID, notification)
-
-        return notification
-    }
-
     private fun showToast(message: String) {
         val handler = Handler(Looper.getMainLooper())
         handler.post {
@@ -244,12 +247,15 @@ class FetchMetadataService : Service() {
         }
     }
 
+    override fun onBind(p0: Intent?): IBinder? {
+        return binder
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         Log.d("fetchService", "onDestroy() is called")
-        batchJob?.cancel()
+        batchJob?.cancel() // is null
         singleJob?.cancel()
-
         notificationManager!!.cancelAll()
     }
 

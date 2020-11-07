@@ -62,7 +62,8 @@
 
         <androidx.preference.SwitchPreference
             app:key="pref_scroll_by_volume_button"
-            app:title="Scroll using volume buttons" />
+            app:title="Scroll using volume buttons"
+            app:defaultValue="true" />
 
         <Preference
             android:fragment="com.flamyoad.tsukiviewer.ui.settings.preferences.VolumeButtonPreferences"
