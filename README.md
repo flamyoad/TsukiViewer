@@ -1,10 +1,9 @@
 # Tsuki Viewer 🌙 
-<a href="https://play.google.com/store/apps/details?id=com.flamyoad.tsukiviewer">
- <img src="/play-store-button.png" width=200 height=60 align="right"/>
-</a>
 
 <span>Local doujinshi viewer for Android. </span>
-
+<a href="https://play.google.com/store/apps/details?id=com.flamyoad.tsukiviewer" target="_blank">
+ <img src="/play-store-button.png" width=200 height=60 align="right"/>
+</a>
 
 # Features
 
