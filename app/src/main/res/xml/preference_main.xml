@@ -26,10 +26,10 @@
             app:title="Default style for image grid" />
 
         <androidx.preference.SwitchPreference
+            android:summary="Reverts to length-based natural sort if disabled. Should not be disabled in most cases."
             app:defaultValue="true"
             app:key="pref_use_windows_explorer_sort"
-            app:title="Use Windows Explorer sort pattern in image list"
-            android:summary="Reverts to length-based natural sort if disabled. Should not be disabled in most cases."/>
+            app:title="Use Windows Explorer sort pattern in image list" />
 
         <androidx.preference.SwitchPreference
             app:defaultValue="true"
@@ -60,19 +60,29 @@
             app:summary="%s"
             app:title="Default reader mode" />
 
+        <androidx.preference.SwitchPreference
+            app:key="pref_scroll_by_volume_button"
+            app:title="Scroll using volume buttons"
+            app:defaultValue="true" />
+
+        <Preference
+            android:fragment="com.flamyoad.tsukiviewer.ui.settings.preferences.VolumeButtonPreferences"
+            app:allowDividerBelow="true"
+            app:title="Volume button settings" />
+
     </PreferenceCategory>
 
     <!--hardcoded app:fragment crashes in release because of ClassNameNotFound -->
     <Preference
-        app:allowDividerAbove="true"
         android:fragment="com.flamyoad.tsukiviewer.ui.settings.preferences.ClearDataPreferences"
+        app:allowDividerAbove="true"
         app:icon="@drawable/ic_delete_settings_24dp"
         app:title="Clear data" />
 
     <Preference
+        android:fragment="com.flamyoad.tsukiviewer.ui.settings.preferences.AboutPreference"
         app:allowDividerAbove="true"
         app:allowDividerBelow="true"
-        android:fragment="com.flamyoad.tsukiviewer.ui.settings.preferences.AboutPreference"
         app:icon="@drawable/ic_info_settings_24dp"
         app:title="About" />
 

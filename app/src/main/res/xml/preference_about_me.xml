@@ -5,7 +5,7 @@
     <Preference
         app:allowDividerBelow="true"
         app:icon="@drawable/ic_info_settings_24dp"
-        app:summary="v1.0"
+        app:summary="v1.1"
         app:title="Version" />
 
     <Preference

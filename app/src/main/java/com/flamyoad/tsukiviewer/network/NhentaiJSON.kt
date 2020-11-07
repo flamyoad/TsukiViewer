@@ -1,8 +1,10 @@
 package com.flamyoad.tsukiviewer.network
 
+import androidx.annotation.Keep
 import com.google.gson.annotations.SerializedName
 
 // List of POJOs required for Retrofit
+@Keep
 data class Metadata(
     @SerializedName("result") val result: List<Result>) {
 

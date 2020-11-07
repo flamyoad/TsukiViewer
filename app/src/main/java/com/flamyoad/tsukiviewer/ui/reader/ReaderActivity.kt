@@ -3,12 +3,12 @@ package com.flamyoad.tsukiviewer.ui.reader
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSnapHelper
 import androidx.transition.Slide
@@ -41,6 +41,8 @@ import java.io.File
 
 private const val SWIPE_READER = "swipe_reader"
 private const val VERTICAL_READER = "vertical_reader"
+const val KEY_DOWN_INTENT = "key_down_intent"
+const val KEY_CODE = "key_code"
 
 class ReaderActivity : AppCompatActivity(),
     ReaderListener,
@@ -54,14 +56,15 @@ class ReaderActivity : AppCompatActivity(),
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reader)
 
-        viewModel.directoryNoLongerExists().observe(this, Observer {  notExists ->
+        viewModel.directoryNoLongerExists().observe(this, Observer { notExists ->
             if (notExists) {
                 toast("Directory not found. Renamed or deleted?")
                 finish()
             }
         })
 
-        positionFromImageGrid = intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
+        positionFromImageGrid =
+            intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
 
         viewModel.readerMode().observe(this, Observer {
             setupReader(it)
@@ -240,12 +243,26 @@ class ReaderActivity : AppCompatActivity(),
             return
         }
 
-        exitActivity()
-        super.onBackPressed() // onBackPressed() quits current activity so it must be called last.
+        handleActivityTermination()
+        super.onBackPressed()
+        // onBackPressed() quits current activity so it must be called last.
         // Otherwise, lines below onBackPressed() won't be called
     }
 
-    private fun exitActivity() {
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        // Only intercept volume button events
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            val intent = Intent(KEY_DOWN_INTENT).apply {
+                putExtra(KEY_CODE, keyCode)
+            }
+            LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+            return true
+        } else {
+            return super.onKeyDown(keyCode, event)
+        }
+    }
+
+    private fun handleActivityTermination() {
         val positionInImageGrid =
             intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
 

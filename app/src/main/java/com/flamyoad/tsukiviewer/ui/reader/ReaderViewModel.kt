@@ -28,6 +28,21 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
 
     var currentPath: String = ""
 
+    var shouldScrollWithVolumeButton: Boolean
+        private set
+
+    var scrollingMode: VolumeButtonScrollMode = VolumeButtonScrollMode.Nothing
+        private set
+
+    var volumeUpAction: VolumeButtonScrollDirection = VolumeButtonScrollDirection.Nothing
+        private set
+
+    var volumeDownAction: VolumeButtonScrollDirection = VolumeButtonScrollDirection.Nothing
+        private set
+
+    var scrollDistance: Int = 0
+        private set
+
     private val readerMode = MutableLiveData<ReaderMode>()
     fun readerMode(): LiveData<ReaderMode> = readerMode.distinctUntilChanged()
 
@@ -37,6 +52,15 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
 
         val defaultReaderMode = prefs.getDefaultReaderMode()
         readerMode.value = defaultReaderMode
+
+        shouldScrollWithVolumeButton = prefs.shouldScrollWithVolumeButton()
+
+        if (shouldScrollWithVolumeButton) {
+            scrollingMode = prefs.getVolumeButtonScrollMode()
+            volumeUpAction = prefs.getVolumeUpAction()
+            volumeDownAction = prefs.getVolumeDownAction()
+            scrollDistance = prefs.getVolumeButtonScrollDistance()
+        }
     }
 
     fun scanForImages(dirPath: String) {
