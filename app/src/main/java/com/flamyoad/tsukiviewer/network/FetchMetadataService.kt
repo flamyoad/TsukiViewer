@@ -183,6 +183,8 @@ class FetchMetadataService : Service() {
             return
         }
 
+        metadataRepo?.refreshPreference()
+
         batchJob = coroutineScope.launch {
             for ((index, dir) in dirList.withIndex()) {
                 withContext(Dispatchers.Main) {
@@ -212,6 +214,8 @@ class FetchMetadataService : Service() {
     }
 
     private fun fetchSingle(dir: File) {
+        metadataRepo?.refreshPreference()
+
         singleJob = coroutineScope.launch {
             val result = metadataRepo!!.fetchMetadata(dir)
 

@@ -36,6 +36,11 @@
             app:key="pref_confirm_before_quit"
             app:title="Show confirmation dialog before quitting" />
 
+        <Preference
+            android:fragment="com.flamyoad.tsukiviewer.ui.settings.preferences.FetchSourcePreference"
+            app:allowDividerBelow="true"
+            app:title="Fetcher options" />
+
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -72,7 +77,6 @@
 
     </PreferenceCategory>
 
-    <!--hardcoded app:fragment crashes in release because of ClassNameNotFound -->
     <Preference
         android:fragment="com.flamyoad.tsukiviewer.ui.settings.preferences.ClearDataPreferences"
         app:allowDividerAbove="true"

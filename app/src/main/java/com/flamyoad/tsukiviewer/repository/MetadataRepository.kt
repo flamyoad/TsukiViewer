@@ -7,17 +7,20 @@ import android.util.Log
 import android.webkit.WebSettings
 import android.widget.Toast
 import androidx.room.withTransaction
+import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.*
 import com.flamyoad.tsukiviewer.model.DoujinDetails
 import com.flamyoad.tsukiviewer.model.DoujinTag
 import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.network.*
+import com.flamyoad.tsukiviewer.parser.HenNexusParser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Dispatcher
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
@@ -26,9 +29,19 @@ import java.io.IOException
 class MetadataRepository(private val context: Context) {
     private lateinit var nhService: NHService
 
+    private lateinit var henNexusService: HenNexusService
+
+    private val henNexusParser: HenNexusParser by lazy { HenNexusParser() }
+
     private val db: AppDatabase
 
-    private var toast: Toast? = null
+    private val appPreference = MyAppPreference.getInstance(context)
+
+    val pathDao: IncludedPathDao
+    val doujinDetailsDao: DoujinDetailsDao
+    val tagDao: TagDao
+    val doujinTagDao: DoujinTagsDao
+    val folderDao: IncludedFolderDao
 
     /*
         Regex used to remove text between parentheses and brackets
@@ -39,11 +52,9 @@ class MetadataRepository(private val context: Context) {
         "\\[.*?]|\\(.*?\\)".toRegex()
     }
 
-    val pathDao: IncludedPathDao
-    val doujinDetailsDao: DoujinDetailsDao
-    val tagDao: TagDao
-    val doujinTagDao: DoujinTagsDao
-    val folderDao: IncludedFolderDao
+    private var shouldFetchFromHNexus: Boolean
+
+    private var toast: Toast? = null
 
     init {
         initializeNetwork()
@@ -55,6 +66,8 @@ class MetadataRepository(private val context: Context) {
         tagDao = db.tagsDao()
         doujinTagDao = db.doujinTagDao()
         folderDao = db.folderDao()
+
+        shouldFetchFromHNexus = appPreference.shouldFetchFromHNexus()
     }
 
     private fun initializeNetwork() {
@@ -75,16 +88,26 @@ class MetadataRepository(private val context: Context) {
                     return chain.proceed(request)
                 }
             })
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            })
             .dispatcher(dispatcher)
             .build()
 
-        val retrofit = Retrofit.Builder()
+        val nhBuilder = Retrofit.Builder()
             .client(httpClient)
             .baseUrl(NHService.baseUrl)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
-        nhService = retrofit.create(NHService::class.java)
+        nhService = nhBuilder.create(NHService::class.java)
+
+        val henNexusBuilder = Retrofit.Builder()
+            .client(httpClient)
+            .baseUrl(HenNexusService.baseUrl)
+            .build()
+
+        henNexusService = henNexusBuilder.create(HenNexusService::class.java)
     }
 
     suspend fun fetchMetadata(dir: File): FetchHistory {
@@ -110,19 +133,29 @@ class MetadataRepository(private val context: Context) {
 
     private fun requestMetadata(fullTitle: String): FetchResult {
         // First try is attempted with title which contains all these , | [] {} symbols
-        val queryWithDirName = requestFromNhentai(fullTitle)
-        if (queryWithDirName.status == FetchStatus.SUCCESS) {
-            return queryWithDirName
+        val queryNhentaiWithDirName = requestFromNhentai(fullTitle)
+        if (queryNhentaiWithDirName.status == FetchStatus.SUCCESS) {
+            return queryNhentaiWithDirName
         }
 
         val cleanedTitle = fullTitle.replace(regex, "")
-
         if (cleanedTitle == fullTitle) {
-            return queryWithDirName // No point retrying if same string
+            return queryNhentaiWithDirName // No point retrying if same string
         }
 
         // Retry with cleaned title without symbols
-        return requestFromNhentai(cleanedTitle)
+        val queryNhentaiWithCleanTitle = requestFromNhentai(cleanedTitle)
+        if (queryNhentaiWithCleanTitle.status == FetchStatus.SUCCESS) {
+            return queryNhentaiWithCleanTitle
+        }
+
+        if (shouldFetchFromHNexus) {
+            // Try requesting from HenNexus next with cleaned title
+            val queryHenNexus = requestFromHenNexus(cleanedTitle)
+            return queryHenNexus
+        }
+
+        return FetchResult(null, FetchStatus.NO_MATCH)
     }
 
     private fun requestFromNhentai(fullTitle: String): FetchResult {
@@ -134,6 +167,38 @@ class MetadataRepository(private val context: Context) {
             return when (json.result.isEmpty()) {
                 true -> FetchResult(status = FetchStatus.NO_MATCH)
                 false -> FetchResult(json, status = FetchStatus.SUCCESS)
+            }
+
+        } catch (e: IOException) {
+            showToast("Failed to fetch metadata")
+            return FetchResult(status = FetchStatus.NETWORK_ERROR)
+        }
+    }
+
+    private fun requestFromHenNexus(fullTitle: String): FetchResult {
+        try {
+            val searchRequest = henNexusService.getSearchResult(fullTitle).execute()
+            val searchResultHtml = searchRequest.body()?.string()
+
+            if (searchResultHtml.isNullOrBlank()) {
+                return FetchResult(status = FetchStatus.NO_MATCH)
+            }
+
+            val firstItemLink = henNexusParser.getFirstItemInList(searchResultHtml)
+
+            val firstItemRequest = henNexusService.getPageUrl(firstItemLink).execute()
+            val firstItemHtml = firstItemRequest.body()?.string()
+
+            if (firstItemHtml.isNullOrBlank()) {
+                return FetchResult(status = FetchStatus.NO_MATCH)
+            }
+
+            val metadata = henNexusParser.parseItem(firstItemHtml)
+
+            if (!metadata.hasValue) {
+                return FetchResult(status = FetchStatus.NO_MATCH)
+            } else {
+                return FetchResult(metadata, status = FetchStatus.SUCCESS)
             }
 
         } catch (e: IOException) {
@@ -194,7 +259,8 @@ class MetadataRepository(private val context: Context) {
                 if (!doujinDetailsDao.existsByAbsolutePath(absolutePath)) {
                     doujinId = doujinDetailsDao.insert(doujinDetails)
                 } else {
-                    val fetchedItems: List<DoujinDetails> = doujinDetailsDao.findByAbsolutePath(absolutePath)
+                    val fetchedItems: List<DoujinDetails> =
+                        doujinDetailsDao.findByAbsolutePath(absolutePath)
                     doujinId = fetchedItems.first().id ?: -1
                 }
 
@@ -276,5 +342,9 @@ class MetadataRepository(private val context: Context) {
             toast = Toast.makeText(context, message, Toast.LENGTH_SHORT)
             toast?.show()
         }
+    }
+
+    fun refreshPreference() {
+        shouldFetchFromHNexus = appPreference.shouldFetchFromHNexus()
     }
 }
