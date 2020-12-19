@@ -11,6 +11,7 @@ import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.model.Doujin
+import com.flamyoad.tsukiviewer.model.Source
 import com.flamyoad.tsukiviewer.network.FetchMetadataService
 import com.flamyoad.tsukiviewer.repository.BookmarkRepository
 import com.flamyoad.tsukiviewer.repository.MetadataRepository
@@ -19,6 +20,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.*
 
 
 class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app) {
@@ -66,6 +68,8 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
     private var loadingJob: Job? = null
 
     private var shouldSendDirsToService: Boolean = false
+
+    private var sourceFlags: EnumSet<Source> = EnumSet.noneOf(Source::class.java)
 
     val snackbarText = MutableLiveData<String>("")
 
@@ -143,12 +147,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
     // Recursive method to search for directories & sub-directories
     private suspend fun walk(currentDir: File, parentDir: File) {
         if (currentDir.isDirectory) {
-            val fileList = currentDir.listFiles()
-
-            if (fileList == null) {
-                return // Invalid directory
-            }
-
+            val fileList = currentDir.listFiles() ?: return
             val imageList = fileList.filter { f -> f.extension in imageExtensions }
 
             if (imageList.isNotEmpty()) {
@@ -209,10 +208,11 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
         }
     }
 
-    // Todo: check which method inside is blocking UI thread
-    fun fetchMetadataAll() {
+    fun fetchMetadata(sourceFlags: EnumSet<Source>) {
         val context = app.applicationContext
         FetchMetadataService.startService(context)
+
+        this.sourceFlags = sourceFlags
 
         if (isLoading.value == true) {
             shouldSendDirsToService = true
@@ -232,7 +232,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
                     override fun onServiceConnected(className: ComponentName?, service: IBinder?) {
                         fetchService = (service as FetchMetadataService.FetchBinder).getService()
 
-                        fetchService?.enqueueList(dirList)
+                        fetchService?.enqueueList(dirList, sourceFlags)
                         context.unbindService(this)
                     }
 

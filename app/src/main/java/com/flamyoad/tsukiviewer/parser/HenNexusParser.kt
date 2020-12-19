@@ -88,7 +88,7 @@ class HenNexusParser {
 
         val result = Result(
             nukeCode =  0,
-            title = Title(english = englishTitle, japanese = "", pretty = ""),
+            title = Title(english = englishTitle, japanese = "", pretty = englishTitle),
             scanlator = "",
             upload_date = 0,
             tags = tagList

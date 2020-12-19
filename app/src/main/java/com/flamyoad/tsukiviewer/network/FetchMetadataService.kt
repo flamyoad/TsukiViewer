@@ -12,10 +12,12 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
 import com.flamyoad.tsukiviewer.R
+import com.flamyoad.tsukiviewer.model.Source
 import com.flamyoad.tsukiviewer.repository.MetadataRepository
 import com.flamyoad.tsukiviewer.ui.fetcher.FetcherStatusActivity
 import kotlinx.coroutines.*
 import java.io.File
+import java.util.*
 
 private const val CHANNEL_ID = "FetchMetadataService"
 private const val NOTIFICATION_ID = 182051
@@ -58,6 +60,7 @@ class FetchMetadataService : Service() {
 
     companion object {
         private const val DOUJIN_PATH = "doujin_path"
+        private const val SOURCE_FLAGS = "source_flags"
         private var metadataRepo: MetadataRepository? = null
 
         fun initComponents(context: Context) {
@@ -73,9 +76,13 @@ class FetchMetadataService : Service() {
             ContextCompat.startForegroundService(context, startIntent)
         }
 
-        fun startService(context: Context, dirPath: String) {
+        fun startService(context: Context, dirPath: String, sources: EnumSet<Source>) {
             val startIntent = Intent(context, FetchMetadataService::class.java)
+
+            val sourceFlags = sources.map { source -> source.readableName }.toTypedArray()
+
             startIntent.putExtra(DOUJIN_PATH, dirPath)
+            startIntent.putExtra(SOURCE_FLAGS, sourceFlags)
 
             initComponents(context)
             ContextCompat.startForegroundService(context, startIntent)
@@ -106,9 +113,14 @@ class FetchMetadataService : Service() {
                 prepareNotificationAndStartForeground()
 
                 val doujinPath = it.getStringExtra(DOUJIN_PATH) ?: ""
+                val sourceFlags = it.getStringArrayExtra(SOURCE_FLAGS) ?: emptyArray()
+
                 if (doujinPath.isNotBlank()) {
                     val doujinDir = File(doujinPath)
-                    fetchSingle(doujinDir)
+
+                    val sources = sourceFlags.map { flag -> Source.valueOf(flag) }
+
+                    fetchSingle(doujinDir, EnumSet.copyOf(sources))
                 }
             }
         }
@@ -175,15 +187,13 @@ class FetchMetadataService : Service() {
         notificationManager!!.notify(NOTIFICATION_ID, notification)
     }
 
-    fun enqueueList(dirList: List<File>) {
+    fun enqueueList(dirList: List<File>, sources: EnumSet<Source>) {
         dirItemCount = dirList.size
 
         // Avoid starting the same job for second time
         if (batchJob != null) {
             return
         }
-
-        metadataRepo?.refreshPreference()
 
         batchJob = coroutineScope.launch {
             for ((index, dir) in dirList.withIndex()) {
@@ -192,7 +202,7 @@ class FetchMetadataService : Service() {
                     createNotification(dir.name, index + 1, dirList.size)
                 }
 
-                val result = metadataRepo!!.fetchMetadata(dir)
+                val result = metadataRepo!!.fetchMetadata(dir, sources)
 
                 val fetchStatus = result.status
                 when (fetchStatus) {
@@ -213,11 +223,9 @@ class FetchMetadataService : Service() {
         }
     }
 
-    private fun fetchSingle(dir: File) {
-        metadataRepo?.refreshPreference()
-
+    private fun fetchSingle(dir: File, sources: EnumSet<Source>) {
         singleJob = coroutineScope.launch {
-            val result = metadataRepo!!.fetchMetadata(dir)
+            val result = metadataRepo!!.fetchMetadata(dir, sources)
 
             when (result.status) {
                 FetchStatus.NO_MATCH -> showToast("No matching result for this directory")

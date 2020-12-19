@@ -7,11 +7,11 @@ import android.util.Log
 import android.webkit.WebSettings
 import android.widget.Toast
 import androidx.room.withTransaction
-import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.*
 import com.flamyoad.tsukiviewer.model.DoujinDetails
 import com.flamyoad.tsukiviewer.model.DoujinTag
+import com.flamyoad.tsukiviewer.model.Source
 import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.network.*
 import com.flamyoad.tsukiviewer.parser.HenNexusParser
@@ -25,6 +25,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
 import java.io.IOException
+import java.util.*
 
 class MetadataRepository(private val context: Context) {
     private lateinit var nhService: NHService
@@ -34,8 +35,6 @@ class MetadataRepository(private val context: Context) {
     private val henNexusParser: HenNexusParser by lazy { HenNexusParser() }
 
     private val db: AppDatabase
-
-    private val appPreference = MyAppPreference.getInstance(context)
 
     val pathDao: IncludedPathDao
     val doujinDetailsDao: DoujinDetailsDao
@@ -52,8 +51,6 @@ class MetadataRepository(private val context: Context) {
         "\\[.*?]|\\(.*?\\)".toRegex()
     }
 
-    private var shouldFetchFromHNexus: Boolean
-
     private var toast: Toast? = null
 
     init {
@@ -66,8 +63,6 @@ class MetadataRepository(private val context: Context) {
         tagDao = db.tagsDao()
         doujinTagDao = db.doujinTagDao()
         folderDao = db.folderDao()
-
-        shouldFetchFromHNexus = appPreference.shouldFetchFromHNexus()
     }
 
     private fun initializeNetwork() {
@@ -110,13 +105,13 @@ class MetadataRepository(private val context: Context) {
         henNexusService = henNexusBuilder.create(HenNexusService::class.java)
     }
 
-    suspend fun fetchMetadata(dir: File): FetchHistory {
+    suspend fun fetchMetadata(dir: File, sources: EnumSet<Source>): FetchHistory {
         return withContext(Dispatchers.IO) {
             if (doujinDetailsDao.existsByTitle(dir.name) || doujinDetailsDao.existsByAbsolutePath(dir.toString())) {
                 return@withContext FetchHistory(dir, dir.name, FetchStatus.ALREADY_EXISTS)
 
             } else {
-                val fetchResult = requestMetadata(dir.name)
+                val fetchResult = requestMetadata(dir.name, sources)
                 val title = fetchResult.getDoujinTitle() ?: dir.name
 
                 val metadata = fetchResult.metadata
@@ -131,30 +126,40 @@ class MetadataRepository(private val context: Context) {
         }
     }
 
-    private fun requestMetadata(fullTitle: String): FetchResult {
-        // First try is attempted with title which contains all these , | [] {} symbols
-        val queryNhentaiWithDirName = requestFromNhentai(fullTitle)
-        if (queryNhentaiWithDirName.status == FetchStatus.SUCCESS) {
-            return queryNhentaiWithDirName
+    private fun requestMetadata(fullTitle: String, sources: EnumSet<Source>): FetchResult {
+        var cleanedTitle: String = ""
+
+        if (sources.contains(Source.NHentai)) {
+            // First try is attempted with title which contains all these , | [] {} symbols
+            val queryNhentaiWithDirName = requestFromNhentai(fullTitle)
+            Log.d("fetchbug", "Query NHentai with Dir Name")
+            if (queryNhentaiWithDirName.status == FetchStatus.SUCCESS) {
+                return queryNhentaiWithDirName
+            }
+
+            cleanedTitle = fullTitle.replace(regex, "")
+            if (cleanedTitle == fullTitle) {
+                return queryNhentaiWithDirName // No point retrying if same string
+            }
+
+            // Retry with cleaned title without symbols
+            Log.d("fetchbug", "Query NHentai with Cleaned Name")
+            val queryNhentaiWithCleanTitle = requestFromNhentai(cleanedTitle)
+            if (queryNhentaiWithCleanTitle.status == FetchStatus.SUCCESS) {
+                return queryNhentaiWithCleanTitle
+            }
         }
 
-        val cleanedTitle = fullTitle.replace(regex, "")
-        if (cleanedTitle == fullTitle) {
-            return queryNhentaiWithDirName // No point retrying if same string
+        if (sources.contains(Source.HentaiNexus)) {
+            Log.d("fetchbug", "Query HentaiNexus with Cleaned Name")
+            if (cleanedTitle == "") {
+                cleanedTitle = fullTitle.replace(regex, "")
+            }
+
+            return requestFromHenNexus(cleanedTitle)
         }
 
-        // Retry with cleaned title without symbols
-        val queryNhentaiWithCleanTitle = requestFromNhentai(cleanedTitle)
-        if (queryNhentaiWithCleanTitle.status == FetchStatus.SUCCESS) {
-            return queryNhentaiWithCleanTitle
-        }
-
-        if (shouldFetchFromHNexus) {
-            // Try requesting from HenNexus next with cleaned title
-            val queryHenNexus = requestFromHenNexus(cleanedTitle)
-            return queryHenNexus
-        }
-
+        Log.d("fetchbug", "No match")
         return FetchResult(null, FetchStatus.NO_MATCH)
     }
 
@@ -342,9 +347,5 @@ class MetadataRepository(private val context: Context) {
             toast = Toast.makeText(context, message, Toast.LENGTH_SHORT)
             toast?.show()
         }
-    }
-
-    fun refreshPreference() {
-        shouldFetchFromHNexus = appPreference.shouldFetchFromHNexus()
     }
 }

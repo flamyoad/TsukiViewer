@@ -13,13 +13,16 @@ import androidx.viewpager.widget.ViewPager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinPagerAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
+import com.flamyoad.tsukiviewer.model.Source
 import com.flamyoad.tsukiviewer.network.FetchMetadataService
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
+import com.flamyoad.tsukiviewer.ui.home.local.SelectSourceListener
 import com.flamyoad.tsukiviewer.utils.toast
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_doujin_details.*
+import java.util.*
 
-class DoujinDetailsActivity : AppCompatActivity() {
+class DoujinDetailsActivity : AppCompatActivity(), SelectSourceListener {
 
     private val viewModel: DoujinViewModel by viewModels()
 
@@ -65,7 +68,7 @@ class DoujinDetailsActivity : AppCompatActivity() {
             }
 
             R.id.action_clear_metadata -> {
-                openClearDataDialog()
+                showClearDataDialog()
             }
 
             R.id.action_edit -> {
@@ -80,10 +83,6 @@ class DoujinDetailsActivity : AppCompatActivity() {
             }
         }
         return false
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
     }
 
     private fun handleIntent() {
@@ -123,11 +122,15 @@ class DoujinDetailsActivity : AppCompatActivity() {
 
     private fun syncMetadata() {
         if (viewModel.detailsNotExists()) {
-            val dirPath = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
-            FetchMetadataService.startService(this, dirPath)
+//            val dirPath = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
+//            FetchMetadataService.startService(this, dirPath)
         } else {
             showConfirmResyncDialog()
         }
+    }
+
+    private fun showSyncDialog() {
+
     }
 
     private fun showConfirmResyncDialog() {
@@ -147,7 +150,7 @@ class DoujinDetailsActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    private fun openClearDataDialog() {
+    private fun showClearDataDialog() {
         val dialog = DialogRemoveMetadata.newInstance()
         dialog.show(supportFragmentManager, "clearDataDialog")
     }
@@ -180,5 +183,10 @@ class DoujinDetailsActivity : AppCompatActivity() {
         } else {
             toast("Cannot open browser")
         }
+    }
+
+    override fun onFetchMetadata(sources: EnumSet<Source>) {
+        val dirPath = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
+        FetchMetadataService.startService(this, dirPath, sources)
     }
 }
