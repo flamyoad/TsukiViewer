@@ -1,27 +1,21 @@
 package com.flamyoad.tsukiviewer.ui.home.local
 
 import android.app.Dialog
-import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.SourceSelectorAdapter
 import com.flamyoad.tsukiviewer.model.Source
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.textview.MaterialTextView
-import kotlinx.android.synthetic.main.activity_search.*
 import java.util.*
 import kotlin.collections.HashMap
 
 class DialogSelectSource : DialogFragment() {
-//    private val viewModel: LocalDoujinViewModel by activityViewModels()
-
     private val checkBoxStates = HashMap<Source, Boolean>()
 
     private val sourceAdapter = SourceSelectorAdapter(checkBoxStates, this::onCheckBoxClick)
@@ -29,6 +23,7 @@ class DialogSelectSource : DialogFragment() {
     private var listener: SelectSourceListener? = null
 
     private lateinit var listSources: RecyclerView
+    private lateinit var btnStart: MaterialButton
 
     init {
         // All checkboxes should be ticked by default
@@ -51,18 +46,21 @@ class DialogSelectSource : DialogFragment() {
         val view = layoutInflater.inflate(R.layout.dialog_fetch_sources, null, false)
         builder.setView(view)
 
-        val dialog = builder.create()
+        listSources = view.findViewById(R.id.listSources)
+        btnStart = view.findViewById(R.id.btnStart)
 
         val txtTarget = view.findViewById<MaterialTextView>(R.id.txtTarget)
-        txtTarget.text = getString(R.string.source_selector_target, "All")
-
-        listSources = view.findViewById(R.id.listSources)
+        arguments?.let {
+            val targetDir = it.getString(TARGET_DIR)
+            txtTarget.text = targetDir
+        }
 
         val btnStart = view.findViewById<Button>(R.id.btnStart)
         btnStart.setOnClickListener {
             startFetching()
-            dialog.dismiss()
         }
+
+        val dialog = builder.create()
 
         return dialog
     }
@@ -90,7 +88,7 @@ class DialogSelectSource : DialogFragment() {
             val selectedSources = savedInstanceState.getStringArray(CHECKBOX_STATES) ?: return
             for (entry in checkBoxStates) {
                 val key = entry.key
-                val isChecked = key.readableName in selectedSources
+                val isChecked = key.name in selectedSources
                 entry.setValue(isChecked)
             }
             sourceAdapter.notifyDataSetChanged()
@@ -99,6 +97,10 @@ class DialogSelectSource : DialogFragment() {
 
     private fun onCheckBoxClick(source: Source, newValue: Boolean) {
         checkBoxStates[source] = newValue
+
+        // If none of the checkboxes are ticked, disable the button
+        val chosenAtLeastOne = checkBoxStates.any { pair -> pair.value == true }
+        btnStart.isEnabled = chosenAtLeastOne
     }
 
     private fun startFetching() {
@@ -107,13 +109,23 @@ class DialogSelectSource : DialogFragment() {
             .map { pair -> Source.valueOf(pair.key.name) }
 
         val sourceFlags = EnumSet.copyOf(selectedSources)
-
         listener!!.onFetchMetadata(sourceFlags)
+
+        dialog?.dismiss()
     }
 
     companion object {
         const val name = "DIALOG_SELECT_SOURCE"
+
         const val CHECKBOX_STATES = "CHECKBOX_STATES"
-        fun newInstance() = DialogSelectSource()
+        const val TARGET_DIR = "TARGET_DIR"
+
+        fun newInstance(targetDir: String = "All") =
+            DialogSelectSource().apply {
+                arguments = Bundle().apply {
+                    putString(TARGET_DIR, targetDir)
+                }
+            }
+
     }
 }

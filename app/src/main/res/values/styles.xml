@@ -157,4 +157,9 @@
 <!--        <item name="cornerSizeBottomLeft">4dp</item>-->
 <!--    </style>-->
 
+    <style name="source_selector_start_button" parent="@style/Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/dialog_source_selector_button_color</item>
+        <item name="android:textColor">@color/dialog_source_selector_button_text_color</item>
+    </style>
+
 </resources>

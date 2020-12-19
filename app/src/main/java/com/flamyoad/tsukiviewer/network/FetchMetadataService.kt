@@ -79,7 +79,7 @@ class FetchMetadataService : Service() {
         fun startService(context: Context, dirPath: String, sources: EnumSet<Source>) {
             val startIntent = Intent(context, FetchMetadataService::class.java)
 
-            val sourceFlags = sources.map { source -> source.readableName }.toTypedArray()
+            val sourceFlags = sources.map { source -> source.name }.toTypedArray()
 
             startIntent.putExtra(DOUJIN_PATH, dirPath)
             startIntent.putExtra(SOURCE_FLAGS, sourceFlags)

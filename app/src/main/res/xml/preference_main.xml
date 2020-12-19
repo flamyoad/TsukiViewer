@@ -36,10 +36,10 @@
             app:key="pref_confirm_before_quit"
             app:title="Show confirmation dialog before quitting" />
 
-        <Preference
-            android:fragment="com.flamyoad.tsukiviewer.ui.settings.preferences.FetchSourcePreference"
-            app:allowDividerBelow="true"
-            app:title="Fetcher options" />
+<!--        <Preference-->
+<!--            android:fragment="com.flamyoad.tsukiviewer.ui.settings.preferences.FetchSourcePreference"-->
+<!--            app:allowDividerBelow="true"-->
+<!--            app:title="Fetcher options" />-->
 
     </PreferenceCategory>
 

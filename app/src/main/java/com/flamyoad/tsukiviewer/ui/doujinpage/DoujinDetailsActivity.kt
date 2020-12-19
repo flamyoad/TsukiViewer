@@ -22,7 +22,7 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_doujin_details.*
 import java.util.*
 
-class DoujinDetailsActivity : AppCompatActivity(), SelectSourceListener {
+class DoujinDetailsActivity : AppCompatActivity() {
 
     private val viewModel: DoujinViewModel by viewModels()
 
@@ -57,10 +57,6 @@ class DoujinDetailsActivity : AppCompatActivity(), SelectSourceListener {
         when (item?.itemId) {
             android.R.id.home -> {
                 finish()
-            }
-
-            R.id.action_sync -> {
-                syncMetadata()
             }
 
             R.id.action_open_in_browser -> {
@@ -120,18 +116,6 @@ class DoujinDetailsActivity : AppCompatActivity(), SelectSourceListener {
         })
     }
 
-    private fun syncMetadata() {
-        if (viewModel.detailsNotExists()) {
-//            val dirPath = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
-//            FetchMetadataService.startService(this, dirPath)
-        } else {
-            showConfirmResyncDialog()
-        }
-    }
-
-    private fun showSyncDialog() {
-
-    }
 
     private fun showConfirmResyncDialog() {
         val dialog = AlertDialog.Builder(this)
@@ -183,10 +167,5 @@ class DoujinDetailsActivity : AppCompatActivity(), SelectSourceListener {
         } else {
             toast("Cannot open browser")
         }
-    }
-
-    override fun onFetchMetadata(sources: EnumSet<Source>) {
-        val dirPath = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
-        FetchMetadataService.startService(this, dirPath, sources)
     }
 }
