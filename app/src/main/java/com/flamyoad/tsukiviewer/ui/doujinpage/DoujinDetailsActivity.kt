@@ -116,23 +116,22 @@ class DoujinDetailsActivity : AppCompatActivity() {
         })
     }
 
-
-    private fun showConfirmResyncDialog() {
-        val dialog = AlertDialog.Builder(this)
-            .setTitle("Reset to original tags")
-            .setMessage("Previous tags that have been added manually will be erased. Continue?")
-            .setPositiveButton("Yes", DialogInterface.OnClickListener { dialogInterface, i ->
-                // Update tags in DB
-                viewModel.resetTags()
-                dialogInterface.dismiss()
-            })
-            .setNegativeButton("Cancel", DialogInterface.OnClickListener { dialogInterface, i ->
-                dialogInterface.dismiss()
-            })
-            .create()
-
-        dialog.show()
-    }
+//    private fun showConfirmResyncDialog() {
+//        val dialog = AlertDialog.Builder(this)
+//            .setTitle("Reset to original tags")
+//            .setMessage("Previous tags that have been added manually will be erased. Continue?")
+//            .setPositiveButton("Yes", DialogInterface.OnClickListener { dialogInterface, i ->
+//                // Update tags in DB
+//                viewModel.resetTags()
+//                dialogInterface.dismiss()
+//            })
+//            .setNegativeButton("Cancel", DialogInterface.OnClickListener { dialogInterface, i ->
+//                dialogInterface.dismiss()
+//            })
+//            .create()
+//
+//        dialog.show()
+//    }
 
     private fun showClearDataDialog() {
         val dialog = DialogRemoveMetadata.newInstance()

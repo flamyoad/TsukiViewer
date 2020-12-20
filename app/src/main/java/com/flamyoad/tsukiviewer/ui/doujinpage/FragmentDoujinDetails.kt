@@ -20,7 +20,6 @@ import com.flamyoad.tsukiviewer.network.FetchMetadataService
 import com.flamyoad.tsukiviewer.ui.home.local.DialogSelectSource
 import com.flamyoad.tsukiviewer.ui.home.local.SelectSourceListener
 import com.flamyoad.tsukiviewer.utils.TimeUtils
-import com.flamyoad.tsukiviewer.utils.snackbar
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxLayoutManager
@@ -193,15 +192,10 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
 
     // https://stackoverflow.com/questions/47045788/fragment-declared-target-fragment-that-does-not-belong-to-this-fragmentmanager
     private fun syncMetadata() {
-        if (viewModel.detailsNotExists()) {
-            val dirName = File(viewModel.currentPath).name
-            val dialog = DialogSelectSource.newInstance(dirName)
-            dialog.setTargetFragment(this, 0) // For passing methods from this fragment to dialog
-            dialog.show(requireActivity().supportFragmentManager, DialogSelectSource.name)
-
-        } else {
-            snackbar("This doujin already has tags")
-        }
+        val dirName = File(viewModel.currentPath).name
+        val dialog = DialogSelectSource.newInstance(dirName)
+        dialog.setTargetFragment(this, 0) // For passing methods from this fragment to dialog
+        dialog.show(requireActivity().supportFragmentManager, DialogSelectSource.name)
     }
 
     companion object {
@@ -211,9 +205,15 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
         }
     }
 
+    // Fetch tags/titles if details not yet exists. Otherwise, only reset the tags
     override fun onFetchMetadata(sources: EnumSet<Source>) {
-        val dirPath = requireActivity().intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
-        FetchMetadataService.startService(requireContext(), dirPath, sources)
+        if (viewModel.detailsNotExists()) {
+            val dirPath =
+                requireActivity().intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
+            FetchMetadataService.startService(requireContext(), dirPath, sources)
+        } else {
+            viewModel.resetTags(sources)
+        }
     }
 }
 

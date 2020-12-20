@@ -324,9 +324,10 @@ class MetadataRepository(private val context: Context) {
         }
     }
 
-    suspend fun resetTags(dir: File) {
+    suspend fun resetTags(dir: File, sources: EnumSet<Source>) {
         withContext(Dispatchers.IO) {
-            val result = requestFromNhentai(dir.name)
+//            val result = requestFromNhentai(dir.name)
+            val result = requestMetadata(dir.name, sources)
 
             if (result.status == FetchStatus.SUCCESS) {
                 val doujinDetails = doujinDetailsDao
@@ -339,7 +340,7 @@ class MetadataRepository(private val context: Context) {
                     .map { x -> Tag(type = x.type, name = x.name, url = x.url, count = 1) }
                 saveEditedMetadata(doujinDetails, tagList)
             } else {
-                Log.d("retrofit", "Can't find this sauce in NH.net")
+                Log.d("retrofit", "Can't find this sauce")
             }
         }
     }
