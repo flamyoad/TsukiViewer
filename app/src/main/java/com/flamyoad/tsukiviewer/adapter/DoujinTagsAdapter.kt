@@ -5,19 +5,22 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.ui.search.SearchActivity
 import com.flamyoad.tsukiviewer.ui.search.SearchResultActivity
 import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
-import kotlinx.android.synthetic.main.doujin_tags_item.view.*
 
-class DoujinTagsAdapter(private val useLargerView: Boolean):
-    RecyclerView.Adapter<DoujinTagsAdapter.DoujinTagHolder>(), FastScrollRecyclerView.SectionedAdapter {
+class DoujinTagsAdapter(private val useLargerView: Boolean) :
+    RecyclerView.Adapter<DoujinTagsAdapter.DoujinTagHolder>(),
+    FastScrollRecyclerView.SectionedAdapter {
 
     private var tagList: List<Tag> = emptyList()
+
+    private var showDeleteDialog: ((Tag) -> Unit)? = null
+
+    fun setListener(lambda: (Tag) -> Unit) = run { showDeleteDialog = lambda }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DoujinTagHolder {
         val layoutId = when (useLargerView) {
@@ -32,13 +35,21 @@ class DoujinTagsAdapter(private val useLargerView: Boolean):
 
         layout.setOnClickListener {
             val tag = tagList[holder.adapterPosition]
-            
+
             val context = parent.context
-            
+
             val intent = Intent(context, SearchResultActivity::class.java)
             intent.putExtra(SearchActivity.SEARCH_TAGS, tag.name)
 
             context.startActivity(intent)
+        }
+
+        layout.setOnLongClickListener {
+            if (showDeleteDialog != null) {
+                val tag = tagList[holder.adapterPosition]
+                showDeleteDialog?.invoke(tag)
+            }
+            return@setOnLongClickListener true
         }
 
         return holder
@@ -69,6 +80,10 @@ class DoujinTagsAdapter(private val useLargerView: Boolean):
 
     override fun getSectionName(position: Int): String {
         val item = tagList[position]
-        return item.name.first().toString()
+        return if (item.name.isBlank()) {
+            ""
+        } else {
+            item.name.first().toString()
+        }
     }
 }

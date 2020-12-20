@@ -11,24 +11,36 @@ import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.*
 import com.flamyoad.tsukiviewer.model.DoujinDetails
 import com.flamyoad.tsukiviewer.model.DoujinTag
+import com.flamyoad.tsukiviewer.model.Source
 import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.network.*
+import com.flamyoad.tsukiviewer.parser.HenNexusParser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Dispatcher
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
 import java.io.IOException
+import java.util.*
 
 class MetadataRepository(private val context: Context) {
     private lateinit var nhService: NHService
 
+    private lateinit var henNexusService: HenNexusService
+
+    private val henNexusParser: HenNexusParser by lazy { HenNexusParser() }
+
     private val db: AppDatabase
 
-    private var toast: Toast? = null
+    val pathDao: IncludedPathDao
+    val doujinDetailsDao: DoujinDetailsDao
+    val tagDao: TagDao
+    val doujinTagDao: DoujinTagsDao
+    val folderDao: IncludedFolderDao
 
     /*
         Regex used to remove text between parentheses and brackets
@@ -39,11 +51,7 @@ class MetadataRepository(private val context: Context) {
         "\\[.*?]|\\(.*?\\)".toRegex()
     }
 
-    val pathDao: IncludedPathDao
-    val doujinDetailsDao: DoujinDetailsDao
-    val tagDao: TagDao
-    val doujinTagDao: DoujinTagsDao
-    val folderDao: IncludedFolderDao
+    private var toast: Toast? = null
 
     init {
         initializeNetwork()
@@ -75,25 +83,35 @@ class MetadataRepository(private val context: Context) {
                     return chain.proceed(request)
                 }
             })
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            })
             .dispatcher(dispatcher)
             .build()
 
-        val retrofit = Retrofit.Builder()
+        val nhBuilder = Retrofit.Builder()
             .client(httpClient)
             .baseUrl(NHService.baseUrl)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
-        nhService = retrofit.create(NHService::class.java)
+        nhService = nhBuilder.create(NHService::class.java)
+
+        val henNexusBuilder = Retrofit.Builder()
+            .client(httpClient)
+            .baseUrl(HenNexusService.baseUrl)
+            .build()
+
+        henNexusService = henNexusBuilder.create(HenNexusService::class.java)
     }
 
-    suspend fun fetchMetadata(dir: File): FetchHistory {
+    suspend fun fetchMetadata(dir: File, sources: EnumSet<Source>): FetchHistory {
         return withContext(Dispatchers.IO) {
             if (doujinDetailsDao.existsByTitle(dir.name) || doujinDetailsDao.existsByAbsolutePath(dir.toString())) {
                 return@withContext FetchHistory(dir, dir.name, FetchStatus.ALREADY_EXISTS)
 
             } else {
-                val fetchResult = requestMetadata(dir.name)
+                val fetchResult = requestMetadata(dir.name, sources)
                 val title = fetchResult.getDoujinTitle() ?: dir.name
 
                 val metadata = fetchResult.metadata
@@ -108,21 +126,41 @@ class MetadataRepository(private val context: Context) {
         }
     }
 
-    private fun requestMetadata(fullTitle: String): FetchResult {
-        // First try is attempted with title which contains all these , | [] {} symbols
-        val queryWithDirName = requestFromNhentai(fullTitle)
-        if (queryWithDirName.status == FetchStatus.SUCCESS) {
-            return queryWithDirName
+    private fun requestMetadata(fullTitle: String, sources: EnumSet<Source>): FetchResult {
+        var cleanedTitle: String = ""
+
+        if (sources.contains(Source.NHentai)) {
+            // First try is attempted with title which contains all these , | [] {} symbols
+            val queryNhentaiWithDirName = requestFromNhentai(fullTitle)
+            Log.d("fetchbug", "Query NHentai with Dir Name")
+            if (queryNhentaiWithDirName.status == FetchStatus.SUCCESS) {
+                return queryNhentaiWithDirName
+            }
+
+            cleanedTitle = fullTitle.replace(regex, "")
+            if (cleanedTitle == fullTitle) {
+                return queryNhentaiWithDirName // No point retrying if same string
+            }
+
+            // Retry with cleaned title without symbols
+            Log.d("fetchbug", "Query NHentai with Cleaned Name")
+            val queryNhentaiWithCleanTitle = requestFromNhentai(cleanedTitle)
+            if (queryNhentaiWithCleanTitle.status == FetchStatus.SUCCESS) {
+                return queryNhentaiWithCleanTitle
+            }
         }
 
-        val cleanedTitle = fullTitle.replace(regex, "")
+        if (sources.contains(Source.HentaiNexus)) {
+            Log.d("fetchbug", "Query HentaiNexus with Cleaned Name")
+            if (cleanedTitle == "") {
+                cleanedTitle = fullTitle.replace(regex, "")
+            }
 
-        if (cleanedTitle == fullTitle) {
-            return queryWithDirName // No point retrying if same string
+            return requestFromHenNexus(cleanedTitle)
         }
 
-        // Retry with cleaned title without symbols
-        return requestFromNhentai(cleanedTitle)
+        Log.d("fetchbug", "No match")
+        return FetchResult(null, FetchStatus.NO_MATCH)
     }
 
     private fun requestFromNhentai(fullTitle: String): FetchResult {
@@ -134,6 +172,38 @@ class MetadataRepository(private val context: Context) {
             return when (json.result.isEmpty()) {
                 true -> FetchResult(status = FetchStatus.NO_MATCH)
                 false -> FetchResult(json, status = FetchStatus.SUCCESS)
+            }
+
+        } catch (e: IOException) {
+            showToast("Failed to fetch metadata")
+            return FetchResult(status = FetchStatus.NETWORK_ERROR)
+        }
+    }
+
+    private fun requestFromHenNexus(fullTitle: String): FetchResult {
+        try {
+            val searchRequest = henNexusService.getSearchResult(fullTitle).execute()
+            val searchResultHtml = searchRequest.body()?.string()
+
+            if (searchResultHtml.isNullOrBlank()) {
+                return FetchResult(status = FetchStatus.NO_MATCH)
+            }
+
+            val firstItemLink = henNexusParser.getFirstItemInList(searchResultHtml)
+
+            val firstItemRequest = henNexusService.getPageUrl(firstItemLink).execute()
+            val firstItemHtml = firstItemRequest.body()?.string()
+
+            if (firstItemHtml.isNullOrBlank()) {
+                return FetchResult(status = FetchStatus.NO_MATCH)
+            }
+
+            val metadata = henNexusParser.parseItem(firstItemHtml)
+
+            if (!metadata.hasValue) {
+                return FetchResult(status = FetchStatus.NO_MATCH)
+            } else {
+                return FetchResult(metadata, status = FetchStatus.SUCCESS)
             }
 
         } catch (e: IOException) {
@@ -160,6 +230,9 @@ class MetadataRepository(private val context: Context) {
 
             for (tag in item.tags) {
                 var tagId: Long
+
+                if (tag.name.trim() == "" || tag.name == "null")
+                    continue
 
                 if (tagDao.exists(tag.type, tag.name)) {
                     tagDao.incrementCount(tag.type, tag.name)
@@ -194,7 +267,8 @@ class MetadataRepository(private val context: Context) {
                 if (!doujinDetailsDao.existsByAbsolutePath(absolutePath)) {
                     doujinId = doujinDetailsDao.insert(doujinDetails)
                 } else {
-                    val fetchedItems: List<DoujinDetails> = doujinDetailsDao.findByAbsolutePath(absolutePath)
+                    val fetchedItems: List<DoujinDetails> =
+                        doujinDetailsDao.findByAbsolutePath(absolutePath)
                     doujinId = fetchedItems.first().id ?: -1
                 }
 
@@ -202,7 +276,7 @@ class MetadataRepository(private val context: Context) {
                 doujinTagDao.decrementTagCount(doujinId)
 
                 // Removes all rows related to chosen id in the table
-                doujinTagDao.deleteAll(doujinId)
+                doujinTagDao.deleteFromDoujin(doujinId)
 
                 // Inserts new tag if has any, increments count for tags that already exist
                 tags.forEach { tag ->
@@ -215,6 +289,9 @@ class MetadataRepository(private val context: Context) {
     private suspend fun insertTagElseIncrement(doujinId: Long, tag: Tag) {
         db.withTransaction {
             val tagId: Long
+
+            if (tag.name.trim() == "" || tag.name == "null")
+                return@withTransaction
 
             if (tagDao.exists(tag.type, tag.name)) {
                 tagDao.incrementCount(tag.type, tag.name)
@@ -241,15 +318,16 @@ class MetadataRepository(private val context: Context) {
         withContext(Dispatchers.IO) {
             db.withTransaction {
                 doujinDetailsDao.delete(doujinDetails)
-                doujinTagDao.deleteAll(doujinDetails.id!!)
+                doujinTagDao.deleteFromDoujin(doujinDetails.id!!)
                 doujinTagDao.decrementTagCount(doujinDetails.id)
             }
         }
     }
 
-    suspend fun resetTags(dir: File) {
+    suspend fun resetTags(dir: File, sources: EnumSet<Source>) {
         withContext(Dispatchers.IO) {
-            val result = requestFromNhentai(dir.name)
+//            val result = requestFromNhentai(dir.name)
+            val result = requestMetadata(dir.name, sources)
 
             if (result.status == FetchStatus.SUCCESS) {
                 val doujinDetails = doujinDetailsDao
@@ -262,7 +340,7 @@ class MetadataRepository(private val context: Context) {
                     .map { x -> Tag(type = x.type, name = x.name, url = x.url, count = 1) }
                 saveEditedMetadata(doujinDetails, tagList)
             } else {
-                Log.d("retrofit", "Can't find this sauce in NH.net")
+                Log.d("retrofit", "Can't find this sauce")
             }
         }
     }

@@ -13,11 +13,14 @@ import androidx.viewpager.widget.ViewPager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinPagerAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
+import com.flamyoad.tsukiviewer.model.Source
 import com.flamyoad.tsukiviewer.network.FetchMetadataService
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
+import com.flamyoad.tsukiviewer.ui.home.local.SelectSourceListener
 import com.flamyoad.tsukiviewer.utils.toast
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_doujin_details.*
+import java.util.*
 
 class DoujinDetailsActivity : AppCompatActivity() {
 
@@ -56,16 +59,12 @@ class DoujinDetailsActivity : AppCompatActivity() {
                 finish()
             }
 
-            R.id.action_sync -> {
-                syncMetadata()
-            }
-
             R.id.action_open_in_browser -> {
                 openBrowser()
             }
 
             R.id.action_clear_metadata -> {
-                openClearDataDialog()
+                showClearDataDialog()
             }
 
             R.id.action_edit -> {
@@ -80,10 +79,6 @@ class DoujinDetailsActivity : AppCompatActivity() {
             }
         }
         return false
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
     }
 
     private fun handleIntent() {
@@ -121,33 +116,24 @@ class DoujinDetailsActivity : AppCompatActivity() {
         })
     }
 
-    private fun syncMetadata() {
-        if (viewModel.detailsNotExists()) {
-            val dirPath = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
-            FetchMetadataService.startService(this, dirPath)
-        } else {
-            showConfirmResyncDialog()
-        }
-    }
+//    private fun showConfirmResyncDialog() {
+//        val dialog = AlertDialog.Builder(this)
+//            .setTitle("Reset to original tags")
+//            .setMessage("Previous tags that have been added manually will be erased. Continue?")
+//            .setPositiveButton("Yes", DialogInterface.OnClickListener { dialogInterface, i ->
+//                // Update tags in DB
+//                viewModel.resetTags()
+//                dialogInterface.dismiss()
+//            })
+//            .setNegativeButton("Cancel", DialogInterface.OnClickListener { dialogInterface, i ->
+//                dialogInterface.dismiss()
+//            })
+//            .create()
+//
+//        dialog.show()
+//    }
 
-    private fun showConfirmResyncDialog() {
-        val dialog = AlertDialog.Builder(this)
-            .setTitle("Reset to original tags")
-            .setMessage("Previous tags that have been added manually will be erased. Continue?")
-            .setPositiveButton("Yes", DialogInterface.OnClickListener { dialogInterface, i ->
-                // Update tags in DB
-                viewModel.resetTags()
-                dialogInterface.dismiss()
-            })
-            .setNegativeButton("Cancel", DialogInterface.OnClickListener { dialogInterface, i ->
-                dialogInterface.dismiss()
-            })
-            .create()
-
-        dialog.show()
-    }
-
-    private fun openClearDataDialog() {
+    private fun showClearDataDialog() {
         val dialog = DialogRemoveMetadata.newInstance()
         dialog.show(supportFragmentManager, "clearDataDialog")
     }

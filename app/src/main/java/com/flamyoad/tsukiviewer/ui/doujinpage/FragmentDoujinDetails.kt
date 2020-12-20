@@ -15,6 +15,10 @@ import com.flamyoad.tsukiviewer.adapter.DoujinTagsAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.model.DoujinDetails
 import com.flamyoad.tsukiviewer.model.DoujinDetailsWithTags
+import com.flamyoad.tsukiviewer.model.Source
+import com.flamyoad.tsukiviewer.network.FetchMetadataService
+import com.flamyoad.tsukiviewer.ui.home.local.DialogSelectSource
+import com.flamyoad.tsukiviewer.ui.home.local.SelectSourceListener
 import com.flamyoad.tsukiviewer.utils.TimeUtils
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
@@ -22,10 +26,11 @@ import com.google.android.flexbox.FlexboxLayoutManager
 import kotlinx.android.synthetic.main.doujin_details_tags_group.*
 import kotlinx.android.synthetic.main.fragment_doujin_details.*
 import java.io.File
+import java.util.*
 
 private const val COLLECTION_DIALOG_TAG = "collection_dialog"
 
-class FragmentDoujinDetails : Fragment() {
+class FragmentDoujinDetails : Fragment(), SelectSourceListener {
     private val viewModel: DoujinViewModel by activityViewModels()
 
     override fun onCreateView(
@@ -38,6 +43,15 @@ class FragmentDoujinDetails : Fragment() {
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         inflater.inflate(R.menu.menu_doujin_details_main, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.action_sync -> {
+                syncMetadata()
+            }
+        }
+        return false
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -176,10 +190,29 @@ class FragmentDoujinDetails : Fragment() {
         dialog.show(childFragmentManager, COLLECTION_DIALOG_TAG)
     }
 
+    // https://stackoverflow.com/questions/47045788/fragment-declared-target-fragment-that-does-not-belong-to-this-fragmentmanager
+    private fun syncMetadata() {
+        val dirName = File(viewModel.currentPath).name
+        val dialog = DialogSelectSource.newInstance(dirName)
+        dialog.setTargetFragment(this, 0) // For passing methods from this fragment to dialog
+        dialog.show(requireActivity().supportFragmentManager, DialogSelectSource.name)
+    }
+
     companion object {
         @JvmStatic
         fun newInstance(): FragmentDoujinDetails {
             return FragmentDoujinDetails()
+        }
+    }
+
+    // Fetch tags/titles if details not yet exists. Otherwise, only reset the tags
+    override fun onFetchMetadata(sources: EnumSet<Source>) {
+        if (viewModel.detailsNotExists()) {
+            val dirPath =
+                requireActivity().intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
+            FetchMetadataService.startService(requireContext(), dirPath, sources)
+        } else {
+            viewModel.resetTags(sources)
         }
     }
 }

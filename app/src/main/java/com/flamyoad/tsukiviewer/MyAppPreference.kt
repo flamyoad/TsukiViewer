@@ -7,6 +7,7 @@ import com.flamyoad.tsukiviewer.ui.doujinpage.GridViewStyle
 import com.flamyoad.tsukiviewer.ui.reader.ReaderMode
 import com.flamyoad.tsukiviewer.ui.reader.VolumeButtonScrollDirection
 import com.flamyoad.tsukiviewer.ui.reader.VolumeButtonScrollMode
+import com.flamyoad.tsukiviewer.ui.settings.preferences.FetchSourcePreference
 import com.flamyoad.tsukiviewer.ui.settings.preferences.MainPreferences
 import com.flamyoad.tsukiviewer.ui.settings.preferences.VolumeButtonPreferences
 
@@ -92,6 +93,10 @@ class MyAppPreference(context: Context) {
     fun getVolumeButtonScrollDistance(): Int {
         val value = prefs.getString(VolumeButtonPreferences.SCROLLING_DISTANCE, "0")
         return value?.toInt() ?: 0
+    }
+
+    fun shouldFetchFromHNexus(): Boolean {
+        return prefs.getBoolean(FetchSourcePreference.FETCH_FROM_HENTAINEXUS, false)
     }
 
     fun put(key: String, value: String) {

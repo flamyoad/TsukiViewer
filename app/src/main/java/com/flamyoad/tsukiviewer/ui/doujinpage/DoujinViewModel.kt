@@ -7,6 +7,7 @@ import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.model.DoujinDetailsWithTags
+import com.flamyoad.tsukiviewer.model.Source
 import com.flamyoad.tsukiviewer.repository.BookmarkRepository
 import com.flamyoad.tsukiviewer.repository.MetadataRepository
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
@@ -130,13 +131,16 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun detailsNotExists(): Boolean {
-        return this::detailWithTags.isInitialized
+        if (!this::detailWithTags.isInitialized)
+            return true
+
+        return (detailWithTags.value == null)
     }
 
-    fun resetTags() {
+    fun resetTags(sources: EnumSet<Source>) {
         val dir = File(currentPath)
-        viewModelScope.launch {
-            metadataRepo.resetTags(dir)
+        viewModelScope.launch(Dispatchers.IO) {
+            metadataRepo.resetTags(dir, sources)
         }
     }
 

@@ -1,6 +1,5 @@
 package com.flamyoad.tsukiviewer.ui.home.local
 
-import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.Configuration
@@ -15,7 +14,6 @@ import androidx.appcompat.view.ActionMode
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
-import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView.Adapter.StateRestorationPolicy
 import com.flamyoad.tsukiviewer.ActionModeListener
@@ -23,11 +21,13 @@ import com.flamyoad.tsukiviewer.BaseFragment
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.model.Doujin
+import com.flamyoad.tsukiviewer.model.Source
 import com.flamyoad.tsukiviewer.ui.search.SearchActivity
 import com.flamyoad.tsukiviewer.utils.GridItemDecoration
 import com.flamyoad.tsukiviewer.utils.snackbar
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_local_doujins.*
+import java.util.*
 
 private const val ACTION_MODE = "action_mode"
 private const val ADD_BOOKMARK_DIALOG = "add_bookmark_dialog"
@@ -35,7 +35,8 @@ private const val ADD_BOOKMARK_DIALOG = "add_bookmark_dialog"
 // onResume() is called after onActivityCreated() in Fragment
 class LocalDoujinsFragment : BaseFragment(),
     ActionModeListener<Doujin>,
-    LocalDoujinsContextualListener {
+    LocalDoujinsContextualListener,
+    SelectSourceListener{
 
     private val viewModel: LocalDoujinViewModel by activityViewModels()
 
@@ -105,12 +106,11 @@ class LocalDoujinsFragment : BaseFragment(),
                 openSearchActivity()
             }
 
+            // https://stackoverflow.com/questions/47045788/fragment-declared-target-fragment-that-does-not-belong-to-this-fragmentmanager
             R.id.action_sync -> {
-                if (shouldShowSyncDialog()) {
-                    openSyncAlertDialog()
-                } else {
-                    viewModel.fetchMetadataAll()
-                }
+                val dialog = DialogSelectSource.newInstance()
+                dialog.setTargetFragment(this, 0) // For passing methods from this fragment to dialog
+                dialog.show(requireActivity().supportFragmentManager, DialogSelectSource.name)
             }
 
             R.id.action_refresh -> {
@@ -207,43 +207,6 @@ class LocalDoujinsFragment : BaseFragment(),
         })
     }
 
-    private fun openSyncAlertDialog() {
-        val view = LayoutInflater.from(context).inflate(R.layout.dialog_explanation_for_sync, null)
-
-        val checkbox = view.findViewById<CheckBox>(R.id.checkBox)
-
-        val builder = AlertDialog.Builder(requireContext())
-            .setTitle("Sync local comics with online metadata?")
-            .setMessage("Connection will be made to server to fetch details like artists and tags for local comics in the included directories")
-            .setView(view)
-            .setPositiveButton("Continue") { dialogInterface: DialogInterface, i: Int ->
-                val showDialogAgain = !(checkbox.isChecked)
-                storeSyncDialogPreference(showDialogAgain)
-
-                viewModel.fetchMetadataAll()
-            }
-            .setNegativeButton("Back") { dialogInterface: DialogInterface, i: Int ->
-                val showDialogAgain = !(checkbox.isChecked)
-                storeSyncDialogPreference(showDialogAgain)
-            }
-
-        val dialog = builder.create()
-        dialog.show()
-    }
-
-    private fun storeSyncDialogPreference(status: Boolean) {
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
-        val editor = sharedPreferences.edit()
-
-        editor.putBoolean("show_dialog_before_sync", status)
-        editor.apply()
-    }
-
-    private fun shouldShowSyncDialog(): Boolean {
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
-        return sharedPreferences.getBoolean("show_dialog_before_sync", true)
-    }
-
     private fun openSortDialog() {
         val dialog = DialogSortDoujin()
         dialog.show(childFragmentManager, "sortdialog")
@@ -267,14 +230,15 @@ class LocalDoujinsFragment : BaseFragment(),
         const val APPBAR_TITLE = "Local Storage"
     }
 
-    inner class ActionModeCallback: ActionMode.Callback {
+    inner class ActionModeCallback : ActionMode.Callback {
         override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
             when (item?.itemId) {
                 R.id.action_bookmark -> {
                     val dialog = DialogBookmarkItems.newInstance()
                     dialog.show(childFragmentManager, ADD_BOOKMARK_DIALOG)
                 }
-                R.id.action_edit -> {}
+                R.id.action_edit -> {
+                }
             }
 
             return true
@@ -299,7 +263,8 @@ class LocalDoujinsFragment : BaseFragment(),
 
         override fun onDestroyActionMode(mode: ActionMode?) {
             actionMode = null
-            requireActivity().window.statusBarColor = statusBarColor // Restores the original status bar color
+            requireActivity().window.statusBarColor =
+                statusBarColor // Restores the original status bar color
 
             adapter.actionModeEnabled = false
             viewModel.clearSelectedDoujins()
@@ -331,6 +296,10 @@ class LocalDoujinsFragment : BaseFragment(),
     override fun cancelActionMode() {
         actionMode?.finish()
         viewModel.clearSelectedDoujins()
+    }
+
+    override fun onFetchMetadata(sources: EnumSet<Source>) {
+        viewModel.fetchMetadata(sources)
     }
 
 }

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:title="Fetch sources">
+
+    <androidx.preference.SwitchPreference
+        app:key="pref_fetch_from_nhentai"
+        app:title="NHentai"
+        app:selectable="false"
+        app:defaultValue="true"
+        android:summary="Why would you want to disable this?"/>
+
+    <androidx.preference.SwitchPreference
+        app:key="pref_fetch_from_hentainexus"
+        app:title="HentaiNexus"
+        android:summary="Only enable this if you need it. Slows down fetching a lot"/>
+
+</androidx.preference.PreferenceScreen>

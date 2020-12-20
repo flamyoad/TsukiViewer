@@ -164,6 +164,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     override fun onBackPressed() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START)
+            return
+        }
+
         if (supportFragmentManager.backStackEntryCount > 0) {
             clearFragmentBackStack()
             setTitle(LocalDoujinsFragment.APPBAR_TITLE)
