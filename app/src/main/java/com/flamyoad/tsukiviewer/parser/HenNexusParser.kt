@@ -5,6 +5,7 @@ import com.flamyoad.tsukiviewer.network.Result
 import com.flamyoad.tsukiviewer.network.Tags
 import com.flamyoad.tsukiviewer.network.Title
 import org.jsoup.Jsoup
+import java.util.*
 
 class HenNexusParser {
 
@@ -63,7 +64,7 @@ class HenNexusParser {
             // 'Pages' row does not have link and will return null
             if (rowContainer != null) {
                 // Make the string lowercase to be consistent with NHentai e.g. Big Breasts -> big breasts
-                val rowValue = rowContainer.text().toLowerCase()
+                val rowValue = rowContainer.text().toLowerCase(Locale.ROOT)
                 when (rowLabel) {
                     "Artist" -> artistName = rowValue
                     "Language" -> language = rowValue
@@ -77,17 +78,33 @@ class HenNexusParser {
         val spans = tableRows.select("span.tag")
 
         val tagList =
-            spans.map { Tags(id = 0, type = "tag", name = it.text(), count = 0, url = "") }
+            spans
+                .filter { tag -> tag.text().isNotBlank() }
+                .map { Tags(id = 0, type = "tag", name = it.text(), count = 0, url = "") }
                 .toMutableList()
 
-        tagList.add(Tags(id = 0, type ="artist", name = artistName, count = 0, url = ""))
-        tagList.add(Tags(id = 0, type ="language", name = language, count = 0, url = ""))
-        tagList.add(Tags(id = 0, type ="group", name = magazine, count = 0, url = ""))
-        tagList.add(Tags(id = 0, type ="parody", name = parody, count = 0, url = ""))
-        tagList.add(Tags(id = 0, type ="group", name = publisher, count = 0, url = ""))
+        if (artistName.isNotBlank()) {
+            tagList.add(Tags(id = 0, type = "artist", name = artistName, count = 0, url = ""))
+        }
+
+        if (language.isNotBlank()) {
+            tagList.add(Tags(id = 0, type = "language", name = language, count = 0, url = ""))
+        }
+
+        if (magazine.isNotBlank()) {
+            tagList.add(Tags(id = 0, type = "group", name = magazine, count = 0, url = ""))
+        }
+
+        if (parody.isNotBlank()) {
+            tagList.add(Tags(id = 0, type = "parody", name = parody, count = 0, url = ""))
+        }
+
+        if (publisher.isNotBlank()) {
+            tagList.add(Tags(id = 0, type = "group", name = publisher, count = 0, url = ""))
+        }
 
         val result = Result(
-            nukeCode =  0,
+            nukeCode = 0,
             title = Title(english = englishTitle, japanese = "", pretty = englishTitle),
             scanlator = "",
             upload_date = 0,

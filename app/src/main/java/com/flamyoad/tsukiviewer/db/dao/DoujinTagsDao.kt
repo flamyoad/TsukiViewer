@@ -14,7 +14,13 @@ interface DoujinTagsDao {
     suspend fun insert(doujinTags: List<DoujinTag>)
 
     @Query("DELETE FROM doujin_tags WHERE doujinId = :doujinId")
-    suspend fun deleteAll(doujinId: Long)
+    suspend fun deleteFromDoujin(doujinId: Long)
+
+    @Query("DELETE FROM doujin_tags WHERE doujinId = :tagId")
+    suspend fun deleteFromTag(tagId: Long)
+
+    @Query("DELETE FROM doujin_tags")
+    suspend fun deleteAll()
 
     @Query("""
         UPDATE tags
@@ -22,7 +28,4 @@ interface DoujinTagsDao {
         WHERE tagId IN (SELECT tagId FROM doujin_tags WHERE doujinId = :doujinId)
     """)
     suspend fun decrementTagCount(doujinId: Long)
-
-    @Query("DELETE FROM doujin_tags")
-    suspend fun deleteAll()
 }

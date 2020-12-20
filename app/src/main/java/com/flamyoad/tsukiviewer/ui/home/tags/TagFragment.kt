@@ -12,6 +12,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinTagsAdapter
+import com.flamyoad.tsukiviewer.model.Doujin
+import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.model.TagType
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
@@ -25,7 +27,12 @@ class TagFragment : Fragment() {
 
     private val viewModel by activityViewModels<DoujinTagsViewModel>()
 
-    private val adapter = DoujinTagsAdapter(useLargerView = true)
+    private val adapter = DoujinTagsAdapter(true)
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        adapter.setListener(this::showDeleteDialog)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -55,6 +62,12 @@ class TagFragment : Fragment() {
 
         listTags.layoutManager = linearLayoutManager
     }
+
+    private fun showDeleteDialog(tag: Tag) {
+        val dialog = DialogDeleteTag.newInstance(tag)
+        dialog.show(childFragmentManager, DialogDeleteTag.name)
+    }
+
 
     companion object {
         @JvmStatic

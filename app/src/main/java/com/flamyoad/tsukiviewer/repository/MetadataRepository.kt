@@ -231,6 +231,9 @@ class MetadataRepository(private val context: Context) {
             for (tag in item.tags) {
                 var tagId: Long
 
+                if (tag.name.trim() == "" || tag.name == "null")
+                    continue
+
                 if (tagDao.exists(tag.type, tag.name)) {
                     tagDao.incrementCount(tag.type, tag.name)
                     tagId = tagDao.getId(tag.type, tag.name)
@@ -273,7 +276,7 @@ class MetadataRepository(private val context: Context) {
                 doujinTagDao.decrementTagCount(doujinId)
 
                 // Removes all rows related to chosen id in the table
-                doujinTagDao.deleteAll(doujinId)
+                doujinTagDao.deleteFromDoujin(doujinId)
 
                 // Inserts new tag if has any, increments count for tags that already exist
                 tags.forEach { tag ->
@@ -286,6 +289,9 @@ class MetadataRepository(private val context: Context) {
     private suspend fun insertTagElseIncrement(doujinId: Long, tag: Tag) {
         db.withTransaction {
             val tagId: Long
+
+            if (tag.name.trim() == "" || tag.name == "null")
+                return@withTransaction
 
             if (tagDao.exists(tag.type, tag.name)) {
                 tagDao.incrementCount(tag.type, tag.name)
@@ -312,7 +318,7 @@ class MetadataRepository(private val context: Context) {
         withContext(Dispatchers.IO) {
             db.withTransaction {
                 doujinDetailsDao.delete(doujinDetails)
-                doujinTagDao.deleteAll(doujinDetails.id!!)
+                doujinTagDao.deleteFromDoujin(doujinDetails.id!!)
                 doujinTagDao.decrementTagCount(doujinDetails.id)
             }
         }

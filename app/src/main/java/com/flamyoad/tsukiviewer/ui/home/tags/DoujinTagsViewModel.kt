@@ -1,21 +1,22 @@
 package com.flamyoad.tsukiviewer.ui.home.tags
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.switchMap
+import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.db.AppDatabase
+import com.flamyoad.tsukiviewer.db.dao.DoujinTagsDao
 import com.flamyoad.tsukiviewer.db.dao.TagDao
 import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.model.TagSortingMode
 import com.flamyoad.tsukiviewer.model.TagType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class DoujinTagsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val db: AppDatabase = AppDatabase.getInstance(application)
 
     private val tagDao: TagDao
+    private val doujinTagDao: DoujinTagsDao
 
     // First object in the Pair : Keyword of the search
     // Second object in the Pair: The sorting mode (e.g. Sort by number of items ascending)
@@ -34,6 +35,7 @@ class DoujinTagsViewModel(application: Application) : AndroidViewModel(applicati
 
     init {
         tagDao = db.tagsDao()
+        doujinTagDao = db.doujinTagDao()
 
         searchTerms.value = Pair("", TagSortingMode.NAME_ASCENDING)
 
@@ -114,5 +116,12 @@ class DoujinTagsViewModel(application: Application) : AndroidViewModel(applicati
         val searchTerm = Pair(prevKeyword, mode)
 
         searchTerms.value = searchTerm
+    }
+
+    fun removeTag(tagId: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            doujinTagDao.deleteFromTag(tagId)
+            tagDao.delete(tagId)
+        }
     }
 }
