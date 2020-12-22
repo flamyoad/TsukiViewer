@@ -16,12 +16,12 @@ import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import com.flamyoad.tsukiviewer.ui.home.bookmarks.BookmarkFragment
+import com.flamyoad.tsukiviewer.ui.home.collections.CollectionFragment
 import com.flamyoad.tsukiviewer.ui.home.local.LocalDoujinsFragment
 import com.flamyoad.tsukiviewer.ui.home.tags.DoujinTagsFragment
 import com.flamyoad.tsukiviewer.ui.settings.SettingsActivity
 import com.google.android.material.navigation.NavigationView
 import kotlinx.android.synthetic.main.activity_main.*
-
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
@@ -96,6 +96,16 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
                     item.isChecked = true
                     setTitle(LocalDoujinsFragment.APPBAR_TITLE)
+
+                    showAppBarShadow()
+                }
+            }
+
+            R.id.nav_collection -> {
+                if (currentFragmentTag != CollectionFragment.APPBAR_TITLE) {
+                    val fragment = CollectionFragment.newInstance()
+                    pushFragment(fragment, fragment.getTitle())
+                    item.isChecked = true
 
                     showAppBarShadow()
                 }

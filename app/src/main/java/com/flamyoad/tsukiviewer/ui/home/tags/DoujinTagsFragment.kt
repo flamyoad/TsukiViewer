@@ -99,11 +99,11 @@ class DoujinTagsFragment : BaseFragment(), SearchView.OnQueryTextListener {
     }
 
     companion object {
+        const val APPBAR_TITLE = "Tags"
+
         @JvmStatic
         fun newInstance() =
             DoujinTagsFragment()
-
-        const val APPBAR_TITLE = "Tags"
     }
 
     override fun onQueryTextSubmit(query: String?): Boolean {
