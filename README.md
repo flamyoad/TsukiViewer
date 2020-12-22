@@ -22,6 +22,9 @@
 * **More storage space for your phone** 
   * If you have a lot of images, most galleries build up thumbnail database which can quickly escalate to multiple GBs. If you open images from Tsuki Viewer, the native gallery       app won't generate a lot of thumbnails. That means more precious storage for your phone.
 
+## Supported websites
+* [NHentai](https://nhentai.net)
+* [HentaiNexus](https://hentainexus.com/)
 # Preview
 
 ## Screenshots
@@ -32,6 +35,7 @@
 
 ![second](https://user-images.githubusercontent.com/35066207/97465168-bcda6300-197c-11eb-8922-d1e82347f70d.JPG)
 
+
 # Architecture
 Tsuki Viewer is coded in Kotlin and makes full use of [Android Jetpack](https://developer.android.com/jetpack) components such as ```ViewModel``` and ```LiveData``` to implement MVVM architecture. 
 
@@ -40,6 +44,7 @@ Tsuki Viewer is coded in Kotlin and makes full use of [Android Jetpack](https://
 * [Android Jetpack](https://developer.android.com/jetpack) *(ViewModel, LiveData, Room Database, Paging Library)*
 * [Kotlin Coroutines](https://kotlinlang.org/docs/reference/coroutines-overview.html)
 * [Retrofit](https://github.com/square/retrofit)
+* [JSoup](https://github.com/jhy/jsoup)
 * [PhotoView](https://github.com/chrisbanes/PhotoView)
 * [Glide](https://github.com/bumptech/glide)
 * [FlexboxLayout](https://github.com/google/flexbox-layout)
