@@ -52,7 +52,7 @@ abstract class AppDatabase: RoomDatabase() {
             }
         }
 
-        val MIGRATION_3_4 = object: Migration(2, 3) {
+        val MIGRATION_3_4 = object: Migration(3, 4) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("DROP TABLE collection")
                 database.execSQL("CREATE TABLE IF NOT EXISTS `collection` (`id` INTEGER, `name` TEXT NOT NULL, `coverPhoto` TEXT NOT NULL, `mustHaveAllTitles` INTEGER NOT NULL, `mustHaveAllIncludedTags` INTEGER NOT NULL, `mustHaveAllExcludedTags` INTEGER NOT NULL, `minNumPages` INTEGER NOT NULL, `maxNumPages` INTEGER NOT NULL, PRIMARY KEY(`id`))");
