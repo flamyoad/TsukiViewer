@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/webDraculaBackgroundColor">
@@ -41,13 +42,43 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/fieldCollectionNameLayout"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:hint="Name of the collection"
+                    app:boxStrokeColor="@color/blackOlive"
+                    app:endIconMode="clear_text"
+                    app:endIconTint="@color/create_collection_field_title_colors">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/fieldCollectionName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:imeOptions="actionDone"
+                        android:inputType="text"
+                        android:lines="1" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                style="@style/editor_tag_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4dp"
                     android:layout_marginTop="4dp"
-                    android:text="Title"
+                    android:text="Filter by title"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                    android:textColor="@color/blackOlive"
                     android:textStyle="bold"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -71,7 +102,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
                         android:layout_weight="1"
-                        app:boxStrokeColor="@color/nh_favourite_button_pink"
+                        app:boxStrokeColor="@color/blackOlive"
                         app:endIconMode="clear_text"
                         app:endIconTint="@color/create_collection_field_title_colors"
                         app:helperText="Hint: You can add multiple titles, or just leave it blank">
@@ -113,6 +144,7 @@
                     android:layout_marginTop="4dp"
                     android:text="Included Tags"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                    android:textColor="@color/blackOlive"
                     android:textStyle="bold"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -149,6 +181,7 @@
                     android:layout_marginTop="4dp"
                     android:text="Excluded Tags"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                    android:textColor="@color/blackOlive"
                     android:textStyle="bold"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -186,6 +219,7 @@
                     android:layout_marginTop="4dp"
                     android:text="Metadata"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                    android:textColor="@color/blackOlive"
                     android:textStyle="bold"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -206,6 +240,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:layout_marginEnd="8dp"
+                    android:layout_marginBottom="8dp"
                     android:hint="Minimum Pages"
                     app:boxStrokeColor="@color/nh_favourite_button_pink"
                     app:hintTextColor="@color/nh_favourite_button_pink"
@@ -252,16 +287,36 @@
 
                 </com.google.android.material.textfield.TextInputLayout>
 
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <LinearLayout
+                style="@style/editor_tag_group"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
                 <TextView
-                    android:id="@+id/lblDateModified"
+                    android:id="@+id/lblDirectory"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="Date Modified"
-                    app:layout_constraintStart_toStartOf="@+id/fieldStartNumPages"
-                    app:layout_constraintTop_toBottomOf="@+id/fieldStartNumPages" />
+                    android:layout_marginStart="4dp"
+                    android:layout_marginTop="4dp"
+                    android:text="Filter by directory"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                    android:textColor="@color/blackOlive"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/listDirs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    tools:listitem="@layout/collection_directory_filter_item" />
+
+            </LinearLayout>
 
         </LinearLayout>
 

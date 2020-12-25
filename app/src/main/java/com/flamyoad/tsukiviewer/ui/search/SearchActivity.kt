@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.SearchHistoryAdapter
 import com.flamyoad.tsukiviewer.model.SearchHistory
+import com.flamyoad.tsukiviewer.model.Tag
 import com.google.android.material.chip.Chip
 import kotlinx.android.synthetic.main.activity_search.*
 import kotlinx.android.synthetic.main.search_bar.*
@@ -93,8 +94,8 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
         }
     }
 
-    override fun onTagSelected(tagName: String) {
-        addChip(tagName)
+    override fun onTagSelected(tag: Tag) {
+        addChip(tag.name)
 
         // Dismisses the dialog once an item is clicked
         val dialog = supportFragmentManager.findFragmentByTag(DIALOG_FRAGMENT_TAG) as DialogFragment
