@@ -10,9 +10,16 @@ import java.io.File
 @TypeConverters(FolderConverter::class)
 
 data class Collection(
-    @PrimaryKey val id: Int? = null,
+    @PrimaryKey val id: Long? = null,
 
-    val title: String,
-    val tags: String,
-    val coverPhoto: File
+    val name: String,
+    val coverPhoto: File,
+
+    // If value is true, use AND logic for filtering, otherwise use OR logic
+    val mustHaveAllTitles: Boolean,
+    val mustHaveAllIncludedTags: Boolean,
+    val mustHaveAllExcludedTags: Boolean,
+
+    val minNumPages: Int,
+    val maxNumPages: Int
 )
