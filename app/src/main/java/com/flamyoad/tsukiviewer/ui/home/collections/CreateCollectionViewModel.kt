@@ -1,21 +1,25 @@
 package com.flamyoad.tsukiviewer.ui.home.collections
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
+import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.IncludedPathDao
+import com.flamyoad.tsukiviewer.model.Collection
+import com.flamyoad.tsukiviewer.model.CollectionCriteria
 import com.flamyoad.tsukiviewer.model.IncludedPath
 import com.flamyoad.tsukiviewer.model.Tag
+import com.flamyoad.tsukiviewer.repository.CollectionRepository
 import com.flamyoad.tsukiviewer.repository.TagRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 class CreateCollectionViewModel(application: Application) : AndroidViewModel(application) {
     private val db: AppDatabase = AppDatabase.getInstance(application.applicationContext)
 
     private val tagRepo = TagRepository(application.applicationContext)
+    private val collectionRepo = CollectionRepository(application.applicationContext)
 
     private val includedPathDao: IncludedPathDao
 
@@ -36,6 +40,9 @@ class CreateCollectionViewModel(application: Application) : AndroidViewModel(app
 
     private val dirList = MutableLiveData<List<File>>()
     fun dirList(): LiveData<List<File>> = dirList
+
+    private val isInsertingData = MutableLiveData<Boolean>(false)
+    fun isInsertingData(): LiveData<Boolean> = isInsertingData
 
     var tagPickerMode = DialogTagPicker.Mode.None
 
@@ -114,6 +121,37 @@ class CreateCollectionViewModel(application: Application) : AndroidViewModel(app
 
         newTags.remove(tag)
         excludedTags.value = newTags
+    }
+
+    fun submitCollection(collection: Collection) {
+        val titleFilters = titles.value ?: emptyList()
+        val includedTags = includedTags.value ?: emptyList()
+        val excludedTags = excludedTags.value ?: emptyList()
+        val dirFilters = dirList.value ?: emptyList()
+
+        val criteriaList = mutableListOf<CollectionCriteria>()
+
+        for (title in titleFilters) {
+            criteriaList.add(CollectionCriteria(null, -1, CollectionCriteria.TITLE, title))
+        }
+
+        for (tag in includedTags) {
+            criteriaList.add(CollectionCriteria(null, -1, CollectionCriteria.INCLUDED_TAGS, tag.tagId.toString()))
+        }
+
+        for (tag in excludedTags) {
+            criteriaList.add(CollectionCriteria(null, -1, CollectionCriteria.EXCLUDED_TAGS, tag.tagId.toString()))
+        }
+
+        for (dir in dirFilters) {
+            criteriaList.add(CollectionCriteria(null, -1, CollectionCriteria.DIRECTORY, dir.absolutePath))
+        }
+
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                collectionRepo.insert(collection, criteriaList)
+            }
+        }
     }
 
 }

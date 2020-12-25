@@ -5,18 +5,21 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.Menu
+import android.view.MenuItem
 import android.view.inputmethod.EditorInfo
 import androidx.activity.viewModels
-import androidx.core.view.children
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.CollectionFilterDirectoryAdapter
+import com.flamyoad.tsukiviewer.model.Collection
 import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.ui.search.TagSelectedListener
+import com.flamyoad.tsukiviewer.utils.toast
 import com.google.android.material.chip.Chip
 import kotlinx.android.synthetic.main.activity_create_collection.*
+import java.io.File
 
 private const val REQUEST_DIR_PICKER = 101
 
@@ -47,6 +50,13 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_create_collection, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.action_save -> submitCollection()
+        }
         return true
     }
 
@@ -168,6 +178,26 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
 
             listExcludedTags.addView(chip)
         }
+    }
+
+    private fun submitCollection() {
+        val collectionName = fieldCollectionName.text.toString()
+        if (collectionName.isBlank()) {
+            toast("You must at least give it a name!")
+            return
+        }
+
+        val collection = Collection(
+            id = null,
+            name = collectionName,
+            coverPhoto = File(""),
+            minNumPages = fieldStartNumPages.text.toString().toInt(),
+            maxNumPages =  fieldEndNumPages.text.toString().toInt(),
+            mustHaveAllTitles = false, // Hardcoded to use OR logic for now
+            mustHaveAllIncludedTags = checkboxIncludedTags.isChecked,
+            mustHaveAllExcludedTags = checkboxExcludedTags.isChecked
+        )
+        viewModel.submitCollection(collection)
     }
 
     private fun openDirectoryPicker() {

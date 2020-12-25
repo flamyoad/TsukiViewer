@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "collection_criteria")
 data class CollectionCriteria (
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     val id: Long? = null,
 
     val collectionId: Long,

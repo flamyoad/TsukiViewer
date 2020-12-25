@@ -10,7 +10,7 @@ import java.io.File
 @TypeConverters(FolderConverter::class)
 
 data class Collection(
-    @PrimaryKey val id: Long? = null,
+    @PrimaryKey(autoGenerate = true) val id: Long? = null,
 
     val name: String,
     val coverPhoto: File,
