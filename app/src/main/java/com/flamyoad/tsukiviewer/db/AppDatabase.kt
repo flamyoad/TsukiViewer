@@ -25,7 +25,6 @@ const val DATABASE_NAME = "com.flamyoad.android.tsukiviewer.AppDatabase"
     CollectionCriteria::class
     ), version = 4)
 
-// TODO: UPDATE THE MIGRATION CAUSE I HAVE CHANGED PRMARY KEY TO AUTO INCREMENT IN COLLECTION, COLLECTIONCRITERIA
 abstract class AppDatabase: RoomDatabase() {
 
     abstract fun includedFolderDao(): IncludedPathDao
@@ -38,6 +37,7 @@ abstract class AppDatabase: RoomDatabase() {
     abstract fun searchHistoryDao(): SearchHistoryDao
     abstract fun collectionDao(): CollectionDao
     abstract fun collectionCriteriaDao(): CollectionCriteriaDao
+    abstract fun collectionDoujinDao(): CollectionDoujinDao
 
     companion object {
         @Volatile
@@ -59,7 +59,7 @@ abstract class AppDatabase: RoomDatabase() {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("DROP TABLE collection")
                 database.execSQL("CREATE TABLE IF NOT EXISTS `collection` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL, `coverPhoto` TEXT NOT NULL, `mustHaveAllTitles` INTEGER NOT NULL, `mustHaveAllIncludedTags` INTEGER NOT NULL, `mustHaveAllExcludedTags` INTEGER NOT NULL, `minNumPages` INTEGER NOT NULL, `maxNumPages` INTEGER NOT NULL)");
-                database.execSQL("CREATE TABLE IF NOT EXISTS `collection_criteria` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `collectionId` INTEGER NOT NULL, `type` TEXT NOT NULL, `value` TEXT NOT NULL)");
+                database.execSQL("CREATE TABLE IF NOT EXISTS `collection_criteria` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `collectionId` INTEGER NOT NULL, `type` TEXT NOT NULL, `value` TEXT NOT NULL, `valueName` TEXT NOT NULL)");
             }
         }
 

@@ -21,8 +21,8 @@ import com.flamyoad.tsukiviewer.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.IncludedPath
 import com.flamyoad.tsukiviewer.repository.BookmarkRepository
-import com.flamyoad.tsukiviewer.repository.MetadataRepository
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
+import com.flamyoad.tsukiviewer.utils.toDoujin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -30,12 +30,10 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.*
 
-
 class SearchResultViewModel(private val app: Application) : AndroidViewModel(app) {
     private val context: Context = app.applicationContext
     private val contentResolver: ContentResolver = app.contentResolver
     private val bookmarkRepo = BookmarkRepository(app)
-    private val metadataRepo = MetadataRepository(app)
     private val db: AppDatabase = AppDatabase.getInstance(app)
 
     private val selectedDoujins = mutableListOf<Doujin>()
@@ -276,23 +274,6 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
         }
         searchResult.value = doujinList
         shouldResetSelections = false
-    }
-
-    fun File.toDoujin(): Doujin? {
-        val imageList = this.listFiles(ImageFileFilter())
-
-        if (imageList == null) {
-            return null
-        }
-
-        val doujin = Doujin(
-            pic = imageList.first().toUri(),
-            title = this.name,
-            path = this,
-            lastModified = this.lastModified(),
-            numberOfItems = imageList.size
-        )
-        return doujin
     }
 
     fun tickSelectedDoujin(doujin: Doujin) {

@@ -64,7 +64,7 @@ class BookmarkFragment : BaseFragment(),
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.menu_doujin_collection, menu)
+        inflater.inflate(R.menu.menu_doujin_bookmarks, menu)
 
         val searchItem: MenuItem? = menu.findItem(R.id.action_search)
         val searchView = searchItem?.actionView as SearchView
@@ -307,7 +307,7 @@ class BookmarkFragment : BaseFragment(),
 
         override fun onCreateActionMode(mode: ActionMode?, menu: Menu?): Boolean {
             requireActivity().let {
-                it.menuInflater.inflate(R.menu.menu_doujin_collection_contextual, menu)
+                it.menuInflater.inflate(R.menu.menu_doujin_bookmarks_contextual, menu)
                 statusBarColor = it.window.statusBarColor // Stores the original status bar color
 
                 val colorPrimaryLight = ContextCompat.getColor(it, R.color.colorPrimaryLight)

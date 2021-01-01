@@ -1,6 +1,7 @@
 package com.flamyoad.tsukiviewer.model
 
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import com.flamyoad.tsukiviewer.db.typeconverter.FolderConverter

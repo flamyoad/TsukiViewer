@@ -162,4 +162,8 @@
         <item name="android:textColor">@color/dialog_source_selector_button_text_color</item>
     </style>
 
+    <style name="collection_item_label">
+        <item name="android:textColor">@color/blackOlive</item>
+    </style>
+
 </resources>

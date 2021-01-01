@@ -5,7 +5,8 @@
     android:id="@+id/rootView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.home.collections.CollectionFragment">
+    tools:context=".ui.home.collections.CollectionFragment"
+    android:background="@color/mainBackgroundColor">
 
     <com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
         android:id="@+id/fastScroller"

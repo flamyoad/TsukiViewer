@@ -1,24 +1,35 @@
 package com.flamyoad.tsukiviewer.repository
 
 import android.content.Context
+import androidx.lifecycle.LiveData
 import androidx.room.withTransaction
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.CollectionCriteriaDao
 import com.flamyoad.tsukiviewer.db.dao.CollectionDao
+import com.flamyoad.tsukiviewer.db.dao.CollectionDoujinDao
+import com.flamyoad.tsukiviewer.model.*
 import com.flamyoad.tsukiviewer.model.Collection
-import com.flamyoad.tsukiviewer.model.CollectionCriteria
+import java.io.File
 
-class CollectionRepository(private val context: Context) {
-    private val db: AppDatabase
+class CollectionRepository(context: Context) {
+    private val db: AppDatabase = AppDatabase.getInstance(context)
 
-    val collectionDao: CollectionDao
-    val criteriaDao: CollectionCriteriaDao
+    private val collectionDao: CollectionDao
+    private val criteriaDao: CollectionCriteriaDao
+    private val collectionDoujinDao: CollectionDoujinDao
 
     init {
-        db = AppDatabase.getInstance(context)
-
         collectionDao = db.collectionDao()
         criteriaDao = db.collectionCriteriaDao()
+        collectionDoujinDao = db.collectionDoujinDao()
+    }
+
+    suspend fun get(id: Long): Collection {
+        return collectionDao.getBlocking(id)
+    }
+
+    fun getAll(): LiveData<List<CollectionWithCriterias>> {
+        return collectionDao.getAllWithCriterias()
     }
 
     suspend fun insert(collection: Collection, criterias: List<CollectionCriteria>) {
@@ -29,12 +40,14 @@ class CollectionRepository(private val context: Context) {
             }
 
             // Fill in criterias with collectionId, which is impossible to get before first inserting the collection
-            val completedCriterias = criterias.map { c ->
+            val completedCriterias = criterias.map { criteria ->
                 CollectionCriteria(
                     id = null,
                     collectionId = collectionId,
-                    type = c.type,
-                    value = c.value)
+                    type = criteria.type,
+                    value = criteria.value,
+                    valueName = criteria.valueName
+                )
             }
 
             for (criteria in completedCriterias) {
@@ -57,6 +70,71 @@ class CollectionRepository(private val context: Context) {
                 criteriaDao.insert(criteria)
             }
         }
+    }
+
+    suspend fun getTitles(id: Long): List<String> {
+        return criteriaDao.getTitlesBlocking(id)
+    }
+
+    suspend fun getIncludedTags(id: Long): List<Tag> {
+        return criteriaDao.getIncludedTagsBlocking(id)
+    }
+
+    suspend fun getExcludedTags(id: Long): List<Tag> {
+        return criteriaDao.getExcludedTagsBlocking(id)
+    }
+
+    suspend fun getDirectories(id: Long): List<File> {
+        return criteriaDao.getDirectoriesBlocking(id)
+    }
+
+    suspend fun searchIncludedOrExcludedOr(
+        includedTags: List<Tag>,
+        excludedTags: List<Tag>
+    ): List<DoujinDetails> {
+        val includedTagsId = includedTags.map { tag -> tag.tagId ?: -1 }
+        val excludedTagsId = excludedTags.map { tag -> tag.tagId ?: -1 }
+        return collectionDoujinDao.searchIncludedOrExcludedOr(includedTagsId, excludedTagsId)
+    }
+
+    suspend fun searchIncludedOrExcludedAnd(
+        includedTags: List<Tag>,
+        excludedTags: List<Tag>
+    ): List<DoujinDetails> {
+        val includedTagsId = includedTags.map { tag -> tag.tagId ?: -1 }
+        val excludedTagsId = excludedTags.map { tag -> tag.tagId ?: -1 }
+        return collectionDoujinDao.searchIncludedOrExcludedAnd(
+            includedTagsId,
+            excludedTagsId,
+            excludedTags.size
+        )
+    }
+
+    suspend fun searchIncludedAndExcludedOr(
+        includedTags: List<Tag>,
+        excludedTags: List<Tag>
+    ): List<DoujinDetails> {
+        val includedTagsId = includedTags.map { tag -> tag.tagId ?: -1 }
+        val excludedTagsId = excludedTags.map { tag -> tag.tagId ?: -1 }
+        return collectionDoujinDao.searchIncludedAndExcludedOr(
+            includedTagsId,
+            excludedTagsId,
+            includedTags.size
+        )
+    }
+
+    suspend fun searchIncludedAndExcludedAnd(
+        includedTags: List<Tag>,
+        excludedTags: List<Tag>
+    ): List<DoujinDetails> {
+        val includedTagsId = includedTags.map { tag -> tag.tagId ?: -1 }
+        val excludedTagsId = excludedTags.map { tag -> tag.tagId ?: -1 }
+        return collectionDoujinDao.searchIncludedAndExcludedAnd(
+            includedTagsId,
+            excludedTagsId,
+            includedTags.size,
+            excludedTags.size
+        )
     }
 
 }

@@ -37,7 +37,7 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
         initUi()
 
         viewModel.titles().observe(this, Observer { values ->
-            listTitles.removeAllViews()
+            txtTitles.removeAllViews()
             for (value in values) {
                 insertTitle(value)
             }
@@ -133,7 +133,7 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
             viewModel.removeTitle(title)
         }
 
-        listTitles.addView(chip)
+        txtTitles.addView(chip)
     }
     
     private fun refreshIncludedTags(tags: List<Tag>) {
@@ -171,7 +171,7 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
 
         for (tag in tags) {
             val chip = layoutInflater.inflate(R.layout.tag_list_chip, null, false) as Chip
-            chip.text = tag.type + " : " + tag.name
+            chip.text = tag.type + ": " + tag.name
             chip.setOnCloseIconClickListener {
                 viewModel.removeExcludedTag(tag)
             }
@@ -187,17 +187,32 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
             return
         }
 
+        val minNumPagesInput = fieldStartNumPages.text.toString()
+        val minNumPages = when (minNumPagesInput.isBlank()) {
+            true -> -1
+            false -> minNumPagesInput.toInt()
+        }
+
+        val maxNumPagesInput = fieldEndNumPages.text.toString()
+        val maxNumPages = when (maxNumPagesInput.isBlank()) {
+            true -> -1
+            false -> maxNumPagesInput.toInt()
+        }
+
         val collection = Collection(
             id = null,
             name = collectionName,
             coverPhoto = File(""),
-            minNumPages = fieldStartNumPages.text.toString().toInt(),
-            maxNumPages =  fieldEndNumPages.text.toString().toInt(),
+            minNumPages = minNumPages,
+            maxNumPages =  maxNumPages,
             mustHaveAllTitles = false, // Hardcoded to use OR logic for now
             mustHaveAllIncludedTags = checkboxIncludedTags.isChecked,
             mustHaveAllExcludedTags = checkboxExcludedTags.isChecked
         )
+
         viewModel.submitCollection(collection)
+
+        finish()
     }
 
     private fun openDirectoryPicker() {

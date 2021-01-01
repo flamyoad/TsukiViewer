@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 4,
-    "identityHash": "37e9cbdc12a9580771b37d30c052ff81",
+    "identityHash": "e6ffc8352a3b13b0fb704447bdc91f51",
     "entities": [
       {
         "tableName": "included_path",
@@ -377,7 +377,7 @@
       },
       {
         "tableName": "collection_criteria",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `collectionId` INTEGER NOT NULL, `type` TEXT NOT NULL, `value` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `collectionId` INTEGER NOT NULL, `type` TEXT NOT NULL, `value` TEXT NOT NULL, `valueName` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -402,6 +402,12 @@
             "columnName": "value",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "valueName",
+            "columnName": "valueName",
+            "affinity": "TEXT",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -417,7 +423,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '37e9cbdc12a9580771b37d30c052ff81')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e6ffc8352a3b13b0fb704447bdc91f51')"
     ]
   }
 }

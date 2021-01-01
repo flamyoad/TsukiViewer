@@ -132,19 +132,19 @@ class CreateCollectionViewModel(application: Application) : AndroidViewModel(app
         val criteriaList = mutableListOf<CollectionCriteria>()
 
         for (title in titleFilters) {
-            criteriaList.add(CollectionCriteria(null, -1, CollectionCriteria.TITLE, title))
+            criteriaList.add(CollectionCriteria(null, -1, CollectionCriteria.TITLE, title, title))
         }
 
         for (tag in includedTags) {
-            criteriaList.add(CollectionCriteria(null, -1, CollectionCriteria.INCLUDED_TAGS, tag.tagId.toString()))
+            criteriaList.add(CollectionCriteria(null, -1, CollectionCriteria.INCLUDED_TAGS, tag.tagId.toString(), tag.name))
         }
 
         for (tag in excludedTags) {
-            criteriaList.add(CollectionCriteria(null, -1, CollectionCriteria.EXCLUDED_TAGS, tag.tagId.toString()))
+            criteriaList.add(CollectionCriteria(null, -1, CollectionCriteria.EXCLUDED_TAGS, tag.tagId.toString(), tag.name))
         }
 
         for (dir in dirFilters) {
-            criteriaList.add(CollectionCriteria(null, -1, CollectionCriteria.DIRECTORY, dir.absolutePath))
+            criteriaList.add(CollectionCriteria(null, -1, CollectionCriteria.DIRECTORY, dir.absolutePath, dir.name))
         }
 
         viewModelScope.launch {

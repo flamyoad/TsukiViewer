@@ -3,9 +3,11 @@ package com.flamyoad.tsukiviewer.db.dao
 import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.flamyoad.tsukiviewer.model.Collection
+import com.flamyoad.tsukiviewer.model.CollectionWithCriterias
 
 @Dao
 interface CollectionDao {
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(collection: Collection): Long
 
@@ -20,6 +22,9 @@ interface CollectionDao {
 
     @Query("SELECT * FROM collection")
     suspend fun getAllBlocking(): List<Collection>
+
+    @Query("SELECT * FROM collection")
+    fun getAllWithCriterias(): LiveData<List<CollectionWithCriterias>>
 
     @Query("SELECT * FROM collection WHERE id = :collectionId")
     fun get(collectionId: Long): LiveData<Collection>
