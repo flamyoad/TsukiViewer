@@ -4,9 +4,7 @@ import android.app.Application
 import android.content.ContentResolver
 import android.provider.MediaStore
 import androidx.core.content.ContentResolverCompat
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.IncludedPathDao
@@ -19,6 +17,7 @@ import com.flamyoad.tsukiviewer.utils.ImageFileFilter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.*
 
@@ -31,6 +30,8 @@ class CollectionViewModel(private val app: Application) : AndroidViewModel(app) 
 
     private var initThumbnailJob: Job? = null
 
+    private val searchQuery = MutableLiveData<String>("")
+
     val collectionWithCriterias: LiveData<List<CollectionWithCriterias>>
 
     init {
@@ -38,7 +39,11 @@ class CollectionViewModel(private val app: Application) : AndroidViewModel(app) 
         pathDao = db.includedFolderDao()
 
         collectionRepo = CollectionRepository(app.applicationContext)
-        collectionWithCriterias = collectionRepo.getAllWithCriterias()
+
+        collectionWithCriterias = searchQuery.switchMap { query ->
+            collectionRepo.getAllWithCriterias(query)
+        }
+
         initCollectionThumbnail()
     }
 
@@ -61,7 +66,10 @@ class CollectionViewModel(private val app: Application) : AndroidViewModel(app) 
         }
     }
 
-    // this is returning empty file
+    fun filterList(query: String) {
+        searchQuery.value = query
+    }
+
     private suspend fun getCollectionThumbnail(collectionId: Long): File {
         val collection = collectionRepo.get(collectionId)
 
@@ -133,11 +141,13 @@ class CollectionViewModel(private val app: Application) : AndroidViewModel(app) 
                 val imageList = doujinDir.listFiles(ImageFileFilter())
 
                 if (!imageList.isNullOrEmpty()) {
-                    return imageList.firstOrNull() ?: File("")
+                    return imageList.firstOrNull()
+                        ?: throw IllegalArgumentException("Could not find a picture for collection from File Explorer")
                 }
             }
         }
-        return File("")
+//        return File("")
+        throw IllegalArgumentException("Could not find a picture for collection from File Explorer")
     }
 
     private suspend fun getThumbnailFromDb(
@@ -171,17 +181,23 @@ class CollectionViewModel(private val app: Application) : AndroidViewModel(app) 
         return File("")
     }
 
-    private fun getThumbnailFromExistingList(
-        doujinList: List<Doujin>,
-        keywordList: List<String>
-    ): File {
+    private fun getThumbnailFromExistingList(doujinList: List<Doujin>, keywordList: List<String>): File {
         for (doujin in doujinList) {
-            val loweredCaseTitle = doujin.title.toLowerCase(Locale.ROOT)
-            if (loweredCaseTitle in keywordList) {
+            if (doujin.containsKeyTitle(keywordList)) {
                 val doujinImages = doujin.path.listFiles(ImageFileFilter())
                 return doujinImages?.firstOrNull() ?: File("")
             }
         }
         return File("")
+    }
+
+    private fun Doujin.containsKeyTitle(keywordList: List<String>): Boolean {
+        val loweredCaseTitle = this.title.toLowerCase(Locale.ROOT)
+        for (keyword in keywordList) {
+            if (!loweredCaseTitle.contains(keyword)) {
+                return false
+            }
+        }
+        return true
     }
 }

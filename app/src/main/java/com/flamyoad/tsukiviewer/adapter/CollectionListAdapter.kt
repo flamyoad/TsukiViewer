@@ -28,17 +28,28 @@ import java.io.File
 
 class CollectionListAdapter(
     private val onEditCollection: (Collection) -> Unit,
-    private val onRemoveCollection: (Collection) -> Unit
+    private val onRemoveCollection: (Collection) -> Unit,
+    private val viewType: Int
 ) :
     RecyclerViewFastScroller.OnPopupTextUpdate,
-    ListAdapter<CollectionWithCriterias, CollectionListAdapter.CollectionViewHolder>(CollectionDiffUtil()) {
+    ListAdapter<CollectionWithCriterias, RecyclerView.ViewHolder>(CollectionDiffUtil()) {
 
     private val viewPool = RecyclerView.RecycledViewPool()
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CollectionViewHolder {
-        val layout = LayoutInflater.from(parent.context)
-            .inflate(R.layout.collection_list_item, parent, false)
-        val holder = CollectionViewHolder(layout)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        val holder = when (viewType) {
+            LIST -> {
+                val layout = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.collection_list_item_vertical, parent, false)
+                ListItemViewHolder(layout)
+            }
+            GRID -> {
+                val layout = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.collection_list_item_grid, parent, false)
+                ListItemViewHolder(layout)
+            }
+            else -> throw IllegalArgumentException("Invalid view type")
+        }
 
         holder.itemView.setOnClickListener {
             val item = getItem(holder.bindingAdapterPosition)
@@ -49,6 +60,10 @@ class CollectionListAdapter(
                 putExtra(CollectionFragment.COLLECTION_CRITERIAS, item.getCriteriaNames())
             }
             context.startActivity(intent)
+        }
+
+        holder.itemView.setOnLongClickListener {
+            it.showContextMenu()
         }
 
         holder.itemView.setOnCreateContextMenuListener { contextMenu, view, contextMenuInfo ->
@@ -67,11 +82,17 @@ class CollectionListAdapter(
         return holder
     }
 
-    override fun onBindViewHolder(holder: CollectionViewHolder, position: Int) {
-        holder.bind(getItem(position))
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        when (viewType) {
+            LIST -> (holder as ListItemViewHolder).bind(getItem(position))
+        }
     }
 
-    inner class CollectionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    override fun getItemViewType(position: Int): Int {
+        return viewType
+    }
+
+    inner class ListItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val txtCollectionName: TextView = itemView.findViewById(R.id.txtCollectionName)
         private val txtTitles: TextView = itemView.findViewById(R.id.txtTitles)
         private val lblTitles: TextView = itemView.findViewById(R.id.lblTitles)
@@ -147,8 +168,30 @@ class CollectionListAdapter(
         }
     }
 
+    inner class GridItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val imgThumbnail: ImageView = itemView.findViewById(R.id.imgThumbnail)
+        private val txtCollectionName: TextView = itemView.findViewById(R.id.txtCollectionName)
+
+        fun bind(item: CollectionWithCriterias) {
+            txtCollectionName.text = item.collection.name
+
+            val coverImage = item.collection.coverPhoto
+
+            if (coverImage != File("")) {
+                Glide.with(itemView.context)
+                    .load(coverImage)
+                    .into(imgThumbnail)
+            }
+        }
+    }
+
     override fun onChange(position: Int): CharSequence {
         return getItem(position).collection.name
+    }
+
+    companion object {
+        const val LIST = 1
+        const val GRID = 2
     }
 }
 

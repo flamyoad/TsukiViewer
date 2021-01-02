@@ -32,12 +32,11 @@
 
             <com.github.ybq.android.spinkit.SpinKitView
                 android:id="@+id/imagePlaceholder"
-                style="@style/SpinKitView.Large.Wave"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:SpinKit_Color="#E3DFDF"
-                android:layout_marginTop="32dp"
-                android:layout_gravity="center_horizontal"/>
+                style="@style/SpinKitView.Small.Wave"
+                android:layout_width="54dp"
+                android:layout_height="54dp"
+                app:SpinKit_Color="@color/headerGray"
+                android:layout_gravity="center"/>
 
         </FrameLayout>
 
@@ -87,7 +86,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
-            android:text="Titles:"
+            android:text="Keywords:"
             app:layout_constraintStart_toStartOf="@+id/headerLayout"
             app:layout_constraintTop_toBottomOf="@+id/headerLayout" />
 

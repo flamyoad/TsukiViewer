@@ -36,6 +36,10 @@ class CollectionRepository(context: Context) {
         return collectionDao.getAllWithCriterias()
     }
 
+    fun getAllWithCriterias(keyword: String): LiveData<List<CollectionWithCriterias>> {
+        return collectionDao.getAllWithCriterias(keyword)
+    }
+
     suspend fun insert(collection: Collection, criterias: List<CollectionCriteria>) {
         db.withTransaction {
             val collectionId = collectionDao.insert(collection)

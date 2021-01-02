@@ -21,20 +21,19 @@ class CollectionFragment : BaseFragment(), SearchView.OnQueryTextListener {
     private val viewModel: CollectionViewModel by activityViewModels()
 
     private val collectionAdapter =
-        CollectionListAdapter(this::onEditCollection, this::onRemoveCollection)
+        CollectionListAdapter(this::onEditCollection, this::onRemoveCollection, CollectionListAdapter.LIST)
 
     private var searchView: SearchView? = null
     private var previousSearchQuery: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("debugz", "onCreate")
+        setHasOptionsMenu(true)
     }
 
     override fun onResume() {
         super.onResume()
         viewModel.initCollectionThumbnail()
-        Log.d("debugz", "onResume")
     }
 
     override fun onCreateView(
@@ -63,10 +62,9 @@ class CollectionFragment : BaseFragment(), SearchView.OnQueryTextListener {
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-        menu.clear()
         inflater.inflate(R.menu.menu_collections, menu)
 
-        val searchItem: MenuItem? = menu?.findItem(R.id.action_search)
+        val searchItem: MenuItem? = menu.findItem(R.id.action_search)
         searchView = searchItem?.actionView as SearchView
 
         if (previousSearchQuery.isNotBlank()) {
@@ -77,22 +75,9 @@ class CollectionFragment : BaseFragment(), SearchView.OnQueryTextListener {
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
-        val progressBarItem = menu.findItem(R.id.progress_bar_loading)
-        val progressActionView = progressBarItem.actionView
-        val progressBar: ProgressBar = progressActionView.findViewById(R.id.progressBarSync)
-
         val searchItem: MenuItem? = menu.findItem(R.id.action_search)
-        searchItem?.isVisible = false
-
         val searchView = searchItem?.actionView as SearchView
         searchView.setOnQueryTextListener(this)
-
-//        viewModel.isLoading().observe(this, Observer { isLoading ->
-//            if (!isLoading) { // If has done loading all items ...
-//                progressBar.visibility = View.GONE
-//                searchItem.isVisible = true
-//            }
-//        })
     }
 
     private fun initRecyclerView() {
@@ -137,7 +122,7 @@ class CollectionFragment : BaseFragment(), SearchView.OnQueryTextListener {
     }
 
     override fun onQueryTextChange(newText: String?): Boolean {
-//        viewModel.filterList(newText ?: "")
+        viewModel.filterList(newText ?: "")
         return true
     }
 

@@ -77,7 +77,6 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-
         <ImageView
             android:id="@+id/multiSelectIndicator"
             android:layout_width="30dp"

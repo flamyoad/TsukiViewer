@@ -61,8 +61,9 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
     private var shouldResetSelections: Boolean = false
 
     private var titleKeywords: List<String> = emptyList()
-
     private var mustHaveDirs: List<File> = emptyList()
+    private var minNumberPages: Int = Int.MIN_VALUE
+    private var maxNumberPages: Int = Int.MAX_VALUE
 
     init {
         bookmarkGroupList = bookmarkRepo.getAllGroups()
@@ -78,6 +79,10 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
         loadingJob = viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val collection = collectionRepo.get(collectionId)
+
+                minNumberPages = collection.minNumPages
+                maxNumberPages = collection.maxNumPages
+
                 val includedTags = collectionRepo.getIncludedTags(collectionId)
                 val excludedTags = collectionRepo.getExcludedTags(collectionId)
 
@@ -267,6 +272,10 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
 
     // Used to check whether it contains title or path specified by criteria
     private fun Doujin.hasFulfilledCriteria(): Boolean {
+        if (this.numberOfItems < minNumberPages || this.numberOfItems > maxNumberPages) {
+            return false
+        }
+
         for (keyword in titleKeywords) {
             val loweredCaseTitle = this.title.toLowerCase(Locale.ROOT)
             if (!loweredCaseTitle.contains(keyword)) {

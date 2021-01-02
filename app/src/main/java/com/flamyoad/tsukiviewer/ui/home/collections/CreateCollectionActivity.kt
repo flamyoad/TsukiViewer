@@ -189,13 +189,13 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
 
         val minNumPagesInput = fieldStartNumPages.text.toString()
         val minNumPages = when (minNumPagesInput.isBlank()) {
-            true -> -1
+            true -> Int.MIN_VALUE
             false -> minNumPagesInput.toInt()
         }
 
         val maxNumPagesInput = fieldEndNumPages.text.toString()
         val maxNumPages = when (maxNumPagesInput.isBlank()) {
-            true -> -1
+            true -> Int.MAX_VALUE
             false -> maxNumPagesInput.toInt()
         }
 

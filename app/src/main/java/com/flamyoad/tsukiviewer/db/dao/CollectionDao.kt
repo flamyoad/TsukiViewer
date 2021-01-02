@@ -29,6 +29,12 @@ interface CollectionDao {
     @Query("SELECT * FROM collection")
     fun getAllWithCriterias(): LiveData<List<CollectionWithCriterias>>
 
+    @Query("""
+        SELECT * FROM collection 
+        WHERE name LIKE '%' || :keyword || '%'
+    """)
+    fun getAllWithCriterias(keyword: String): LiveData<List<CollectionWithCriterias>>
+
     @Query("SELECT * FROM collection WHERE id = :collectionId")
     fun get(collectionId: Long): LiveData<Collection>
 
