@@ -28,7 +28,11 @@ class CollectionRepository(context: Context) {
         return collectionDao.getBlocking(id)
     }
 
-    fun getAll(): LiveData<List<CollectionWithCriterias>> {
+    suspend fun getAll(): List<Collection> {
+        return collectionDao.getAllBlocking()
+    }
+
+    fun getAllWithCriterias(): LiveData<List<CollectionWithCriterias>> {
         return collectionDao.getAllWithCriterias()
     }
 
@@ -70,6 +74,11 @@ class CollectionRepository(context: Context) {
                 criteriaDao.insert(criteria)
             }
         }
+    }
+
+    suspend fun updateThumbnail(collectionId: Long?, file: File) {
+        if (collectionId == null) return
+        collectionDao.updateThumbnail(collectionId, file)
     }
 
     suspend fun getTitles(id: Long): List<String> {

@@ -13,9 +13,10 @@ data class CollectionWithCriterias(
     fun getCriteriaNames(): String {
         return criteriaList.joinToString(", ") { item ->
             return@joinToString when (item.type) {
+                CollectionCriteria.TITLE -> "+${item.valueName}"
                 CollectionCriteria.INCLUDED_TAGS -> "+${item.valueName}"
                 CollectionCriteria.EXCLUDED_TAGS -> "-${item.valueName}"
-                else -> ""
+                else -> "+${item.valueName}"
             }
         }
     }

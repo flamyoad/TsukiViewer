@@ -60,8 +60,6 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
 
     private var shouldResetSelections: Boolean = false
 
-    private var collectionId: Long = -1L
-
     private var titleKeywords: List<String> = emptyList()
 
     private var mustHaveDirs: List<File> = emptyList()
@@ -73,17 +71,18 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
     }
 
     fun submitQuery(collectionId: Long) {
-        if (this.collectionId == collectionId) return
+        if (loadingJob != null) return
 
-        this.collectionId = collectionId
+        isLoading.value = true
 
-        viewModelScope.launch {
+        loadingJob = viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val collection = collectionRepo.get(collectionId)
                 val includedTags = collectionRepo.getIncludedTags(collectionId)
                 val excludedTags = collectionRepo.getExcludedTags(collectionId)
 
                 titleKeywords = collectionRepo.getTitles(collectionId)
+                    .map { title -> title.toLowerCase(Locale.ROOT) }
                 mustHaveDirs = collectionRepo.getDirectories(collectionId)
 
                 searchFromDatabase(
@@ -99,6 +98,10 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
                     } else {
                         searchFromFileExplorer(titleKeywords)
                     }
+                }
+
+                withContext(Dispatchers.Main) {
+                    isLoading.value = false
                 }
             }
         }
@@ -170,9 +173,6 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
         includedTags: List<Tag>, mustHaveAllIncludedTags: Boolean,
         excludedTags: List<Tag>, mustHaveAllExcludedTags: Boolean
     ) {
-
-        val a = 1 + 1
-
         val doujinList = when {
             mustHaveAllIncludedTags && mustHaveAllExcludedTags -> collectionRepo.searchIncludedAndExcludedAnd(
                 includedTags,
@@ -197,13 +197,9 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
         }
     }
 
-    private suspend fun searchFromExistingList(
-        doujinList: List<Doujin>,
-        keywordList: List<String>
-    ) {
+    private suspend fun searchFromExistingList(doujinList: List<Doujin>, keywordList: List<String>) {
         for (doujin in doujinList) {
-            val loweredCaseTitle = doujin.title.toLowerCase(Locale.ROOT)
-            if (loweredCaseTitle in keywordList) {
+            if (doujin.hasFulfilledCriteria()) {
                 postResult(doujin)
             }
         }
@@ -243,10 +239,9 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
 
     private suspend fun postResult(doujin: Doujin) {
         if (!doujinList.contains(doujin)) {
-            if (doujin.title !in titleKeywords || doujin.parentDir !in mustHaveDirs)
-                return
-
-            doujinList.add(doujin)
+            if (doujin.hasFulfilledCriteria()) {
+                doujinList.add(doujin)
+            }
         }
 
         withContext(Dispatchers.Main) {
@@ -258,9 +253,8 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
     private suspend fun postResult(dir: File) {
         val isDuplicate = doujinList.any { doujin -> doujin.title == dir.name }
         if (!isDuplicate) {
-            val doujin = dir.toDoujin()
-            if (doujin != null) {
-
+            val doujin = dir.toDoujin() ?: return
+            if (doujin.hasFulfilledCriteria()) {
                 doujinList.add(doujin)
             }
 
@@ -269,6 +263,22 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
                 searchResult.value = doujinList
             }
         }
+    }
+
+    // Used to check whether it contains title or path specified by criteria
+    private fun Doujin.hasFulfilledCriteria(): Boolean {
+        for (keyword in titleKeywords) {
+            val loweredCaseTitle = this.title.toLowerCase(Locale.ROOT)
+            if (!loweredCaseTitle.contains(keyword)) {
+                return false
+            }
+        }
+
+        if (mustHaveDirs.isNotEmpty()) {
+            if (this.parentDir !in mustHaveDirs) return false
+        }
+
+        return true
     }
 
     private fun checkItemSelections() {

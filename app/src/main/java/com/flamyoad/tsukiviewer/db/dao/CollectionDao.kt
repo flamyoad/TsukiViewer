@@ -2,10 +2,13 @@ package com.flamyoad.tsukiviewer.db.dao
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
+import com.flamyoad.tsukiviewer.db.typeconverter.FolderConverter
 import com.flamyoad.tsukiviewer.model.Collection
 import com.flamyoad.tsukiviewer.model.CollectionWithCriterias
+import java.io.File
 
 @Dao
+@TypeConverters(FolderConverter::class)
 interface CollectionDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
@@ -31,4 +34,12 @@ interface CollectionDao {
 
     @Query("SELECT * FROM collection WHERE id = :collectionId")
     suspend fun getBlocking(collectionId: Long): Collection
+
+
+    @Query("""
+        UPDATE collection 
+        SET coverPhoto = :thumbnail 
+        WHERE id = :collectionId
+        """)
+    suspend fun updateThumbnail(collectionId: Long, thumbnail: File)
 }

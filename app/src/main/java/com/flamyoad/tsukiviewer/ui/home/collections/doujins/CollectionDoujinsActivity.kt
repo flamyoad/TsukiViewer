@@ -2,6 +2,7 @@ package com.flamyoad.tsukiviewer.ui.home.collections.doujins
 
 import android.content.res.Configuration
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -59,7 +60,7 @@ class CollectionDoujinsActivity : AppCompatActivity(),
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu_search_result, menu)
+        menuInflater.inflate(R.menu.menu_collection_doujins, menu)
 
         val searchItem: MenuItem? = menu?.findItem(R.id.action_search)
         searchView = searchItem?.actionView as SearchView

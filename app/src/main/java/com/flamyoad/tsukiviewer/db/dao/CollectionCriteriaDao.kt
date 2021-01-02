@@ -17,8 +17,8 @@ interface CollectionCriteriaDao {
     @Update
     suspend fun update(criteria: CollectionCriteria)
 
-    @Query("DELETE FROM collection_criteria WHERE id = :id")
-    suspend fun delete(id: Long)
+    @Query("DELETE FROM collection_criteria WHERE collectionId = :collectionId")
+    suspend fun delete(collectionId: Long)
 
     @Query("""
         SELECT value FROM collection_criteria
