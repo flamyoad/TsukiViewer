@@ -3,6 +3,7 @@ package com.flamyoad.tsukiviewer
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
+import com.flamyoad.tsukiviewer.adapter.CollectionListAdapter
 import com.flamyoad.tsukiviewer.ui.doujinpage.GridViewStyle
 import com.flamyoad.tsukiviewer.ui.reader.ReaderMode
 import com.flamyoad.tsukiviewer.ui.reader.VolumeButtonScrollDirection
@@ -40,6 +41,10 @@ class MyAppPreference(context: Context) {
         } else {
             return GridViewStyle.Scaled
         }
+    }
+
+    fun setDefaultViewStyle(style: GridViewStyle) {
+        put(MainPreferences.DEFAULT_GRID_VIEW_STYLE, style.toString())
     }
 
     fun getDefaultReaderMode(): ReaderMode {
@@ -97,6 +102,14 @@ class MyAppPreference(context: Context) {
 
     fun shouldFetchFromHNexus(): Boolean {
         return prefs.getBoolean(FetchSourcePreference.FETCH_FROM_HENTAINEXUS, false)
+    }
+
+    fun getCollectionViewStyle(): Int {
+        return prefs.getInt(MainPreferences.COLLECTION_VIEW_STYLE, CollectionListAdapter.LIST)
+    }
+
+    fun setCollectionViewStyle(style: Int) {
+        put(MainPreferences.COLLECTION_VIEW_STYLE, style)
     }
 
     fun put(key: String, value: String) {

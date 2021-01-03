@@ -83,6 +83,7 @@ class MainPreferences : PreferenceFragmentCompat(), SharedPreferences.OnSharedPr
         const val DEFAULT_READER_MODE = "pref_reader_mode"
         const val USE_WINDOWS_EXPLORER_SORT = "pref_use_windows_explorer_sort"
         const val SCROLL_BY_VOLUME_BUTTONS = "pref_scroll_by_volume_button"
+        const val COLLECTION_VIEW_STYLE = "pref_collection_view_style"
     }
 }
 

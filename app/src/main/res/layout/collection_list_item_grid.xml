@@ -27,7 +27,7 @@
                 android:id="@+id/imgThumbnail"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
+                android:minHeight="200dp"
                 android:adjustViewBounds="true"
                 android:scaleType="centerCrop"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -50,20 +50,37 @@
                 tools:visibility="visible" />
         </FrameLayout>
 
-        <TextView
-            android:id="@+id/txtCollectionName"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/headerGray"
-            android:ellipsize="end"
-            android:gravity="center_vertical"
-            android:lines="1"
-            android:paddingVertical="8dp"
-            android:paddingStart="16dp"
-            android:textColor="@color/miWhite"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            tools:text="Thicc Thighs All day" />
+            android:orientation="horizontal"
+            android:background="@color/headerGray">
+
+            <TextView
+                android:id="@+id/txtCollectionName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:lines="1"
+                android:paddingVertical="8dp"
+                android:paddingStart="16dp"
+                android:textColor="@color/miWhite"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                tools:text="Thicc Thighs All day" />
+
+            <ImageButton
+                android:id="@+id/btnCollectionInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:paddingHorizontal="12dp"
+                android:background="?android:selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_expand_more_white_24dp"/>
+
+        </LinearLayout>
+
 
     </LinearLayout>
 

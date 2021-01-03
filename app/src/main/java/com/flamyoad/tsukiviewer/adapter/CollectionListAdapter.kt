@@ -29,6 +29,7 @@ import java.io.File
 class CollectionListAdapter(
     private val onEditCollection: (Collection) -> Unit,
     private val onRemoveCollection: (Collection) -> Unit,
+    private val onShowCollectionInfo: (Collection) -> Unit,
     private val viewType: Int
 ) :
     RecyclerViewFastScroller.OnPopupTextUpdate,
@@ -46,7 +47,7 @@ class CollectionListAdapter(
             GRID -> {
                 val layout = LayoutInflater.from(parent.context)
                     .inflate(R.layout.collection_list_item_grid, parent, false)
-                ListItemViewHolder(layout)
+                GridItemViewHolder(layout)
             }
             else -> throw IllegalArgumentException("Invalid view type")
         }
@@ -85,11 +86,19 @@ class CollectionListAdapter(
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (viewType) {
             LIST -> (holder as ListItemViewHolder).bind(getItem(position))
+            GRID -> (holder as GridItemViewHolder).bind(getItem(position))
         }
     }
 
     override fun getItemViewType(position: Int): Int {
         return viewType
+    }
+
+    override fun getItemId(position: Int): Long {
+        if (position == RecyclerView.NO_POSITION) {
+            return -1
+        }
+        return getItem(position).collection.id ?: -1
     }
 
     inner class ListItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

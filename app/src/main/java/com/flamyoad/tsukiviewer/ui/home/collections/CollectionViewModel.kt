@@ -3,9 +3,12 @@ package com.flamyoad.tsukiviewer.ui.home.collections
 import android.app.Application
 import android.content.ContentResolver
 import android.provider.MediaStore
+import android.widget.GridView
 import androidx.core.content.ContentResolverCompat
 import androidx.lifecycle.*
+import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.MyApplication
+import com.flamyoad.tsukiviewer.adapter.CollectionListAdapter
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.IncludedPathDao
 import com.flamyoad.tsukiviewer.model.Collection
@@ -13,6 +16,7 @@ import com.flamyoad.tsukiviewer.model.CollectionWithCriterias
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.repository.CollectionRepository
+import com.flamyoad.tsukiviewer.ui.doujinpage.GridViewStyle
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -25,6 +29,7 @@ class CollectionViewModel(private val app: Application) : AndroidViewModel(app) 
     private val db: AppDatabase
     private val pathDao: IncludedPathDao
     private val contentResolver: ContentResolver = app.contentResolver
+    private val myAppPreference = MyAppPreference.getInstance(app.applicationContext)
 
     private val collectionRepo: CollectionRepository
 
@@ -32,11 +37,16 @@ class CollectionViewModel(private val app: Application) : AndroidViewModel(app) 
 
     private val searchQuery = MutableLiveData<String>("")
 
+    private val collectionViewStyle = MutableLiveData<Int>()
+    fun collectionViewStyle(): LiveData<Int> = collectionViewStyle.distinctUntilChanged()
+
     val collectionWithCriterias: LiveData<List<CollectionWithCriterias>>
 
     init {
         db = AppDatabase.getInstance(app.applicationContext)
         pathDao = db.includedFolderDao()
+
+        collectionViewStyle.value = myAppPreference.getCollectionViewStyle()
 
         collectionRepo = CollectionRepository(app.applicationContext)
 
@@ -199,5 +209,10 @@ class CollectionViewModel(private val app: Application) : AndroidViewModel(app) 
             }
         }
         return true
+    }
+
+    fun switchViewStyle(viewStyle: Int) {
+        myAppPreference.setCollectionViewStyle(viewStyle)
+        collectionViewStyle.value = viewStyle
     }
 }
