@@ -29,6 +29,9 @@ class CreateCollectionViewModel(application: Application) : AndroidViewModel(app
 
     val tagList: LiveData<List<Tag>>
 
+    private val currentCollection = MutableLiveData<Collection>()
+    fun currentCollection(): LiveData<Collection> = currentCollection
+
     private val titles = MutableLiveData<List<String>>()
     fun titles(): LiveData<List<String>> = titles
 
@@ -48,11 +51,22 @@ class CreateCollectionViewModel(application: Application) : AndroidViewModel(app
 
     init {
         includedPathDao = db.includedFolderDao()
-
         includedPaths = includedPathDao.getAll()
 
         tagList = Transformations.switchMap(tagQuery) {
             return@switchMap tagRepo.getAllWithFilter(it)
+        }
+    }
+
+    fun initCollectionData(collectionId: Long) {
+        if (collectionId == -1L) return
+
+        viewModelScope.launch(Dispatchers.IO) {
+            currentCollection.postValue(collectionRepo.get(collectionId))
+            titles.postValue(collectionRepo.getTitles(collectionId))
+            includedTags.postValue(collectionRepo.getIncludedTags(collectionId))
+            excludedTags.postValue(collectionRepo.getExcludedTags(collectionId))
+            dirList.postValue(collectionRepo.getDirectories(collectionId))
         }
     }
 

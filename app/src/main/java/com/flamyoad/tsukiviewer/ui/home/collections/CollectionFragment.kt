@@ -134,7 +134,10 @@ class CollectionFragment : BaseFragment(), SearchView.OnQueryTextListener {
     }
 
     private fun onEditCollection(collection: Collection) {
-
+        val intent = Intent(requireContext(), CreateCollectionActivity::class.java).apply {
+            putExtra(CreateCollectionActivity.COLLECTION_ID, collection.id)
+        }
+        startActivity(intent)
     }
 
     private fun onRemoveCollection(collection: Collection) {
@@ -155,7 +158,8 @@ class CollectionFragment : BaseFragment(), SearchView.OnQueryTextListener {
     }
 
     private fun onShowCollectionInfo(collection: Collection) {
-
+        val dialog = DialogCollectionInfo.newInstance(collection.id ?: -1)
+        dialog.show(childFragmentManager, DialogCollectionInfo.NAME)
     }
 
     override fun getTitle(): String {

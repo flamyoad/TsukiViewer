@@ -47,7 +47,14 @@ class CollectionListAdapter(
             GRID -> {
                 val layout = LayoutInflater.from(parent.context)
                     .inflate(R.layout.collection_list_item_grid, parent, false)
-                GridItemViewHolder(layout)
+                val holder = GridItemViewHolder(layout)
+
+                val btnCollectionInfo: ImageButton = layout.findViewById(R.id.btnCollectionInfo)
+                btnCollectionInfo.setOnClickListener {
+                    val item = getItem(holder.bindingAdapterPosition)
+                    onShowCollectionInfo(item.collection)
+                }
+                holder
             }
             else -> throw IllegalArgumentException("Invalid view type")
         }
@@ -70,6 +77,10 @@ class CollectionListAdapter(
         holder.itemView.setOnCreateContextMenuListener { contextMenu, view, contextMenuInfo ->
             val item = getItem(holder.bindingAdapterPosition)
 
+            contextMenu.add("View Collection Criterias").setOnMenuItemClickListener {
+                onShowCollectionInfo(item.collection)
+                return@setOnMenuItemClickListener true
+            }
             contextMenu.add("Edit Collection").setOnMenuItemClickListener {
                 onEditCollection(item.collection)
                 return@setOnMenuItemClickListener true
@@ -180,6 +191,7 @@ class CollectionListAdapter(
     inner class GridItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val imgThumbnail: ImageView = itemView.findViewById(R.id.imgThumbnail)
         private val txtCollectionName: TextView = itemView.findViewById(R.id.txtCollectionName)
+        private val btnCollectionInfo: ImageButton = itemView.findViewById(R.id.btnCollectionInfo)
 
         fun bind(item: CollectionWithCriterias) {
             txtCollectionName.text = item.collection.name

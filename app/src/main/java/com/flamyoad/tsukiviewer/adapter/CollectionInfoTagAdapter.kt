@@ -5,16 +5,14 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
-import com.flamyoad.tsukiviewer.model.CollectionCriteria
 import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.ui.home.collections.DialogTagPicker
 import com.google.android.material.chip.Chip
 
-class CollectionListCriteriasAdapter(
-    private val list: List<CollectionCriteria>,
-    private val mode: DialogTagPicker.Mode
-) :
-    RecyclerView.Adapter<CollectionListCriteriasAdapter.TagViewHolder>() {
+class CollectionInfoTagAdapter(private val mode: DialogTagPicker.Mode) :
+    RecyclerView.Adapter<CollectionInfoTagAdapter.TagViewHolder>() {
+
+    private var list: List<Tag> = emptyList()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TagViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -40,11 +38,16 @@ class CollectionListCriteriasAdapter(
         holder.bind(list[position])
     }
 
+    fun setList(list: List<Tag>) {
+        this.list = list
+        notifyDataSetChanged()
+    }
+
     inner class TagViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val chip: Chip = itemView.findViewById(R.id.chip)
 
-        fun bind(tag: CollectionCriteria) {
-            chip.text = tag.valueName
+        fun bind(tag: Tag) {
+            chip.text = tag.name
         }
     }
 

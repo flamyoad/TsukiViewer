@@ -43,8 +43,10 @@ class CollectionRepository(context: Context) {
     suspend fun insert(collection: Collection, criterias: List<CollectionCriteria>) {
         db.withTransaction {
             val collectionId = collectionDao.insert(collection)
-            if (collectionId == -1L) {
-                return@withTransaction
+
+            // If editing existing collection, wipe all previous criterias before inserting new ones
+            collection.id?.let {
+                criteriaDao.delete(it)
             }
 
             // Fill in criterias with collectionId, which is impossible to get before first inserting the collection

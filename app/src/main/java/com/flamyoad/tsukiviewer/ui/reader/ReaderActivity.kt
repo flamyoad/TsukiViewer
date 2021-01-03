@@ -95,6 +95,9 @@ class ReaderActivity : AppCompatActivity(),
             R.id.action_show_exif -> {
 
             }
+            android.R.id.home -> {
+                finish()
+            }
         }
         return true
     }

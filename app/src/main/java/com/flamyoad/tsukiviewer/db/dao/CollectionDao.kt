@@ -11,7 +11,7 @@ import java.io.File
 @TypeConverters(FolderConverter::class)
 interface CollectionDao {
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(collection: Collection): Long
 
     @Delete

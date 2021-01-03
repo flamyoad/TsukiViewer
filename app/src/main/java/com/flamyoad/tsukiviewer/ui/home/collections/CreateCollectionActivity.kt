@@ -1,6 +1,5 @@
 package com.flamyoad.tsukiviewer.ui.home.collections
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -8,6 +7,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.inputmethod.EditorInfo
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -33,13 +33,28 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_collection)
 
-        initToolbar()
+        val collectionId = intent.getLongExtra(COLLECTION_ID, -1L)
+        viewModel.initCollectionData(collectionId)
+
+        initToolbar(collectionId)
         initUi()
 
         viewModel.titles().observe(this, Observer { values ->
             txtTitles.removeAllViews()
             for (value in values) {
                 insertTitle(value)
+            }
+        })
+
+        viewModel.currentCollection().observe(this, Observer {
+            fieldCollectionName.setText(it.name)
+
+            if (it.minNumPages != Int.MIN_VALUE) {
+                fieldStartNumPages.setText(it.minNumPages.toString())
+            }
+
+            if (it.maxNumPages != Int.MAX_VALUE) {
+                fieldEndNumPages.setText(it.maxNumPages.toString())
             }
         })
 
@@ -60,22 +75,28 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
         return true
     }
 
-    private fun initToolbar() {
+    private fun initToolbar(collectionId: Long) {
         setSupportActionBar(toolbar)
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowHomeEnabled(true)
         }
-        setTitle("Create new collection")
+        if (collectionId == -1L) {
+            setTitle("Create new collection")
+        } else {
+            setTitle("Edit existing collection")
+        }
     }
 
     private fun initUi() {
-        dirAdapter = CollectionFilterDirectoryAdapter(this::openDirectoryPicker, viewModel::removeDir)
+        dirAdapter =
+            CollectionFilterDirectoryAdapter(this::openDirectoryPicker, viewModel::removeDir)
         listDirs.adapter = dirAdapter
         listDirs.layoutManager = LinearLayoutManager(this)
 
         // Inflates default add button in the Included Tags
-        val includedTagNewChip = layoutInflater.inflate(R.layout.tag_list_add, parentLayout, false) as Chip
+        val includedTagNewChip =
+            layoutInflater.inflate(R.layout.tag_list_add, parentLayout, false) as Chip
         includedTagNewChip.text = "+"
         includedTagNewChip.setOnClickListener {
             openTagPicker(DialogTagPicker.Mode.Inclusive)
@@ -83,7 +104,8 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
         listIncludedTags.addView(includedTagNewChip)
 
         // Inflates default add button in the Excluded Tags
-        val excludedTagNewChip = layoutInflater.inflate(R.layout.tag_list_add, parentLayout, false) as Chip
+        val excludedTagNewChip =
+            layoutInflater.inflate(R.layout.tag_list_add, parentLayout, false) as Chip
         excludedTagNewChip.text = "+"
         excludedTagNewChip.setOnClickListener {
             openTagPicker(DialogTagPicker.Mode.Exclusive)
@@ -108,7 +130,7 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
         }
 
         // Disables the enter button of title if input is blank
-        fieldTitle.addTextChangedListener(object: TextWatcher {
+        fieldTitle.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {}
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
@@ -135,12 +157,13 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
 
         txtTitles.addView(chip)
     }
-    
+
     private fun refreshIncludedTags(tags: List<Tag>) {
         listIncludedTags.removeAllViews()
 
         // Inflates default add button in the Included Tags
-        val includedTagNewChip = layoutInflater.inflate(R.layout.tag_list_add, parentLayout, false) as Chip
+        val includedTagNewChip =
+            layoutInflater.inflate(R.layout.tag_list_add, parentLayout, false) as Chip
         includedTagNewChip.text = "+"
         includedTagNewChip.setOnClickListener {
             openTagPicker(DialogTagPicker.Mode.Inclusive)
@@ -162,7 +185,8 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
         listExcludedTags.removeAllViews()
 
         // Inflates default add button in the Excluded Tags
-        val excludedTagNewChip = layoutInflater.inflate(R.layout.tag_list_add, parentLayout, false) as Chip
+        val excludedTagNewChip =
+            layoutInflater.inflate(R.layout.tag_list_add, parentLayout, false) as Chip
         excludedTagNewChip.text = "+"
         excludedTagNewChip.setOnClickListener {
             openTagPicker(DialogTagPicker.Mode.Exclusive)
@@ -181,6 +205,8 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
     }
 
     private fun submitCollection() {
+        val existingCollectionId = intent.getLongExtra(COLLECTION_ID, -1)
+
         val collectionName = fieldCollectionName.text.toString()
         if (collectionName.isBlank()) {
             toast("You must at least give it a name!")
@@ -200,11 +226,14 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
         }
 
         val collection = Collection(
-            id = null,
+            id = when (existingCollectionId == -1L) {
+                true -> null
+                false -> existingCollectionId
+            },
             name = collectionName,
             coverPhoto = File(""),
             minNumPages = minNumPages,
-            maxNumPages =  maxNumPages,
+            maxNumPages = maxNumPages,
             mustHaveAllTitles = false, // Hardcoded to use OR logic for now
             mustHaveAllIncludedTags = checkboxIncludedTags.isChecked,
             mustHaveAllExcludedTags = checkboxExcludedTags.isChecked
@@ -227,15 +256,24 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
     }
 
     override fun onTagSelected(tag: Tag) {
-        when (viewModel.tagPickerMode)  {
-            DialogTagPicker.Mode.Inclusive -> { viewModel.addIncludedTag(tag) }
-            DialogTagPicker.Mode.Exclusive -> { viewModel.addExcludedTag(tag) }
+        when (viewModel.tagPickerMode) {
+            DialogTagPicker.Mode.Inclusive -> {
+                viewModel.addIncludedTag(tag)
+            }
+            DialogTagPicker.Mode.Exclusive -> {
+                viewModel.addExcludedTag(tag)
+            }
         }
 
         // Dismisses the dialog once an item is clicked
-        val dialog = supportFragmentManager.findFragmentByTag(DialogTagPicker.NAME) as DialogFragment
+        val dialog =
+            supportFragmentManager.findFragmentByTag(DialogTagPicker.NAME) as DialogFragment
         dialog.dismiss()
 
         viewModel.clearQuery()
+    }
+
+    companion object {
+        const val COLLECTION_ID = "collection_id"
     }
 }
