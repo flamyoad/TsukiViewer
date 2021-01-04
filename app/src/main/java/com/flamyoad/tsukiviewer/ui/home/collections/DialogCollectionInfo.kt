@@ -1,15 +1,16 @@
 package com.flamyoad.tsukiviewer.ui.home.collections
 
+import android.graphics.Point
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.view.Window
+import android.view.*
 import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.flamyoad.tsukiviewer.R
+import com.flamyoad.tsukiviewer.adapter.CollectionInfoDirectoryAdapter
 import com.flamyoad.tsukiviewer.adapter.CollectionInfoTagAdapter
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
@@ -21,6 +22,7 @@ class DialogCollectionInfo : DialogFragment() {
 
     private val includedTagsAdapter = CollectionInfoTagAdapter(DialogTagPicker.Mode.Inclusive)
     private val excludedTagsAdapter = CollectionInfoTagAdapter(DialogTagPicker.Mode.Exclusive)
+    private val dirAdapter = CollectionInfoDirectoryAdapter()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -29,6 +31,21 @@ class DialogCollectionInfo : DialogFragment() {
     ): View? {
         dialog?.window?.requestFeature(Window.FEATURE_NO_TITLE)
         return inflater.inflate(R.layout.dialog_collection_info, null, false)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val window: Window? = dialog?.window ?: return
+
+        val size = Point()
+        val display: Display? = window?.windowManager?.defaultDisplay
+        display?.getSize(size)
+
+        val params = window?.attributes ?: return
+        params.width = (size.x * 0.75).toInt()
+//        params.height = (size.y * 0.75).toInt()
+
+        window.attributes = params
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -80,6 +97,15 @@ class DialogCollectionInfo : DialogFragment() {
 
         viewModel.excludedTags().observe(viewLifecycleOwner, Observer {
             excludedTagsAdapter.setList(it)
+        })
+
+        listDirectories.apply {
+            adapter = dirAdapter
+            layoutManager = LinearLayoutManager(requireContext())
+        }
+
+        viewModel.dirList().observe(viewLifecycleOwner, Observer {
+            dirAdapter.setList(it)
         })
     }
 

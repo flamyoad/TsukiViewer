@@ -20,6 +20,7 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.ui.home.collections.CollectionFragment
+import com.flamyoad.tsukiviewer.ui.home.collections.DialogCollectionInfo
 import com.flamyoad.tsukiviewer.ui.search.BookmarkGroupDialog
 import com.flamyoad.tsukiviewer.utils.GridItemDecoration
 import com.google.android.material.snackbar.Snackbar
@@ -98,6 +99,12 @@ class CollectionDoujinsActivity : AppCompatActivity(),
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> finish()
+
+            R.id.action_more_info -> {
+                val collectionId = intent.getLongExtra(CollectionFragment.COLLECTION_ID, -1)
+                val dialog = DialogCollectionInfo.newInstance(collectionId)
+                dialog.show(supportFragmentManager, DialogCollectionInfo.NAME)
+            }
         }
         return true
     }
