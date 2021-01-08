@@ -1,5 +1,7 @@
 package com.flamyoad.tsukiviewer.adapter
 
+import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -7,7 +9,13 @@ import android.view.ViewGroup
 import androidx.core.net.toUri
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
+import com.davemorrissey.labs.subscaleview.ImageSource
+import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import com.flamyoad.tsukiviewer.R
 import com.github.chrisbanes.photoview.PhotoView
 import java.io.File
@@ -40,14 +48,19 @@ class ReaderImageAdapter
         Log.d("readerimageadapter", "onBind called for $position")
     }
 
+    override fun onViewRecycled(holder: ImageViewHolder) {
+        super.onViewRecycled(holder)
+    }
+
     inner class ImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val photoView: PhotoView = itemView.findViewById(R.id.photoView)
+        private val photoView: SubsamplingScaleImageView = itemView.findViewById(R.id.photoView)
 
         fun bind(file: File) {
-            Glide.with(itemView)
-                .load(file.toUri())
-                .transition(DrawableTransitionOptions.withCrossFade())
-                .into(photoView)
+            photoView.setImage(ImageSource.uri(Uri.fromFile(file)))
+        }
+
+        fun recycleBitmap() {
+            photoView.recycle()
         }
     }
 

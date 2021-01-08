@@ -2,6 +2,7 @@
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/scrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/webDraculaBackgroundColor">
@@ -37,6 +38,7 @@
             android:orientation="vertical">
 
             <LinearLayout
+                android:id="@+id/layoutCollectionName"
                 style="@style/editor_tag_group"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -105,7 +107,7 @@
                         app:boxStrokeColor="@color/blackOlive"
                         app:endIconMode="clear_text"
                         app:endIconTint="@color/create_collection_field_title_colors"
-                        app:helperText="Hint: You can add multiple titles, or just leave it blank">
+                        app:helperText="Hint: You can add multiple titles, or just leave it blank. AND Logic is used">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/fieldTitle"
@@ -206,6 +208,7 @@
             </LinearLayout>
 
             <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layoutMetadata"
                 style="@style/editor_tag_group"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -234,21 +237,22 @@
                     app:layout_constraintTop_toBottomOf="@+id/lblMetadata" />
 
                 <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/layoutStartNumPages"
+                    android:id="@+id/layoutMinNumPages"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="120dp"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:layout_marginBottom="8dp"
                     android:hint="Minimum Pages"
+                    android:minHeight="80dp"
                     app:boxStrokeColor="@color/nh_favourite_button_pink"
+                    app:errorEnabled="true"
                     app:hintTextColor="@color/nh_favourite_button_pink"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="@+id/lblNumPages"
                     app:layout_constraintTop_toBottomOf="@id/lblNumPages">
 
                     <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/fieldStartNumPages"
+                        android:id="@+id/fieldMinNumPages"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="number" />
@@ -263,26 +267,29 @@
                     android:gravity="center"
                     android:text="to"
                     android:textStyle="bold"
-                    app:layout_constraintBottom_toBottomOf="@+id/layoutStartNumPages"
-                    app:layout_constraintEnd_toStartOf="@+id/layoutEndNumPages"
-                    app:layout_constraintStart_toEndOf="@+id/layoutStartNumPages"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/layoutMaxNumPages"
+                    app:layout_constraintStart_toEndOf="@+id/layoutMinNumPages"
                     app:layout_constraintTop_toBottomOf="@+id/lblNumPages" />
 
                 <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/layoutEndNumPages"
+                    android:id="@+id/layoutMaxNumPages"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="120dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
                     android:hint="Maximum pages"
+                    android:minHeight="80dp"
                     app:boxStrokeColor="@color/nh_favourite_button_pink"
+                    app:errorEnabled="true"
                     app:hintTextColor="@color/nh_favourite_button_pink"
-                    app:layout_constraintBottom_toBottomOf="@+id/layoutStartNumPages"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/lblNumPageSeparator"
-                    app:layout_constraintTop_toTopOf="@+id/layoutStartNumPages">
+                    app:layout_constraintTop_toBottomOf="@+id/lblNumPages">
 
                     <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/fieldEndNumPages"
+                        android:id="@+id/fieldMaxNumPages"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="number" />

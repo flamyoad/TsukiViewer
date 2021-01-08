@@ -50,16 +50,24 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
             fieldCollectionName.setText(it.name)
 
             if (it.minNumPages != Int.MIN_VALUE) {
-                fieldStartNumPages.setText(it.minNumPages.toString())
+                fieldMinNumPages.setText(it.minNumPages.toString())
             }
 
             if (it.maxNumPages != Int.MAX_VALUE) {
-                fieldEndNumPages.setText(it.maxNumPages.toString())
+                fieldMaxNumPages.setText(it.maxNumPages.toString())
             }
         })
 
         viewModel.dirList().observe(this, Observer {
             dirAdapter.setList(it)
+        })
+
+        viewModel.includedTags().observe(this, Observer {
+            refreshIncludedTags(it)
+        })
+
+        viewModel.excludedTags().observe(this, Observer {
+            refreshExcludedTags(it)
         })
     }
 
@@ -112,14 +120,6 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
         }
         listExcludedTags.addView(excludedTagNewChip)
 
-        viewModel.includedTags().observe(this, Observer {
-            refreshIncludedTags(it)
-        })
-
-        viewModel.excludedTags().observe(this, Observer {
-            refreshExcludedTags(it)
-        })
-
         fieldTitle.setOnEditorActionListener { textView, actionId, keyEvent ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 viewModel.addTitle(textView.text.toString())
@@ -134,8 +134,42 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
             override fun afterTextChanged(p0: Editable?) {}
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                btnAddTitle.isEnabled = count > 0
+            override fun onTextChanged(str: CharSequence?, start: Int, before: Int, count: Int) {
+                btnAddTitle.isEnabled = !str.isNullOrBlank()
+            }
+        })
+
+        fieldMinNumPages.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(p0: Editable?) {}
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+            override fun onTextChanged(str: CharSequence?, start: Int, before: Int, count: Int) {
+                val minNumPages = fieldMinNumPages.text.toString().toIntOrNull() ?: Int.MIN_VALUE
+                val maxNumPages = fieldMaxNumPages.text.toString().toIntOrNull() ?: Int.MAX_VALUE
+
+                if (minNumPages > maxNumPages) {
+                    layoutMinNumPages.error = "Invalid Input"
+                } else {
+                    layoutMinNumPages.isErrorEnabled = false
+                    layoutMaxNumPages.isErrorEnabled = false
+                }
+            }
+        })
+
+        fieldMaxNumPages.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(p0: Editable?) {}
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+            override fun onTextChanged(str: CharSequence?, start: Int, before: Int, count: Int) {
+                val minNumPages = fieldMinNumPages.text.toString().toIntOrNull() ?: Int.MIN_VALUE
+                val maxNumPages = fieldMaxNumPages.text.toString().toIntOrNull() ?: Int.MAX_VALUE
+
+                if (minNumPages > maxNumPages) {
+                    layoutMaxNumPages.error = "Invalid Input"
+                } else {
+                    layoutMinNumPages.isErrorEnabled = false
+                    layoutMaxNumPages.isErrorEnabled = false
+                }
             }
         })
 
@@ -213,16 +247,24 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
             return
         }
 
-        val minNumPagesInput = fieldStartNumPages.text.toString()
+        val minNumPagesInput = fieldMinNumPages.text.toString()
         val minNumPages = when (minNumPagesInput.isBlank()) {
             true -> Int.MIN_VALUE
             false -> minNumPagesInput.toInt()
         }
 
-        val maxNumPagesInput = fieldEndNumPages.text.toString()
+        val maxNumPagesInput = fieldMaxNumPages.text.toString()
         val maxNumPages = when (maxNumPagesInput.isBlank()) {
             true -> Int.MAX_VALUE
             false -> maxNumPagesInput.toInt()
+        }
+
+        if (minNumPages > maxNumPages) {
+            toast("Invalid range of page numbers")
+            scrollView.postDelayed({
+                scrollView.smoothScrollTo(0, layoutMetadata.bottom)
+            }, 100)
+            return
         }
 
         val collection = Collection(

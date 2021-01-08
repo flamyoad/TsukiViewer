@@ -3,12 +3,10 @@ package com.flamyoad.tsukiviewer.ui.home.collections
 import android.app.Application
 import android.content.ContentResolver
 import android.provider.MediaStore
-import android.widget.GridView
 import androidx.core.content.ContentResolverCompat
 import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.MyApplication
-import com.flamyoad.tsukiviewer.adapter.CollectionListAdapter
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.IncludedPathDao
 import com.flamyoad.tsukiviewer.model.Collection
@@ -16,12 +14,10 @@ import com.flamyoad.tsukiviewer.model.CollectionWithCriterias
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.repository.CollectionRepository
-import com.flamyoad.tsukiviewer.ui.doujinpage.GridViewStyle
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.*
 
@@ -87,6 +83,13 @@ class CollectionViewModel(private val app: Application) : AndroidViewModel(app) 
         val includedTags = collectionRepo.getIncludedTags(collectionId)
         val excludedTags = collectionRepo.getExcludedTags(collectionId)
 
+        // If dirs from collection is empty, means all paths are included. Else, just search from the collection's specified dirs
+        val dirs = collectionRepo.getDirectories(collectionId)
+        val includedDirs = when (dirs.isEmpty()) {
+            true -> pathDao.getAllBlocking()
+            false -> dirs
+        }
+
         var thumbnail = getThumbnailFromDb(
             includedTags, collection.mustHaveAllIncludedTags,
             excludedTags, collection.mustHaveAllExcludedTags
@@ -100,17 +103,20 @@ class CollectionViewModel(private val app: Application) : AndroidViewModel(app) 
         if (includedTags.isEmpty() && excludedTags.isEmpty()) {
             val existingList = (app as MyApplication).fullDoujinList
             if (existingList != null) {
-                thumbnail = getThumbnailFromExistingList(existingList.toList(), titleKeywords)
+                thumbnail =
+                    getThumbnailFromExistingList(existingList.toList(), titleKeywords, includedDirs)
             } else {
-                thumbnail = getThumbnailFromFileExplorer(titleKeywords)
+                thumbnail = getThumbnailFromFileExplorer(titleKeywords, includedDirs)
             }
         }
 
         return thumbnail
     }
 
-    private suspend fun getThumbnailFromFileExplorer(titleFilters: List<String>): File {
-        val includedDirs = pathDao.getAllBlocking()
+    private fun getThumbnailFromFileExplorer(
+        titleFilters: List<String>,
+        includedDirs: List<File>
+    ): File {
         for (dir in includedDirs) {
             val pathName = dir.toString()
 
@@ -142,7 +148,7 @@ class CollectionViewModel(private val app: Application) : AndroidViewModel(app) 
                 null
             )
 
-            while (cursor.moveToNext()) {
+            if (cursor.moveToNext()) {
                 val fullPath =
                     cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA))
 
@@ -151,13 +157,11 @@ class CollectionViewModel(private val app: Application) : AndroidViewModel(app) 
                 val imageList = doujinDir.listFiles(ImageFileFilter())
 
                 if (!imageList.isNullOrEmpty()) {
-                    return imageList.firstOrNull()
-                        ?: throw IllegalArgumentException("Could not find a picture for collection from File Explorer")
+                    return imageList.firstOrNull() ?: File("")
                 }
             }
         }
-//        return File("")
-        throw IllegalArgumentException("Could not find a picture for collection from File Explorer")
+        return File("")
     }
 
     private suspend fun getThumbnailFromDb(
@@ -191,17 +195,23 @@ class CollectionViewModel(private val app: Application) : AndroidViewModel(app) 
         return File("")
     }
 
-    private fun getThumbnailFromExistingList(doujinList: List<Doujin>, keywordList: List<String>): File {
+    private fun getThumbnailFromExistingList(
+        doujinList: List<Doujin>,
+        keywordList: List<String>,
+        dirFilter: List<File>
+    ): File {
         for (doujin in doujinList) {
-            if (doujin.containsKeyTitle(keywordList)) {
-                val doujinImages = doujin.path.listFiles(ImageFileFilter())
-                return doujinImages?.firstOrNull() ?: File("")
+            if (doujin.parentDir in dirFilter) {
+                if (doujin.containsAllKeyTitle(keywordList)) {
+                    val doujinImages = doujin.path.listFiles(ImageFileFilter())
+                    return doujinImages?.firstOrNull() ?: File("")
+                }
             }
         }
         return File("")
     }
 
-    private fun Doujin.containsKeyTitle(keywordList: List<String>): Boolean {
+    private fun Doujin.containsAllKeyTitle(keywordList: List<String>): Boolean {
         val loweredCaseTitle = this.title.toLowerCase(Locale.ROOT)
         for (keyword in keywordList) {
             if (!loweredCaseTitle.contains(keyword)) {

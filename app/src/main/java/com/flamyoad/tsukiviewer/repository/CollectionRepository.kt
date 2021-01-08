@@ -47,6 +47,7 @@ class CollectionRepository(context: Context) {
             // If editing existing collection, wipe all previous criterias before inserting new ones
             collection.id?.let {
                 criteriaDao.delete(it)
+                collectionDao.deleteThumbnail(it)
             }
 
             // Fill in criterias with collectionId, which is impossible to get before first inserting the collection

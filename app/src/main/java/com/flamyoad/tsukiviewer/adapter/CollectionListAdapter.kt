@@ -2,6 +2,7 @@ package com.flamyoad.tsukiviewer.adapter
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -136,12 +137,14 @@ class CollectionListAdapter(
             }
 
             val thumbnail = item.collection.coverPhoto
-            if (coverImage != File("")) {
+            if (thumbnail != File("")) {
                 Glide.with(itemView.context)
                     .load(thumbnail)
                     .into(coverImage)
-                imagePlaceHolder.visibility = View.GONE
+                coverImage.visibility = View.VISIBLE
+                imagePlaceHolder.visibility = View.INVISIBLE
             } else {
+                coverImage.visibility = View.INVISIBLE
                 imagePlaceHolder.visibility = View.VISIBLE
             }
 
@@ -191,17 +194,21 @@ class CollectionListAdapter(
     inner class GridItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val imgThumbnail: ImageView = itemView.findViewById(R.id.imgThumbnail)
         private val txtCollectionName: TextView = itemView.findViewById(R.id.txtCollectionName)
-        private val btnCollectionInfo: ImageButton = itemView.findViewById(R.id.btnCollectionInfo)
+        private val imagePlaceHolder: SpinKitView = itemView.findViewById(R.id.imagePlaceholder)
 
         fun bind(item: CollectionWithCriterias) {
             txtCollectionName.text = item.collection.name
 
-            val coverImage = item.collection.coverPhoto
-
-            if (coverImage != File("")) {
+            val thumbnail = item.collection.coverPhoto
+            if (thumbnail != File("")) {
                 Glide.with(itemView.context)
-                    .load(coverImage)
+                    .load(thumbnail)
                     .into(imgThumbnail)
+                imgThumbnail.visibility = View.VISIBLE
+                imagePlaceHolder.visibility = View.INVISIBLE
+            } else {
+                imgThumbnail.visibility = View.INVISIBLE
+                imagePlaceHolder.visibility = View.VISIBLE
             }
         }
     }

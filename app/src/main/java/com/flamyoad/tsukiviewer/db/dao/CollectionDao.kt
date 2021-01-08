@@ -48,4 +48,7 @@ interface CollectionDao {
         WHERE id = :collectionId
         """)
     suspend fun updateThumbnail(collectionId: Long, thumbnail: File)
+
+    @Query("UPDATE collection SET coverPhoto = '' WHERE id = :id ")
+    suspend fun deleteThumbnail(id: Long)
 }

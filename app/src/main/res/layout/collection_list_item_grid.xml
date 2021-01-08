@@ -37,17 +37,25 @@
                 app:layout_constraintTop_toTopOf="parent"
                 tools:srcCompat="@drawable/cover" />
 
-            <ImageView
-                android:id="@+id/multiSelectIndicator"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_gravity="top|right"
-                android:layout_margin="20dp"
-                android:visibility="gone"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_check"
-                tools:visibility="visible" />
+            <com.github.ybq.android.spinkit.SpinKitView
+                android:id="@+id/imagePlaceholder"
+                style="@style/SpinKitView.Small.Wave"
+                android:layout_width="54dp"
+                android:layout_height="54dp"
+                app:SpinKit_Color="@color/white"
+                android:layout_gravity="center"/>
+
+<!--            <ImageView-->
+<!--                android:id="@+id/multiSelectIndicator"-->
+<!--                android:layout_width="30dp"-->
+<!--                android:layout_height="30dp"-->
+<!--                android:layout_gravity="top|right"-->
+<!--                android:layout_margin="20dp"-->
+<!--                android:visibility="gone"-->
+<!--                app:layout_constraintEnd_toEndOf="parent"-->
+<!--                app:layout_constraintTop_toTopOf="parent"-->
+<!--                app:srcCompat="@drawable/ic_check"-->
+<!--                tools:visibility="visible" />-->
         </FrameLayout>
 
         <LinearLayout
