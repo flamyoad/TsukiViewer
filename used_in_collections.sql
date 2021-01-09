@@ -160,7 +160,6 @@ id IN (
 	SELECT doujinId FROM doujin_tags
 	WHERE doujin_tags.tagId IN (4,12)
 	GROUP BY doujinId
-	HAVING COUNT(*) = 2  -----> Replace with list size
 )
 
 -- 16. Search with Title + Included Tags (AND) + Excluded Tags (AND)
