@@ -13,8 +13,7 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:paddingBottom="4dp">
+        android:layout_height="match_parent">
 
         <FrameLayout
             android:id="@+id/banner"
@@ -142,6 +141,9 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
+            android:layout_marginBottom="4dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="2dp"
             android:text="Min Pages: "
             app:layout_constraintStart_toStartOf="@id/headerLayout"
             app:layout_constraintTop_toBottomOf="@+id/listExcludedTags" />
@@ -150,6 +152,8 @@
             android:id="@+id/txtMinimumPages"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="7dp"
+            android:layout_marginTop="1dp"
             android:textColor="@color/blackOlive"
             app:layout_constraintBottom_toBottomOf="@+id/lblMinimumPages"
             app:layout_constraintStart_toEndOf="@id/lblMinimumPages"
@@ -160,8 +164,10 @@
             android:id="@+id/lblMaximumPages"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
             android:text="Max Pages: "
+            android:paddingTop="2dp"
+            android:paddingBottom="4dp"
+            android:layout_marginTop="4dp"
             app:layout_constraintStart_toStartOf="@id/lblMinimumPages"
             app:layout_constraintTop_toBottomOf="@+id/lblMinimumPages" />
 
@@ -169,6 +175,8 @@
             android:id="@+id/txtMaximumPages"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="1dp"
             android:textColor="@color/blackOlive"
             app:layout_constraintBottom_toBottomOf="@id/lblMaximumPages"
             app:layout_constraintStart_toEndOf="@id/lblMaximumPages"

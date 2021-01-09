@@ -110,6 +110,13 @@ class CollectionRepository(context: Context) {
     ): List<DoujinDetails> {
         val includedTagsId = includedTags.map { tag -> tag.tagId ?: -1 }
         val excludedTagsId = excludedTags.map { tag -> tag.tagId ?: -1 }
+
+        if (includedTags.isEmpty())
+            return collectionDoujinDao.searchExcludedOr(excludedTagsId)
+
+        if (excludedTags.isEmpty())
+            return collectionDoujinDao.searchIncludedOr(includedTagsId)
+
         return collectionDoujinDao.searchIncludedOrExcludedOr(includedTagsId, excludedTagsId)
     }
 
@@ -119,11 +126,14 @@ class CollectionRepository(context: Context) {
     ): List<DoujinDetails> {
         val includedTagsId = includedTags.map { tag -> tag.tagId ?: -1 }
         val excludedTagsId = excludedTags.map { tag -> tag.tagId ?: -1 }
-        return collectionDoujinDao.searchIncludedOrExcludedAnd(
-            includedTagsId,
-            excludedTagsId,
-            excludedTags.size
-        )
+
+        if (includedTags.isEmpty())
+            return collectionDoujinDao.searchExcludedAnd(excludedTagsId, excludedTagsId.size)
+
+        if (excludedTags.isEmpty())
+            return collectionDoujinDao.searchIncludedOr(includedTagsId)
+
+        return collectionDoujinDao.searchIncludedOrExcludedAnd(includedTagsId, excludedTagsId, excludedTags.size)
     }
 
     suspend fun searchIncludedAndExcludedOr(
@@ -132,11 +142,14 @@ class CollectionRepository(context: Context) {
     ): List<DoujinDetails> {
         val includedTagsId = includedTags.map { tag -> tag.tagId ?: -1 }
         val excludedTagsId = excludedTags.map { tag -> tag.tagId ?: -1 }
-        return collectionDoujinDao.searchIncludedAndExcludedOr(
-            includedTagsId,
-            excludedTagsId,
-            includedTags.size
-        )
+
+        if (includedTags.isEmpty())
+            return collectionDoujinDao.searchExcludedOr(excludedTagsId)
+
+        if (excludedTags.isEmpty())
+            return collectionDoujinDao.searchIncludedAnd(includedTagsId, includedTagsId.size)
+
+        return collectionDoujinDao.searchIncludedAndExcludedOr(includedTagsId, excludedTagsId, includedTags.size)
     }
 
     suspend fun searchIncludedAndExcludedAnd(
@@ -145,12 +158,14 @@ class CollectionRepository(context: Context) {
     ): List<DoujinDetails> {
         val includedTagsId = includedTags.map { tag -> tag.tagId ?: -1 }
         val excludedTagsId = excludedTags.map { tag -> tag.tagId ?: -1 }
-        return collectionDoujinDao.searchIncludedAndExcludedAnd(
-            includedTagsId,
-            excludedTagsId,
-            includedTags.size,
-            excludedTags.size
-        )
+
+        if (includedTags.isEmpty())
+            return collectionDoujinDao.searchExcludedAnd(excludedTagsId, excludedTagsId.size)
+
+        if (excludedTags.isEmpty())
+            return collectionDoujinDao.searchIncludedAnd(includedTagsId, includedTagsId.size)
+
+        return collectionDoujinDao.searchIncludedAndExcludedAnd(includedTagsId, excludedTagsId, includedTags.size, excludedTags.size)
     }
 
 }

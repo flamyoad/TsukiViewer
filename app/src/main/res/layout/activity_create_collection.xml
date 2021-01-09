@@ -107,7 +107,7 @@
                         app:boxStrokeColor="@color/blackOlive"
                         app:endIconMode="clear_text"
                         app:endIconTint="@color/create_collection_field_title_colors"
-                        app:helperText="Hint: You can add multiple titles, or just leave it blank. AND Logic is used">
+                        app:helperText="Hint: You can add multiple titles, or just leave it blank. Search is done case insensitive. Uses AND logic">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/fieldTitle"
@@ -163,7 +163,7 @@
                     android:layout_height="wrap_content"
                     android:buttonTint="@color/colorPrimary"
                     android:checked="true"
-                    android:text="Applies only if contain all included tags"
+                    android:text="Use AND inclusion logic. Untick to use OR"
                     android:textColor="#89000000"
                     app:layout_constraintStart_toStartOf="@id/chipGroup"
                     app:layout_constraintTop_toBottomOf="@id/chipGroup" />
@@ -200,7 +200,7 @@
                     android:layout_height="wrap_content"
                     android:buttonTint="@color/colorPrimary"
                     android:checked="true"
-                    android:text="Applies only if contain all excluded tags"
+                    android:text="Use AND exclusion logic. Untick to use OR"
                     android:textColor="#89000000"
                     app:layout_constraintStart_toStartOf="@id/chipGroup"
                     app:layout_constraintTop_toBottomOf="@id/chipGroup" />
