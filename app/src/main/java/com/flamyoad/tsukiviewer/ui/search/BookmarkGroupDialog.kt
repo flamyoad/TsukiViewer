@@ -16,11 +16,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.CollectionPickerAdapter
 import com.flamyoad.tsukiviewer.model.BookmarkGroup
-import com.flamyoad.tsukiviewer.ui.doujinpage.CollectionDialogListener
+import com.flamyoad.tsukiviewer.ui.doujinpage.BookmarkGroupDialogListener
 import com.flamyoad.tsukiviewer.ui.doujinpage.DialogCollectionList
 import com.flamyoad.tsukiviewer.ui.doujinpage.DialogNewCollection
 
-class BookmarkGroupDialog : DialogFragment(), CollectionDialogListener {
+class BookmarkGroupDialog : DialogFragment(), BookmarkGroupDialogListener {
     companion object {
         fun newInstance() = BookmarkGroupDialog()
     }
@@ -92,19 +92,20 @@ class BookmarkGroupDialog : DialogFragment(), CollectionDialogListener {
         }
     }
 
-    override fun onCollectionTicked(collection: BookmarkGroup) {
+    override fun onBookmarkGroupTicked(collection: BookmarkGroup) {
         collectionTickStatus.put(collection, true)
     }
 
-    override fun onCollectionUnticked(collection: BookmarkGroup) {
+    override fun onBookmarkGroupUnticked(collection: BookmarkGroup) {
         collectionTickStatus.put(collection, false)
     }
 
-    override fun onAddCollectionClicked() {
+    override fun onAddBookmarkGroup() {
         this.dismiss()
 
         val dialog = DialogNewCollection()
         dialog.show(parentFragmentManager, DialogCollectionList.NEW_COLLECTION_DIALOG)
     }
+
 
 }

@@ -321,4 +321,14 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
     fun selectedCount(): Int {
         return selectedDoujins.size
     }
+
+    fun insertItemIntoTickedCollections(bookmarkGroups: List<BookmarkGroup>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val status = bookmarkRepo.insertAllItems(selectedDoujins.toList(), bookmarkGroups)
+
+            withContext(Dispatchers.Main) {
+                snackbarText.value = status
+            }
+        }
+    }
 }

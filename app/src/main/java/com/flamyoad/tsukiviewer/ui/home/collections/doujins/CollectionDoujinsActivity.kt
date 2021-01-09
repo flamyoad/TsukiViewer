@@ -21,7 +21,6 @@ import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.ui.home.collections.CollectionFragment
 import com.flamyoad.tsukiviewer.ui.home.collections.DialogCollectionInfo
-import com.flamyoad.tsukiviewer.ui.search.BookmarkGroupDialog
 import com.flamyoad.tsukiviewer.utils.GridItemDecoration
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_collection_doujins.*

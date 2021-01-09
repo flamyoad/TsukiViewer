@@ -268,8 +268,8 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
                 doujin.isSelected = false
             }
         } else {
-            for (doujinItem in doujinList) {
-                doujinItem.isSelected = doujinItem in selectedDoujins
+            for (doujin in doujinList) {
+                doujin.isSelected = doujin in selectedDoujins
             }
         }
         searchResult.value = doujinList
@@ -322,61 +322,3 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
         }
     }
 }
-
-/*
-    fun getImages(id: String): List<File> {
-        val uri = MediaStore.Files.getContentUri("external")
-
-        val projection = arrayOf(
-            MediaStore.Images.Media.DATA
-        )
-
-        val selection = MediaStore.Files.FileColumns.MEDIA_TYPE + " = ?" +
-                "AND " +
-                MediaStore.Files.FileColumns.PARENT + " = ?"
-
-        val selectionArgs = arrayOf(MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE.toString(), id)
-
-        val cursor = ContentResolverCompat.query(
-            contentResolver,
-            uri,
-            projection,
-            selection,
-            selectionArgs,
-            " ${MediaStore.Files.FileColumns.TITLE}",
-            null
-        )
-
-        val imageList = mutableListOf<File>()
-        while (cursor.moveToNext()) {
-            val imagePath = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA))
-            imageList.add(File(imagePath))
-        }
-        return imageList
-    }
-
-    fun getImageCount(id: Long): Int {
-        val selection = ("( "
-                + MediaStore.Files.FileColumns.MEDIA_TYPE
-                + "=? ) and "
-                + MediaStore.Files.FileColumns.PARENT
-                + "=?")
-
-        val selectionArgs = arrayOf(
-            MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE.toString(), java.lang.String.valueOf(id)
-        )
-
-        val cur = ContentResolverCompat
-            .query(
-                contentResolver,
-                MediaStore.Files.getContentUri("external"),
-                arrayOf(MediaStore.Files.FileColumns.PARENT),
-                selection,
-                selectionArgs,
-                null,
-                null
-            )
-        return cur.count
-    }
-
- */

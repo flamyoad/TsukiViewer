@@ -4,10 +4,8 @@ import android.app.Application
 import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.IncludedPathDao
+import com.flamyoad.tsukiviewer.model.*
 import com.flamyoad.tsukiviewer.model.Collection
-import com.flamyoad.tsukiviewer.model.CollectionCriteria
-import com.flamyoad.tsukiviewer.model.IncludedPath
-import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.repository.CollectionRepository
 import com.flamyoad.tsukiviewer.repository.TagRepository
 import kotlinx.coroutines.Dispatchers
@@ -44,6 +42,12 @@ class CreateCollectionViewModel(application: Application) : AndroidViewModel(app
     private val dirList = MutableLiveData<List<File>>()
     fun dirList(): LiveData<List<File>> = dirList
 
+    private val mustHaveAllIncludedTags = MutableLiveData<Boolean>()
+    fun mustHaveAllIncludedTags(): LiveData<Boolean> = mustHaveAllIncludedTags
+
+    private val mustHaveAllExcludedTags = MutableLiveData<Boolean>()
+    fun mustHaveAllExcludedTags(): LiveData<Boolean> = mustHaveAllExcludedTags
+
     private val isInsertingData = MutableLiveData<Boolean>(false)
     fun isInsertingData(): LiveData<Boolean> = isInsertingData
 
@@ -62,11 +66,16 @@ class CreateCollectionViewModel(application: Application) : AndroidViewModel(app
         if (collectionId == -1L) return
 
         viewModelScope.launch(Dispatchers.IO) {
-            currentCollection.postValue(collectionRepo.get(collectionId))
+            val collection = collectionRepo.get(collectionId)
+
+            currentCollection.postValue(collection)
             titles.postValue(collectionRepo.getTitles(collectionId))
             includedTags.postValue(collectionRepo.getIncludedTags(collectionId))
             excludedTags.postValue(collectionRepo.getExcludedTags(collectionId))
             dirList.postValue(collectionRepo.getDirectories(collectionId))
+
+            mustHaveAllIncludedTags.postValue(collection.mustHaveAllIncludedTags)
+            mustHaveAllExcludedTags.postValue(collection.mustHaveAllExcludedTags)
         }
     }
 
@@ -135,6 +144,14 @@ class CreateCollectionViewModel(application: Application) : AndroidViewModel(app
 
         newTags.remove(tag)
         excludedTags.value = newTags
+    }
+
+    fun setMustHaveAllIncludedTags(value: Boolean) {
+        mustHaveAllIncludedTags.value = value
+    }
+
+    fun setMustHaveAllExcludedTags(value: Boolean) {
+        mustHaveAllExcludedTags.value = value
     }
 
     fun submitCollection(collection: Collection) {

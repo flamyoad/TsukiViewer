@@ -69,6 +69,14 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
         viewModel.excludedTags().observe(this, Observer {
             refreshExcludedTags(it)
         })
+
+        viewModel.mustHaveAllIncludedTags().observe(this, Observer {
+            checkboxIncludedTags.isChecked = it
+        })
+
+        viewModel.mustHaveAllExcludedTags().observe(this, Observer {
+            checkboxExcludedTags.isChecked  = it
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -79,6 +87,7 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_save -> submitCollection()
+            android.R.id.home -> finish()
         }
         return true
     }
@@ -97,14 +106,12 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
     }
 
     private fun initUi() {
-        dirAdapter =
-            CollectionFilterDirectoryAdapter(this::openDirectoryPicker, viewModel::removeDir)
+        dirAdapter = CollectionFilterDirectoryAdapter(this::openDirectoryPicker, viewModel::removeDir)
         listDirs.adapter = dirAdapter
         listDirs.layoutManager = LinearLayoutManager(this)
 
         // Inflates default add button in the Included Tags
-        val includedTagNewChip =
-            layoutInflater.inflate(R.layout.tag_list_add, parentLayout, false) as Chip
+        val includedTagNewChip = layoutInflater.inflate(R.layout.tag_list_add, parentLayout, false) as Chip
         includedTagNewChip.text = "+"
         includedTagNewChip.setOnClickListener {
             openTagPicker(DialogTagPicker.Mode.Inclusive)
@@ -112,8 +119,7 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
         listIncludedTags.addView(includedTagNewChip)
 
         // Inflates default add button in the Excluded Tags
-        val excludedTagNewChip =
-            layoutInflater.inflate(R.layout.tag_list_add, parentLayout, false) as Chip
+        val excludedTagNewChip = layoutInflater.inflate(R.layout.tag_list_add, parentLayout, false) as Chip
         excludedTagNewChip.text = "+"
         excludedTagNewChip.setOnClickListener {
             openTagPicker(DialogTagPicker.Mode.Exclusive)
@@ -176,6 +182,14 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
         btnAddTitle.setOnClickListener {
             viewModel.addTitle(fieldTitle.text.toString())
             fieldTitle.setText("")
+        }
+
+        checkboxIncludedTags.setOnCheckedChangeListener { compoundButton, bool ->
+            viewModel.setMustHaveAllIncludedTags(bool)
+        }
+
+        checkboxExcludedTags.setOnCheckedChangeListener { compoundButton, bool ->
+            viewModel.setMustHaveAllExcludedTags(bool)
         }
     }
 

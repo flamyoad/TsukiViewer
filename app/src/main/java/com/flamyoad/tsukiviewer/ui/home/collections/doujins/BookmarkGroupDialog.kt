@@ -1,7 +1,6 @@
-package com.flamyoad.tsukiviewer.ui.doujinpage
+package com.flamyoad.tsukiviewer.ui.home.collections.doujins
 
 import android.app.Dialog
-import android.content.DialogInterface
 import android.graphics.Point
 import android.os.Bundle
 import android.view.Display
@@ -17,14 +16,16 @@ import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.CollectionPickerAdapter
 import com.flamyoad.tsukiviewer.model.BookmarkGroup
+import com.flamyoad.tsukiviewer.ui.doujinpage.BookmarkGroupDialogListener
+import com.flamyoad.tsukiviewer.ui.doujinpage.DialogCollectionList
+import com.flamyoad.tsukiviewer.ui.doujinpage.DialogNewCollection
 
-class DialogCollectionList: DialogFragment(), BookmarkGroupDialogListener {
-    private val viewModel: DoujinViewModel by activityViewModels()
-
+class BookmarkGroupDialog : DialogFragment(), BookmarkGroupDialogListener {
     companion object {
-        const val DEFAULT_COLLECTION_NAME = "Default Collection"
-        const val NEW_COLLECTION_DIALOG = "NEW_COLLECTION_DIALOG"
+        fun newInstance() = BookmarkGroupDialog()
     }
+
+    private val viewModel: CollectionDoujinsViewModel by activityViewModels()
 
     private val collectionAdapter: CollectionPickerAdapter = CollectionPickerAdapter(this)
 
@@ -53,16 +54,18 @@ class DialogCollectionList: DialogFragment(), BookmarkGroupDialogListener {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        viewModel.initCollectionList()
-
-        viewModel.collectionList().observe(this, Observer {
+        viewModel.bookmarkGroupList.observe(this, Observer {
             collectionAdapter.setList(it)
         })
 
         setRecyclerviewSize()
 
         btnSave.setOnClickListener {
-            viewModel.insertItemIntoTickedCollections(collectionTickStatus)
+            val bookmarkGroups = collectionTickStatus
+                .filter { x -> x.value == true }
+                .map { x -> x.key }
+
+            viewModel.insertItemIntoTickedCollections(bookmarkGroups)
             this.dismiss()
         }
 
@@ -71,11 +74,8 @@ class DialogCollectionList: DialogFragment(), BookmarkGroupDialogListener {
         }
 
         listCollections.adapter = collectionAdapter
-        listCollections.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
-    }
-
-    override fun onDismiss(dialog: DialogInterface) {
-        super.onDismiss(dialog)
+        listCollections.layoutManager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
     }
 
     private fun setRecyclerviewSize() {
@@ -104,6 +104,6 @@ class DialogCollectionList: DialogFragment(), BookmarkGroupDialogListener {
         this.dismiss()
 
         val dialog = DialogNewCollection()
-        dialog.show(parentFragmentManager, NEW_COLLECTION_DIALOG)
+        dialog.show(parentFragmentManager, DialogCollectionList.NEW_COLLECTION_DIALOG)
     }
 }
