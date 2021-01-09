@@ -329,8 +329,16 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
             }
         }
 
-        if (mustHaveDirs.isNotEmpty()) {
-            if (this.parentDir !in mustHaveDirs) return false
+        val mustHaveParentDirs = mustHaveDirs
+        if (mustHaveParentDirs.isNotEmpty()) {
+            for (parent in mustHaveParentDirs) {
+                val itemPath = this.path.canonicalPath
+                val parentPath = parent.canonicalPath
+                if (itemPath.contains(parentPath)) {
+                    return true
+                }
+            }
+            return false
         }
 
         return true

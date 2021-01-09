@@ -3,18 +3,19 @@ package com.flamyoad.tsukiviewer.ui.home.collections
 import android.app.Application
 import android.content.ContentResolver
 import android.provider.MediaStore
+import android.util.Log
 import androidx.core.content.ContentResolverCompat
+import androidx.core.net.toFile
 import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.IncludedPathDao
+import com.flamyoad.tsukiviewer.model.*
 import com.flamyoad.tsukiviewer.model.Collection
-import com.flamyoad.tsukiviewer.model.CollectionWithCriterias
-import com.flamyoad.tsukiviewer.model.Doujin
-import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.repository.CollectionRepository
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
+import com.flamyoad.tsukiviewer.utils.toDoujin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -80,6 +81,8 @@ class CollectionViewModel(private val app: Application) : AndroidViewModel(app) 
         val collection = collectionRepo.get(collectionId)
 
         val titleKeywords = collectionRepo.getTitles(collectionId)
+        val lowerCasedTitleKeywords = titleKeywords.map { title -> title.toLowerCase(Locale.ROOT) }
+
         val includedTags = collectionRepo.getIncludedTags(collectionId)
         val excludedTags = collectionRepo.getExcludedTags(collectionId)
 
@@ -90,10 +93,17 @@ class CollectionViewModel(private val app: Application) : AndroidViewModel(app) 
             false -> dirs
         }
 
-        var thumbnail = getThumbnailFromDb(
-            includedTags, collection.mustHaveAllIncludedTags,
-            excludedTags, collection.mustHaveAllExcludedTags
+        val collectionSearchInput = CollectionSearchInput(
+            collection,
+            lowerCasedTitleKeywords,
+            includedTags,
+            excludedTags,
+            collection.minNumPages,
+            collection.maxNumPages,
+            includedDirs
         )
+
+        var thumbnail = getThumbnailFromDb(collectionSearchInput)
 
         if (thumbnail != File("")) {
             return thumbnail
@@ -104,20 +114,17 @@ class CollectionViewModel(private val app: Application) : AndroidViewModel(app) 
             val existingList = (app as MyApplication).fullDoujinList
             if (existingList != null) {
                 thumbnail =
-                    getThumbnailFromExistingList(existingList.toList(), titleKeywords, includedDirs)
+                    getThumbnailFromExistingList(existingList.toList(), collectionSearchInput)
             } else {
-                thumbnail = getThumbnailFromFileExplorer(titleKeywords, includedDirs)
+                thumbnail = getThumbnailFromFileExplorer(collectionSearchInput)
             }
         }
 
         return thumbnail
     }
 
-    private fun getThumbnailFromFileExplorer(
-        titleFilters: List<String>,
-        includedDirs: List<File>
-    ): File {
-        for (dir in includedDirs) {
+    private fun getThumbnailFromFileExplorer(input: CollectionSearchInput): File {
+        for (dir in input.mustHaveDirs) {
             val pathName = dir.toString()
 
             val uri = MediaStore.Files.getContentUri("external")
@@ -129,11 +136,11 @@ class CollectionViewModel(private val app: Application) : AndroidViewModel(app) 
 
             var selection = "${MediaStore.Files.FileColumns.DATA} LIKE ?"
 
-            for (title in titleFilters) {
+            for (title in input.titleKeywords) {
                 selection += " AND " + "${MediaStore.Files.FileColumns.TITLE} LIKE ?"
             }
 
-            val keywordArray = titleFilters.map { title -> "%" + title + "%" }
+            val keywordArray = input.titleKeywords.map { title -> "%" + title + "%" }
                 .toTypedArray()
 
             val params = arrayOf("%" + pathName + "%", *keywordArray)
@@ -148,76 +155,100 @@ class CollectionViewModel(private val app: Application) : AndroidViewModel(app) 
                 null
             )
 
-            if (cursor.moveToNext()) {
+            while (cursor.moveToNext()) {
                 val fullPath =
                     cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA))
 
-                val doujinDir = File(fullPath)
+                val dir = File(fullPath)
 
-                val imageList = doujinDir.listFiles(ImageFileFilter())
+                val imageList = dir.listFiles(ImageFileFilter())
+                if (imageList.isNullOrEmpty())
+                    continue
 
-                if (!imageList.isNullOrEmpty()) {
-                    return imageList.firstOrNull() ?: File("")
+                val doujin = dir.toDoujin() ?: continue
+
+                if (doujin.hasFulfilledCriteria(input)) {
+                    return doujin.pic.toFile()
                 }
             }
         }
         return File("")
     }
 
-    private suspend fun getThumbnailFromDb(
-        includedTags: List<Tag>, mustHaveAllIncludedTags: Boolean,
-        excludedTags: List<Tag>, mustHaveAllExcludedTags: Boolean
-    ): File {
-        val doujinList = when {
-            mustHaveAllIncludedTags && mustHaveAllExcludedTags -> collectionRepo.searchIncludedAndExcludedAnd(
-                includedTags,
-                excludedTags
-            )
+    private suspend fun getThumbnailFromDb(input: CollectionSearchInput): File {
+        val doujinDetailList: List<DoujinDetails>
+        with(input) {
+            val mustHaveAllIncludedTags = collection.mustHaveAllIncludedTags
+            val mustHaveAllExcludedTags = collection.mustHaveAllExcludedTags
 
-            !mustHaveAllIncludedTags && mustHaveAllExcludedTags -> collectionRepo.searchIncludedOrExcludedAnd(
-                includedTags,
-                excludedTags
-            )
+            doujinDetailList = when {
+                mustHaveAllIncludedTags && mustHaveAllExcludedTags -> collectionRepo.searchIncludedAndExcludedAnd(
+                    includedTags,
+                    excludedTags
+                )
 
-            mustHaveAllIncludedTags && !mustHaveAllExcludedTags -> collectionRepo.searchIncludedAndExcludedOr(
-                includedTags,
-                excludedTags
-            )
+                !mustHaveAllIncludedTags && mustHaveAllExcludedTags -> collectionRepo.searchIncludedOrExcludedAnd(
+                    includedTags,
+                    excludedTags
+                )
 
-            else -> collectionRepo.searchIncludedOrExcludedOr(includedTags, excludedTags)
+                mustHaveAllIncludedTags && !mustHaveAllExcludedTags -> collectionRepo.searchIncludedAndExcludedOr(
+                    includedTags,
+                    excludedTags
+                )
+                else -> collectionRepo.searchIncludedOrExcludedOr(includedTags, excludedTags)
+            }
         }
 
-        val doujin = doujinList.firstOrNull()?.absolutePath ?: File("")
-        val doujinImages = doujin.listFiles(ImageFileFilter())
-        if (!doujinImages.isNullOrEmpty()) {
-            return doujinImages.firstOrNull() ?: File("")
+        Log.d("debugs", doujinDetailList.size.toString())
+        for (detail in doujinDetailList) {
+            val doujin = detail.absolutePath.toDoujin() ?: continue
+
+            if (doujin.hasFulfilledCriteria(input)) {
+                return doujin.pic.toFile()
+            }
         }
+
         return File("")
     }
 
     private fun getThumbnailFromExistingList(
         doujinList: List<Doujin>,
-        keywordList: List<String>,
-        dirFilter: List<File>
+        input: CollectionSearchInput
     ): File {
         for (doujin in doujinList) {
-            if (doujin.parentDir in dirFilter) {
-                if (doujin.containsAllKeyTitle(keywordList)) {
-                    val doujinImages = doujin.path.listFiles(ImageFileFilter())
-                    return doujinImages?.firstOrNull() ?: File("")
-                }
+            if (doujin.hasFulfilledCriteria(input)) {
+                return doujin.pic.toFile()
             }
         }
         return File("")
     }
 
-    private fun Doujin.containsAllKeyTitle(keywordList: List<String>): Boolean {
-        val loweredCaseTitle = this.title.toLowerCase(Locale.ROOT)
-        for (keyword in keywordList) {
+    private fun Doujin.hasFulfilledCriteria(input: CollectionSearchInput): Boolean {
+        if (this.numberOfItems < input.minNumberPages || this.numberOfItems > input.maxNumberPages) {
+            return false
+        }
+
+        for (keyword in input.titleKeywords) {
+            val loweredCaseTitle = this.title.toLowerCase(Locale.ROOT)
             if (!loweredCaseTitle.contains(keyword)) {
                 return false
             }
         }
+
+        val mustHaveParentDirs = input.mustHaveDirs
+        if (mustHaveParentDirs.isNotEmpty()) {
+            for (parent in mustHaveParentDirs) {
+                val itemPath = this.path.canonicalPath
+                val parentPath = parent.canonicalPath
+
+                if (itemPath.contains(parentPath)) {
+                    return true
+                }
+            }
+            return false
+        }
+
         return true
     }
 

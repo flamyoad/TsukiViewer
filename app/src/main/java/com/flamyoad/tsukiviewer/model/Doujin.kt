@@ -1,6 +1,8 @@
 package com.flamyoad.tsukiviewer.model
 
 import android.net.Uri
+import androidx.core.net.toUri
+import com.flamyoad.tsukiviewer.utils.imageExtensions
 import java.io.File
 
 data class Doujin(
@@ -35,5 +37,32 @@ data class Doujin(
 
     override fun compareTo(other: Doujin): Int {
         return shortTitle.compareTo(other.shortTitle)
+    }
+
+    companion object {
+        // Untested
+        fun fromFile(currentDir: File, parentDir: File): Doujin? {
+            val fileList = currentDir.listFiles() ?: return null
+            val imageList = fileList.filter { f -> f.extension in imageExtensions }
+
+            if (imageList.isNotEmpty()) {
+
+                val coverImage = imageList.first().toUri()
+                val title = currentDir.name
+                val numberOfImages = imageList.size
+                val lastModified = currentDir.lastModified()
+
+                val doujin = Doujin(
+                    coverImage,
+                    title,
+                    numberOfImages,
+                    lastModified,
+                    currentDir,
+                    parentDir
+                )
+                return doujin
+            }
+            return null
+        }
     }
 }

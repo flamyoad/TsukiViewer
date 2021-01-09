@@ -6,7 +6,6 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.model.CollectionCriteria
-import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.ui.home.collections.DialogTagPicker
 import com.google.android.material.chip.Chip
 
@@ -19,17 +18,18 @@ class CollectionListCriteriasAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TagViewHolder {
         val inflater = LayoutInflater.from(parent.context)
 
-        when (mode) {
+        val holder = when (mode) {
             DialogTagPicker.Mode.Inclusive -> {
                 val layout = inflater.inflate(R.layout.collection_included_tag_item, parent, false)
-                return TagViewHolder(layout)
+                TagViewHolder(layout)
             }
             DialogTagPicker.Mode.Exclusive -> {
                 val layout = inflater.inflate(R.layout.collection_excluded_tag_item, parent, false)
-                return TagViewHolder(layout)
+                TagViewHolder(layout)
             }
             else -> throw IllegalArgumentException("Enums other than INCLUSIVE and EXCLUSIVE are passed in constructor")
         }
+        return holder
     }
 
     override fun getItemCount(): Int {

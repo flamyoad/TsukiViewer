@@ -36,7 +36,8 @@ class CollectionListAdapter(
     RecyclerViewFastScroller.OnPopupTextUpdate,
     ListAdapter<CollectionWithCriterias, RecyclerView.ViewHolder>(CollectionDiffUtil()) {
 
-    private val viewPool = RecyclerView.RecycledViewPool()
+    private val includedTagsViewPool = RecyclerView.RecycledViewPool()
+    private val excludedTagsViewPool = RecyclerView.RecycledViewPool()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val holder = when (viewType) {
@@ -121,6 +122,10 @@ class CollectionListAdapter(
         private val imagePlaceHolder: SpinKitView = itemView.findViewById(R.id.imagePlaceholder)
         private val listIncludedTags: RecyclerView = itemView.findViewById(R.id.listIncludedTags)
         private val listExcludedTags: RecyclerView = itemView.findViewById(R.id.listExcludedTags)
+        private val lblMinimumPages: TextView = itemView.findViewById(R.id.lblMinimumPages)
+        private val lblMaximumPages: TextView = itemView.findViewById(R.id.lblMaximumPages)
+        private val txtMinimumPages: TextView = itemView.findViewById(R.id.txtMinimumPages)
+        private val txtMaximumPages: TextView = itemView.findViewById(R.id.txtMaximumPages)
         private val btnContextMenu: ImageButton = itemView.findViewById(R.id.btnContextMenu)
 
         fun bind(item: CollectionWithCriterias) {
@@ -133,7 +138,31 @@ class CollectionListAdapter(
                 txtTitles.visibility = View.GONE
                 lblTitles.visibility = View.GONE
             } else {
+                txtTitles.visibility = View.VISIBLE
+                lblTitles.visibility = View.VISIBLE
                 txtTitles.text = titleFilters
+            }
+
+            item.collection.minNumPages.let {
+                if (it == Int.MIN_VALUE) {
+                    lblMinimumPages.visibility = View.GONE
+                    txtMinimumPages.visibility = View.GONE
+                } else {
+                    lblMinimumPages.visibility = View.VISIBLE
+                    txtMinimumPages.visibility = View.VISIBLE
+                    txtMinimumPages.text = it.toString()
+                }
+            }
+
+            item.collection.maxNumPages.let {
+                if (it == Int.MAX_VALUE) {
+                    lblMaximumPages.visibility = View.GONE
+                    txtMaximumPages.visibility = View.GONE
+                } else {
+                    lblMaximumPages.visibility = View.VISIBLE
+                    txtMaximumPages.visibility = View.VISIBLE
+                    txtMaximumPages.text = it.toString()
+                }
             }
 
             val thumbnail = item.collection.coverPhoto
@@ -171,7 +200,7 @@ class CollectionListAdapter(
             listIncludedTags.apply {
                 layoutManager = flexLayoutManager
                 adapter = CollectionListCriteriasAdapter(list, Mode.Inclusive)
-                setRecycledViewPool(viewPool)
+                setRecycledViewPool(includedTagsViewPool)
             }
 
         }
@@ -186,7 +215,7 @@ class CollectionListAdapter(
             listExcludedTags.apply {
                 layoutManager = flexLayoutManager
                 adapter = CollectionListCriteriasAdapter(list, Mode.Exclusive)
-                setRecycledViewPool(viewPool)
+                setRecycledViewPool(excludedTagsViewPool)
             }
         }
     }

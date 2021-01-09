@@ -13,7 +13,8 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:paddingBottom="4dp">
 
         <FrameLayout
             android:id="@+id/banner"
@@ -112,7 +113,7 @@
             app:barrierDirection="bottom"
             app:constraint_referenced_ids="lblTitles, txtTitles " />
 
-        <androidx.recyclerview.widget.RecyclerView
+        <com.flamyoad.tsukiviewer.utils.TouchDisabledRecyclerView
             android:id="@+id/listIncludedTags"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -124,7 +125,7 @@
             tools:layout_height="100dp"
             tools:listitem="@layout/collection_included_tag_item" />
 
-        <androidx.recyclerview.widget.RecyclerView
+        <com.flamyoad.tsukiviewer.utils.TouchDisabledRecyclerView
             android:id="@+id/listExcludedTags"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -139,20 +140,40 @@
             android:id="@+id/lblMinimumPages"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
             android:text="Min Pages: "
-            android:layout_marginTop="4dp"
-            app:layout_constraintTop_toBottomOf="@+id/listExcludedTags"
-            app:layout_constraintStart_toStartOf="@id/lblTitles"/>
+            app:layout_constraintStart_toStartOf="@id/headerLayout"
+            app:layout_constraintTop_toBottomOf="@+id/listExcludedTags" />
 
         <TextView
             android:id="@+id/txtMinimumPages"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            tools:text="100"
-            android:layout_marginTop="4dp"
-            app:layout_constraintTop_toTopOf="@+id/lblMinimumPages"
+            android:textColor="@color/blackOlive"
             app:layout_constraintBottom_toBottomOf="@+id/lblMinimumPages"
-            app:layout_constraintStart_toEndOf="@id/lblMinimumPages"/>
+            app:layout_constraintStart_toEndOf="@id/lblMinimumPages"
+            app:layout_constraintTop_toTopOf="@+id/lblMinimumPages"
+            tools:text="100" />
+
+        <TextView
+            android:id="@+id/lblMaximumPages"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Max Pages: "
+            app:layout_constraintStart_toStartOf="@id/lblMinimumPages"
+            app:layout_constraintTop_toBottomOf="@+id/lblMinimumPages" />
+
+        <TextView
+            android:id="@+id/txtMaximumPages"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/blackOlive"
+            app:layout_constraintBottom_toBottomOf="@id/lblMaximumPages"
+            app:layout_constraintStart_toEndOf="@id/lblMaximumPages"
+            app:layout_constraintTop_toTopOf="@id/lblMaximumPages"
+            tools:text="500" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
