@@ -92,9 +92,9 @@ class ReaderActivity : AppCompatActivity(),
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
-            R.id.action_show_exif -> {
-
-            }
+//            R.id.action_show_exif -> {
+//
+//            }
             android.R.id.home -> {
                 finish()
             }

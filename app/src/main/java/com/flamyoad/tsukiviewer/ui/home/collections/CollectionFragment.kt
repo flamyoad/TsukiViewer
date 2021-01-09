@@ -107,6 +107,7 @@ class CollectionFragment : BaseFragment(), SearchView.OnQueryTextListener {
                 listCollections.apply {
                     adapter = collectionAdapter
                     layoutManager = GridLayoutManager(requireContext(), spanCount)
+                    setHasFixedSize(true)
                 }
             }
 
@@ -122,6 +123,7 @@ class CollectionFragment : BaseFragment(), SearchView.OnQueryTextListener {
                 listCollections.apply {
                     layoutManager = LinearLayoutManager(requireContext())
                     adapter = collectionAdapter
+                    setHasFixedSize(true)
                 }
             }
 

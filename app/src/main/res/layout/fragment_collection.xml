@@ -5,28 +5,24 @@
     android:id="@+id/rootView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.home.collections.CollectionFragment"
-    android:background="@color/mainBackgroundColor">
+    android:background="@color/mainBackgroundColor"
+    tools:context=".ui.home.collections.CollectionFragment">
 
-    <com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
-        android:id="@+id/fastScroller"
+    <com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
+        android:id="@+id/listCollections"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:handleHeight="32dp">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/listCollections"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-    </com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller>
+        android:background="@color/mainBackgroundColor"
+        app:fastScrollPopupBgColor="@color/colorAccent"
+        app:fastScrollPopupTextColor="@android:color/primary_text_dark"
+        app:fastScrollThumbColor="@color/colorAccent" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
         android:layout_gravity="end|bottom"
+        android:layout_margin="16dp"
         app:backgroundTint="@color/nh_favourite_button_pink"
         app:srcCompat="@drawable/ic_add_white_24dp"
         app:tint="@android:color/white" />

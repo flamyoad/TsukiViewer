@@ -32,9 +32,7 @@ class CollectionListAdapter(
     private val onRemoveCollection: (Collection) -> Unit,
     private val onShowCollectionInfo: (Collection) -> Unit,
     private val viewType: Int
-) :
-    RecyclerViewFastScroller.OnPopupTextUpdate,
-    ListAdapter<CollectionWithCriterias, RecyclerView.ViewHolder>(CollectionDiffUtil()) {
+) : ListAdapter<CollectionWithCriterias, RecyclerView.ViewHolder>(CollectionDiffUtil()) {
 
     private val includedTagsViewPool = RecyclerView.RecycledViewPool()
     private val excludedTagsViewPool = RecyclerView.RecycledViewPool()
@@ -242,9 +240,9 @@ class CollectionListAdapter(
         }
     }
 
-    override fun onChange(position: Int): CharSequence {
-        return getItem(position).collection.name
-    }
+//    override fun onChange(position: Int): CharSequence {
+//        return getItem(position).collection.name
+//    }
 
     companion object {
         const val LIST = 1
