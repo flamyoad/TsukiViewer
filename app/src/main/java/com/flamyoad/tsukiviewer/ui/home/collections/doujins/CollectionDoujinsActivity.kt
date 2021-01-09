@@ -55,6 +55,13 @@ class CollectionDoujinsActivity : AppCompatActivity(),
             viewModel.snackbarText.value = ""
         })
 
+        viewModel.selectionCountText().observe(this, Observer {
+            if (actionMode != null) {
+                actionMode?.title = it.toString() + " selected"
+                actionMode?.invalidate()
+            }
+        })
+
         val collectionId = intent.getLongExtra(CollectionFragment.COLLECTION_ID, -1)
         viewModel.submitQuery(collectionId)
     }
@@ -106,6 +113,23 @@ class CollectionDoujinsActivity : AppCompatActivity(),
             }
         }
         return true
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        val isInActionMode = actionMode != null
+
+        outState.putBoolean(ACTION_MODE, isInActionMode)
+        outState.putString(SEARCH_VIEW, searchView?.query.toString())
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        val shouldRestartActionMode = savedInstanceState.getBoolean(ACTION_MODE, false)
+        if (shouldRestartActionMode) {
+            startActionMode()
+            actionMode?.title = viewModel.selectedCount().toString() + " selected"
+        }
+        previousSearchQuery = savedInstanceState.getString(SEARCH_VIEW) ?: ""
     }
 
     private fun initToolbar() {
@@ -172,9 +196,6 @@ class CollectionDoujinsActivity : AppCompatActivity(),
             actionMode?.finish()
             viewModel.clearSelectedDoujins()
         }
-
-        actionMode?.title = count.toString() + " selected"
-        actionMode?.invalidate()
     }
 
     inner class ActionModeCallback : ActionMode.Callback {
@@ -189,7 +210,7 @@ class CollectionDoujinsActivity : AppCompatActivity(),
                 }
 
                 R.id.action_select_all -> {
-
+                    viewModel.tickSelectedDoujinsAll()
                 }
             }
             return true

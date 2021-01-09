@@ -61,6 +61,13 @@ class SearchResultActivity : AppCompatActivity(),
 
             viewModel.snackbarText.value = ""
         })
+
+        viewModel.selectionCountText().observe(this, Observer {
+            if (actionMode != null) {
+                actionMode?.title = it.toString() + " selected"
+                actionMode?.invalidate()
+            }
+        })
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -210,9 +217,6 @@ class SearchResultActivity : AppCompatActivity(),
             actionMode?.finish()
             viewModel.clearSelectedDoujins()
         }
-
-        actionMode?.title = count.toString() + " selected"
-        actionMode?.invalidate()
     }
 
     inner class ActionModeCallback : ActionMode.Callback {
@@ -226,7 +230,7 @@ class SearchResultActivity : AppCompatActivity(),
                 }
 
                 R.id.action_select_all -> {
-
+                    viewModel.tickSelectedDoujinsAll()
                 }
             }
             return true

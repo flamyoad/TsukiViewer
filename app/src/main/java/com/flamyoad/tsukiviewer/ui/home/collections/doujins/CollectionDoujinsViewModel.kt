@@ -52,6 +52,9 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
     private val isLoading = MutableLiveData<Boolean>(false)
     fun isLoading(): LiveData<Boolean> = isLoading
 
+    private val selectedDoujinsCount = MutableLiveData<Int>()
+    fun selectionCountText(): LiveData<Int> = selectedDoujinsCount
+
     val snackbarText = MutableLiveData<String>("")
 
     private var loadingJob: Job? = null
@@ -59,6 +62,8 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
     private var filterJob: Job? = null
 
     private var shouldResetSelections: Boolean = false
+
+    private var shouldTickAllSelections: Boolean = false
 
     private var titleKeywords: List<String> = emptyList()
     private var mustHaveDirs: List<File> = emptyList()
@@ -202,7 +207,10 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
         }
     }
 
-    private suspend fun searchFromExistingList(doujinList: List<Doujin>, keywordList: List<String>) {
+    private suspend fun searchFromExistingList(
+        doujinList: List<Doujin>,
+        keywordList: List<String>
+    ) {
         for (doujin in doujinList) {
             if (doujin.hasFulfilledCriteria()) {
                 postResult(doujin)
@@ -224,15 +232,53 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
         }
     }
 
+    private suspend fun checkItemSelections() {
+        if (shouldResetSelections) {
+            doujinList.forEach { item -> item.isSelected = false }
+
+        } else if (shouldTickAllSelections) {
+            doujinList.forEach { item -> item.isSelected = true }
+            selectedDoujins.clear()
+            selectedDoujins.addAll(doujinList)
+
+            selectedDoujinsCount.value = selectedDoujins.size
+            shouldTickAllSelections = false
+
+        } else {
+            // Had to move this to background thread.
+            // It will hog UI if selectedDoujins has too many items
+            withContext(Dispatchers.Default) {
+                doujinList.forEach { item -> item.isSelected = (item in selectedDoujins) }
+            }
+        }
+
+        searchResult.value = doujinList
+        shouldResetSelections = false
+    }
+
+    fun tickSelectedDoujinsAll() {
+        if (loadingJob?.isCompleted == true) {
+            doujinList.forEach { item -> item.isSelected = true }
+            searchResult.value = doujinList
+
+            selectedDoujins.clear()
+            selectedDoujins.addAll(doujinList)
+
+            selectedDoujinsCount.value = selectedDoujins.size
+        } else {
+            shouldTickAllSelections = true
+        }
+    }
+
     fun tickSelectedDoujin(doujin: Doujin) {
         val hasBeenSelected = selectedDoujins.contains(doujin)
         when (hasBeenSelected) {
             true -> selectedDoujins.remove(doujin)
             false -> selectedDoujins.add(doujin)
         }
+        selectedDoujinsCount.value = selectedDoujins.size
 
         if (loadingJob?.isCompleted == true) {
-
             val index = doujinList.indexOf(doujin)
 
             val doujin = doujinList[index]
@@ -288,20 +334,6 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
         }
 
         return true
-    }
-
-    private fun checkItemSelections() {
-        if (shouldResetSelections) {
-            for (doujin in doujinList) {
-                doujin.isSelected = false
-            }
-        } else {
-            for (doujinItem in doujinList) {
-                doujinItem.isSelected = doujinItem in selectedDoujins
-            }
-        }
-        searchResult.value = doujinList
-        shouldResetSelections = false
     }
 
     fun clearSelectedDoujins() {
