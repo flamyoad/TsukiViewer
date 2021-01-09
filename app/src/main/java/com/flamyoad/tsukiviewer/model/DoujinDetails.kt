@@ -1,6 +1,8 @@
 package com.flamyoad.tsukiviewer.model
 
-import androidx.room.*
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
 import com.flamyoad.tsukiviewer.db.typeconverter.FolderConverter
 import java.io.File
 
@@ -22,4 +24,18 @@ data class DoujinDetails(
     val absolutePath: File,
 
     val folderName: String
-)
+) {
+    companion object {
+        fun getEmptyObject(dir: File): DoujinDetails {
+            return DoujinDetails(
+                id = null,
+                nukeCode = -1,
+                shortTitleEnglish = dir.name,
+                fullTitleEnglish = dir.name,
+                fullTitleJapanese = "",
+                absolutePath = dir,
+                folderName = dir.name
+            )
+        }
+    }
+}

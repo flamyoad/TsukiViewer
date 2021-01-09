@@ -95,11 +95,6 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
                     .map { title -> title.toLowerCase(Locale.ROOT) }
                 mustHaveDirs = collectionRepo.getDirectories(collectionId)
 
-                searchFromDatabase(
-                    includedTags, collection.mustHaveAllIncludedTags,
-                    excludedTags, collection.mustHaveAllExcludedTags
-                )
-
                 // If tags are not specified in the query, then we have to search from file explorer too
                 if (includedTags.isEmpty() && excludedTags.isEmpty()) {
                     val existingList = (app as MyApplication).fullDoujinList
@@ -108,6 +103,11 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
                     } else {
                         searchFromFileExplorer(titleKeywords)
                     }
+                } else {
+                    searchFromDatabase(
+                        includedTags, collection.mustHaveAllIncludedTags,
+                        excludedTags, collection.mustHaveAllExcludedTags
+                    )
                 }
 
                 withContext(Dispatchers.Main) {
@@ -360,6 +360,10 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
 
     fun selectedCount(): Int {
         return selectedDoujins.size
+    }
+
+    fun getSelectedDoujins(): List<Doujin> {
+        return selectedDoujins.toList()
     }
 
     fun insertItemIntoTickedCollections(bookmarkGroups: List<BookmarkGroup>) {

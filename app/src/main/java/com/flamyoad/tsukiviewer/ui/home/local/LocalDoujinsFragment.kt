@@ -14,6 +14,7 @@ import androidx.appcompat.view.ActionMode
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView.Adapter.StateRestorationPolicy
 import com.flamyoad.tsukiviewer.ActionModeListener
@@ -22,11 +23,15 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.Source
+import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
 import com.flamyoad.tsukiviewer.ui.search.SearchActivity
 import com.flamyoad.tsukiviewer.utils.GridItemDecoration
 import com.flamyoad.tsukiviewer.utils.snackbar
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_local_doujins.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.util.*
 
 private const val ACTION_MODE = "action_mode"
@@ -43,6 +48,8 @@ class LocalDoujinsFragment : BaseFragment(),
     private var adapter = LocalDoujinsAdapter(this)
     private var actionMode: ActionMode? = null
     private var statusBarColor: Int = -1
+
+    private var queryJob: Job? = null
 
     private lateinit var progressBar: ProgressBar
     private lateinit var toast: Toast
@@ -238,6 +245,7 @@ class LocalDoujinsFragment : BaseFragment(),
                     dialog.show(childFragmentManager, ADD_BOOKMARK_DIALOG)
                 }
                 R.id.action_edit -> {
+                    openEditor()
                 }
             }
 
@@ -270,6 +278,28 @@ class LocalDoujinsFragment : BaseFragment(),
             viewModel.clearSelectedDoujins()
         }
 
+        private fun openEditor() {
+            val jobIsActive = queryJob?.isActive ?: false
+            if (jobIsActive) {
+                return
+            }
+
+            queryJob = lifecycleScope.launch(Dispatchers.Default) {
+                val dirPaths = viewModel.getSelectedDoujins()
+                    .map { doujin -> doujin.path.absolutePath }
+                    .toTypedArray()
+
+                val context = this@LocalDoujinsFragment.requireContext()
+                val intent = Intent(context, EditorActivity::class.java)
+                intent.apply {
+                    putExtra(EditorActivity.HAS_MULTIPLE_ITEMS, true)
+                    putExtra(EditorActivity.DOUJIN_MULTIPLE_FILE_PATHS, dirPaths)
+                    putExtra(EditorActivity.DOUJIN_NAME, "Batch Editing")
+                }
+
+                context.startActivity(intent)
+            }
+        }
     }
 
     override fun startActionMode() {

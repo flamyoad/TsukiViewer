@@ -346,6 +346,10 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
         return selectedDoujins.size
     }
 
+    fun getSelectedDoujins(): List<Doujin> {
+        return selectedDoujins.toList()
+    }
+
     fun insertItemIntoTickedCollections(bookmarkGroups: List<BookmarkGroup>) {
         viewModelScope.launch(Dispatchers.IO) {
             val status = bookmarkRepo.insertAllItems(selectedDoujins.toList(), bookmarkGroups)
