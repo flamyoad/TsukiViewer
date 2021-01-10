@@ -3,14 +3,11 @@ package com.flamyoad.tsukiviewer.ui.editor
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.children
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import com.flamyoad.tsukiviewer.R
-import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.utils.toast
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -57,7 +54,18 @@ class EditorActivity : AppCompatActivity(), CreateTagListener {
             }
 
             R.id.action_save_edits -> {
-                viewModel.save()
+                val hasMultipleItems = intent.getBooleanExtra(HAS_MULTIPLE_ITEMS, false)
+                when (hasMultipleItems) {
+                    true -> {
+                        val dirPaths = intent.getStringArrayExtra(DOUJIN_MULTIPLE_FILE_PATHS)
+                        if (dirPaths != null) {
+                            viewModel.saveMultipleItems(dirPaths.toList() )
+                        }
+                    }
+                    false -> {
+                        viewModel.saveSingleItem()
+                    }
+                }
             }
         }
         return true
@@ -70,14 +78,22 @@ class EditorActivity : AppCompatActivity(), CreateTagListener {
             setDisplayShowHomeEnabled(true)
         }
 
-        val title = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_NAME)
+        val title = intent.getStringExtra(DOUJIN_NAME)
         txtDoujinTitle.text = title
     }
 
     private fun initTagGroups() {
-        val dirPath = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
+        val hasMultipleItems = intent.getBooleanExtra(HAS_MULTIPLE_ITEMS, false)
 
-        viewModel.retrieveDoujinTags(dirPath)
+        // If user selects more than 1 item, then no need to fetch data from db. Just Let the input fields be empty.
+        if (hasMultipleItems) {
+            viewModel.initEmptyTags()
+        } else {
+            val dirPath = intent.getStringExtra(DOUJIN_FILE_PATH)
+            if (dirPath != null) {
+                viewModel.retrieveDoujinTags(dirPath)
+            }
+        }
 
         viewModel.parody.observe(this, Observer {
             listParodies.setTagList("parody", it)
@@ -173,5 +189,11 @@ class EditorActivity : AppCompatActivity(), CreateTagListener {
         dialog.dismiss()
     }
 
+    companion object {
+        const val DOUJIN_NAME = "doujin_name"
+        const val DOUJIN_FILE_PATH = "doujin_file_path"
+        const val HAS_MULTIPLE_ITEMS = "has_multiple_items"
+        const val DOUJIN_MULTIPLE_FILE_PATHS = "doujin_multiple_file_paths"
+    }
 }
 

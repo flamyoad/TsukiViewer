@@ -34,6 +34,17 @@
     <color name="subtleGray">#E4E4E4</color>
     <color name="headerGray">#42464b</color>
 
+    <color name="blueViolet">#8A2BE2</color>
+    <color name="orchid">#DA70D6</color>
+    <color name="plum">#DDA0DD</color>
+
+    <color name="dodgerblue">#1E90FF</color>
+    <color name="lightblue">#ADD8E6</color>
+
+    <color name="crimson">#DC143C</color>
+    <color name="salmon">#FA8072</color>
+    <color name="lightsalmon">#FFA07A</color>
+
     <color name="grid_item_selected_color">#E4E4E4</color>
 
     <color name="read_mode_button_active">#c3b33e5c</color>

@@ -62,4 +62,9 @@ class DialogNewCollection: DialogFragment() {
 
         return dialog
     }
+
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        viewmodel.newCollectionName.value = ""
+    }
 }

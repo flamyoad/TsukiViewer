@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.preference.PreferenceScreen
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.preference.PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     app:title="About">
     <Preference
         app:allowDividerBelow="true"
         app:icon="@drawable/ic_info_settings_24dp"
-        app:summary="v2.0"
-        app:title="Version" />
+        app:key="pref_version_number"
+        app:title="Version"
+        tools:summary="v2.0" />
 
     <Preference
         app:allowDividerAbove="true"

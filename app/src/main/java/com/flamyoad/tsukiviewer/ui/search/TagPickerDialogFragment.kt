@@ -23,7 +23,6 @@ class TagPickerDialogFragment()
     private lateinit var viewModel: SearchViewModel
 
     private lateinit var listTags: RecyclerView
-
     private lateinit var fieldTag: EditText
 
     companion object {
@@ -43,7 +42,7 @@ class TagPickerDialogFragment()
                 dismiss()
             })
 
-        val view = layoutInflater.inflate(R.layout.tag_picker_dialog, null)
+        val view = layoutInflater.inflate(R.layout.tag_picker_dialog, null, false)
 
         listTags = view.findViewById(R.id.listTags)
         fieldTag = view.findViewById(R.id.fieldTag)
@@ -74,9 +73,7 @@ class TagPickerDialogFragment()
             }
         }
 
-        val tagSelectedListener = requireActivity() as TagSelectedListener
-
-        val adapter = TagPickerAdapter(tagSelectedListener)
+        val adapter = TagPickerAdapter(requireActivity() as TagSelectedListener)
 
         val linearLayoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
 

@@ -30,13 +30,13 @@ class BottomThumbnailAdapter(private val listener: OnItemClickListener)
         return holder
     }
 
-    override fun getItemCount(): Int {
-        return list.size
-    }
-
     override fun onBindViewHolder(holder: ThumbnailViewHolder, position: Int) {
         val image = list[position]
         holder.bind(image, holder.adapterPosition)
+    }
+
+    override fun getItemCount(): Int {
+        return list.size
     }
 
     fun setList(list: List<File>) {
@@ -60,4 +60,5 @@ class BottomThumbnailAdapter(private val listener: OnItemClickListener)
     interface OnItemClickListener {
         fun onThumbnailClick(adapterPosition: Int)
     }
+
 }

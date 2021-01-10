@@ -22,8 +22,9 @@ import kotlin.collections.HashMap
 class DoujinViewModel(application: Application) : AndroidViewModel(application) {
 
     private val metadataRepo = MetadataRepository(application)
-
     private val bookmarkRepo = BookmarkRepository(application)
+
+    private val myAppPreference = MyAppPreference.getInstance(application.applicationContext)
 
     lateinit var detailWithTags: LiveData<DoujinDetailsWithTags>
 
@@ -55,10 +56,8 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
     var currentPath: String = ""
 
     init {
-        val prefs = MyAppPreference.getInstance(application.applicationContext)
-
-        gridViewStyle.value = prefs.getDefaultViewStyle()
-        shouldUseWindowsSort = prefs.shouldUseWindowsSort()
+        gridViewStyle.value = myAppPreference.getDefaultViewStyle()
+        shouldUseWindowsSort = myAppPreference.shouldUseWindowsSort()
     }
 
     fun scanForImages(dirPath: String) {
@@ -200,5 +199,6 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
 
     fun switchViewStyle(style: GridViewStyle) {
         gridViewStyle.value = style
+        myAppPreference.setDefaultViewStyle(style)
     }
 }

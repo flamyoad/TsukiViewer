@@ -7,6 +7,8 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
 
+val imageExtensions = arrayOf("jpg", "png", "gif", "jpeg", "webp", "jpe", "bmp")
+
 fun Context.toast(message: String, lengthLong: Boolean = false) {
     val length = when (lengthLong) {
         true -> Toast.LENGTH_LONG

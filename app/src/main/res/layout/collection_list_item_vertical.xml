@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    android:background="@color/white"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?android:selectableItemBackground"
+    android:minHeight="185dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <FrameLayout
+            android:id="@+id/banner"
+            android:layout_width="125dp"
+            android:layout_height="185dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/coverImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                tools:src="@drawable/himekawa" />
+
+            <com.github.ybq.android.spinkit.SpinKitView
+                android:id="@+id/imagePlaceholder"
+                style="@style/SpinKitView.Small.Wave"
+                android:layout_width="54dp"
+                android:layout_height="54dp"
+
+                android:layout_gravity="center"
+                app:SpinKit_Color="@color/headerGray" />
+
+        </FrameLayout>
+
+        <LinearLayout
+            android:id="@+id/headerLayout"
+            android:layout_width="0dp"
+            android:layout_height="35dp"
+            android:background="@color/headerGray"
+            android:orientation="horizontal"
+            android:paddingVertical="4dp"
+            android:paddingStart="16dp"
+            android:textColor="@color/miWhite"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/banner"
+            app:layout_constraintTop_toTopOf="@+id/banner"
+            tools:text="Thighs Collection">
+
+            <TextView
+                android:id="@+id/txtCollectionName"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@color/headerGray"
+                android:ellipsize="end"
+                android:gravity="center_vertical"
+                android:lines="1"
+                android:textColor="@color/miWhite"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                tools:text="Thighs CollectionThighs CollectionThighs CollectionThighs Collection" />
+
+            <ImageButton
+                android:id="@+id/btnContextMenu"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:background="?android:selectableItemBackgroundBorderless"
+                android:paddingHorizontal="8dp"
+                app:srcCompat="@drawable/ic_more_vert_white_24dp" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/lblTitles"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:text="Keywords:"
+            app:layout_constraintStart_toStartOf="@+id/headerLayout"
+            app:layout_constraintTop_toBottomOf="@+id/headerLayout" />
+
+        <TextView
+            android:id="@+id/txtTitles"
+            style="@style/collection_item_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:ellipsize="end"
+            android:lines="1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/lblTitles"
+            app:layout_constraintTop_toTopOf="@+id/lblTitles"
+            tools:text="Riko, CMD32, カスタムオーダーメイド3D2, 梨子" />
+
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/barrier"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="bottom"
+            app:constraint_referenced_ids="lblTitles, txtTitles " />
+
+        <com.flamyoad.tsukiviewer.utils.TouchDisabledRecyclerView
+            android:id="@+id/listIncludedTags"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/headerLayout"
+            app:layout_constraintTop_toBottomOf="@+id/barrier"
+            tools:layout_height="100dp"
+            tools:listitem="@layout/collection_included_tag_item" />
+
+        <com.flamyoad.tsukiviewer.utils.TouchDisabledRecyclerView
+            android:id="@+id/listExcludedTags"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            app:layout_constraintEnd_toEndOf="@+id/listIncludedTags"
+            app:layout_constraintStart_toStartOf="@+id/listIncludedTags"
+            app:layout_constraintTop_toBottomOf="@+id/listIncludedTags"
+            tools:layout_height="100dp"
+            tools:listitem="@layout/collection_excluded_tag_item" />
+
+        <TextView
+            android:id="@+id/lblMinimumPages"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="4dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="2dp"
+            android:text="Min Pages: "
+            app:layout_constraintStart_toStartOf="@id/headerLayout"
+            app:layout_constraintTop_toBottomOf="@+id/listExcludedTags" />
+
+        <TextView
+            android:id="@+id/txtMinimumPages"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="7dp"
+            android:layout_marginTop="1dp"
+            android:textColor="@color/blackOlive"
+            app:layout_constraintBottom_toBottomOf="@+id/lblMinimumPages"
+            app:layout_constraintStart_toEndOf="@id/lblMinimumPages"
+            app:layout_constraintTop_toTopOf="@+id/lblMinimumPages"
+            tools:text="100" />
+
+        <TextView
+            android:id="@+id/lblMaximumPages"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Max Pages: "
+            android:paddingTop="2dp"
+            android:paddingBottom="4dp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintStart_toStartOf="@id/lblMinimumPages"
+            app:layout_constraintTop_toBottomOf="@+id/lblMinimumPages" />
+
+        <TextView
+            android:id="@+id/txtMaximumPages"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="1dp"
+            android:textColor="@color/blackOlive"
+            app:layout_constraintBottom_toBottomOf="@id/lblMaximumPages"
+            app:layout_constraintStart_toEndOf="@id/lblMaximumPages"
+            app:layout_constraintTop_toTopOf="@id/lblMaximumPages"
+            tools:text="500" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</FrameLayout>

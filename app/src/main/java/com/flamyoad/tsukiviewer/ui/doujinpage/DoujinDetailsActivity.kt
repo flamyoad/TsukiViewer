@@ -72,8 +72,8 @@ class DoujinDetailsActivity : AppCompatActivity() {
                 val doujinTitle = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_NAME)
 
                 val newIntent = Intent(this, EditorActivity::class.java)
-                newIntent.putExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH, dirPath)
-                newIntent.putExtra(LocalDoujinsAdapter.DOUJIN_NAME, doujinTitle)
+                newIntent.putExtra(EditorActivity.DOUJIN_FILE_PATH, dirPath)
+                newIntent.putExtra(EditorActivity.DOUJIN_NAME, doujinTitle)
 
                 startActivity(newIntent)
             }

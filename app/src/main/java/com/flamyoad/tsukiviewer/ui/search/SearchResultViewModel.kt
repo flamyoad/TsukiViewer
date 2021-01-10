@@ -21,8 +21,8 @@ import com.flamyoad.tsukiviewer.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.IncludedPath
 import com.flamyoad.tsukiviewer.repository.BookmarkRepository
-import com.flamyoad.tsukiviewer.repository.MetadataRepository
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
+import com.flamyoad.tsukiviewer.utils.toDoujin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -30,12 +30,10 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.*
 
-
 class SearchResultViewModel(private val app: Application) : AndroidViewModel(app) {
     private val context: Context = app.applicationContext
     private val contentResolver: ContentResolver = app.contentResolver
     private val bookmarkRepo = BookmarkRepository(app)
-    private val metadataRepo = MetadataRepository(app)
     private val db: AppDatabase = AppDatabase.getInstance(app)
 
     private val selectedDoujins = mutableListOf<Doujin>()
@@ -51,8 +49,13 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
     private val doujinList = mutableListOf<Doujin>()
 
     private val searchResult = MutableLiveData<List<Doujin>>()
+    fun searchedResult(): LiveData<List<Doujin>> = searchResult
 
     private val isLoading = MutableLiveData<Boolean>(false)
+    fun isLoading(): LiveData<Boolean> = isLoading
+
+    private val selectedDoujinsCount = MutableLiveData<Int>()
+    fun selectionCountText(): LiveData<Int> = selectedDoujinsCount
 
     private var loadingJob: Job? = null
 
@@ -60,9 +63,7 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
 
     private var shouldResetSelections: Boolean = false
 
-    fun searchedResult(): LiveData<List<Doujin>> = searchResult
-
-    fun isLoading(): LiveData<Boolean> = isLoading
+    private var shouldTickAllSelections: Boolean = false
 
     val snackbarText = MutableLiveData<String>("")
 
@@ -106,14 +107,21 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
         }
     }
 
-    private suspend fun searchFromDatabase(keyword: String, tags: String, shouldIncludeAllTags: Boolean) {
+    private suspend fun searchFromDatabase(
+        keyword: String,
+        tags: String,
+        shouldIncludeAllTags: Boolean
+    ) {
         if (keyword.isNotBlank() && tags.isNotBlank()) {
             // Search using both title and tags
             val tagList = tags.split(",")
                 .map { tagName -> tagName }
 
             val doujinDetailItems = when (shouldIncludeAllTags) {
-                true -> doujinDetailsDao.findByTags(tagList, tagList.size) // Searched items must include all tags
+                true -> doujinDetailsDao.findByTags(
+                    tagList,
+                    tagList.size
+                ) // Searched items must include all tags
                 false -> doujinDetailsDao.findByTags(tagList) // Searched items must include at least 1 tag
             }
 
@@ -264,35 +272,42 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
         }
     }
 
-    private fun checkItemSelections() {
+    private suspend fun checkItemSelections() {
         if (shouldResetSelections) {
-            for (doujin in doujinList) {
-                doujin.isSelected = false
-            }
+            doujinList.forEach { item -> item.isSelected = false }
+
+        } else if (shouldTickAllSelections) {
+            doujinList.forEach { item -> item.isSelected = true }
+            selectedDoujins.clear()
+            selectedDoujins.addAll(doujinList)
+
+            selectedDoujinsCount.value = selectedDoujins.size
+            shouldTickAllSelections = false
+
         } else {
-            for (doujinItem in doujinList) {
-                doujinItem.isSelected = doujinItem in selectedDoujins
+            // Had to move this to background thread.
+            // It will hog UI if selectedDoujins has too many items
+            withContext(Dispatchers.Default) {
+                doujinList.forEach { item -> item.isSelected = (item in selectedDoujins) }
             }
         }
+
         searchResult.value = doujinList
         shouldResetSelections = false
     }
 
-    fun File.toDoujin(): Doujin? {
-        val imageList = this.listFiles(ImageFileFilter())
+    fun tickSelectedDoujinsAll() {
+        if (loadingJob?.isCompleted == true) {
+            doujinList.forEach { item -> item.isSelected = true }
+            searchResult.value = doujinList
 
-        if (imageList == null) {
-            return null
+            selectedDoujins.clear()
+            selectedDoujins.addAll(doujinList)
+
+            selectedDoujinsCount.value = selectedDoujins.size
+        } else {
+            shouldTickAllSelections = true
         }
-
-        val doujin = Doujin(
-            pic = imageList.first().toUri(),
-            title = this.name,
-            path = this,
-            lastModified = this.lastModified(),
-            numberOfItems = imageList.size
-        )
-        return doujin
     }
 
     fun tickSelectedDoujin(doujin: Doujin) {
@@ -301,9 +316,9 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
             true -> selectedDoujins.remove(doujin)
             false -> selectedDoujins.add(doujin)
         }
+        selectedDoujinsCount.value = selectedDoujins.size
 
         if (loadingJob?.isCompleted == true) {
-
             val index = doujinList.indexOf(doujin)
 
             val doujin = doujinList[index]
@@ -331,6 +346,10 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
         return selectedDoujins.size
     }
 
+    fun getSelectedDoujins(): List<Doujin> {
+        return selectedDoujins.toList()
+    }
+
     fun insertItemIntoTickedCollections(bookmarkGroups: List<BookmarkGroup>) {
         viewModelScope.launch(Dispatchers.IO) {
             val status = bookmarkRepo.insertAllItems(selectedDoujins.toList(), bookmarkGroups)
@@ -341,61 +360,3 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
         }
     }
 }
-
-/*
-    fun getImages(id: String): List<File> {
-        val uri = MediaStore.Files.getContentUri("external")
-
-        val projection = arrayOf(
-            MediaStore.Images.Media.DATA
-        )
-
-        val selection = MediaStore.Files.FileColumns.MEDIA_TYPE + " = ?" +
-                "AND " +
-                MediaStore.Files.FileColumns.PARENT + " = ?"
-
-        val selectionArgs = arrayOf(MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE.toString(), id)
-
-        val cursor = ContentResolverCompat.query(
-            contentResolver,
-            uri,
-            projection,
-            selection,
-            selectionArgs,
-            " ${MediaStore.Files.FileColumns.TITLE}",
-            null
-        )
-
-        val imageList = mutableListOf<File>()
-        while (cursor.moveToNext()) {
-            val imagePath = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA))
-            imageList.add(File(imagePath))
-        }
-        return imageList
-    }
-
-    fun getImageCount(id: Long): Int {
-        val selection = ("( "
-                + MediaStore.Files.FileColumns.MEDIA_TYPE
-                + "=? ) and "
-                + MediaStore.Files.FileColumns.PARENT
-                + "=?")
-
-        val selectionArgs = arrayOf(
-            MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE.toString(), java.lang.String.valueOf(id)
-        )
-
-        val cur = ContentResolverCompat
-            .query(
-                contentResolver,
-                MediaStore.Files.getContentUri("external"),
-                arrayOf(MediaStore.Files.FileColumns.PARENT),
-                selection,
-                selectionArgs,
-                null,
-                null
-            )
-        return cur.count
-    }
-
- */

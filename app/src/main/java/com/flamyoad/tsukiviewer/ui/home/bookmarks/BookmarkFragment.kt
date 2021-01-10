@@ -64,7 +64,7 @@ class BookmarkFragment : BaseFragment(),
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.menu_doujin_collection, menu)
+        inflater.inflate(R.menu.menu_doujin_bookmarks, menu)
 
         val searchItem: MenuItem? = menu.findItem(R.id.action_search)
         val searchView = searchItem?.actionView as SearchView
@@ -209,7 +209,7 @@ class BookmarkFragment : BaseFragment(),
 
         menu.setHeaderTitle(selectedGroup?.name ?: "Menu")
         menu.add(MENU_CHANGE_NAME)
-        menu.add(MENU_DELETE_COLLECTION)
+        menu.add(MENU_DELETE_BOOKMARK_GROUP)
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
@@ -217,7 +217,7 @@ class BookmarkFragment : BaseFragment(),
 
         when (item.title) {
             MENU_CHANGE_NAME -> showChangeNameDialog(selectedCollection)
-            MENU_DELETE_COLLECTION -> showDeleteGroupDialog(selectedCollection)
+            MENU_DELETE_BOOKMARK_GROUP -> showDeleteGroupDialog(selectedCollection)
         }
         return true
     }
@@ -237,7 +237,7 @@ class BookmarkFragment : BaseFragment(),
 
         builder.apply {
             setTitle(group.name)
-            setMessage("Are you sure you want to delete this collection? Existing items will be lost")
+            setMessage("Are you sure you want to delete this bookmark group? Existing items will be lost")
             setPositiveButton("Delete", DialogInterface.OnClickListener { dialogInterface, i ->
                 viewModel.deleteGroup(group)
             })
@@ -307,7 +307,7 @@ class BookmarkFragment : BaseFragment(),
 
         override fun onCreateActionMode(mode: ActionMode?, menu: Menu?): Boolean {
             requireActivity().let {
-                it.menuInflater.inflate(R.menu.menu_doujin_collection_contextual, menu)
+                it.menuInflater.inflate(R.menu.menu_doujin_bookmarks_contextual, menu)
                 statusBarColor = it.window.statusBarColor // Stores the original status bar color
 
                 val colorPrimaryLight = ContextCompat.getColor(it, R.color.colorPrimaryLight)
@@ -335,7 +335,7 @@ class BookmarkFragment : BaseFragment(),
 
     companion object {
         const val MENU_CHANGE_NAME = "Change Name"
-        const val MENU_DELETE_COLLECTION = "Delete Collection"
+        const val MENU_DELETE_BOOKMARK_GROUP = "Delete Bookmark Group"
 
         const val DIALOG_NEW_GROUP = "new_group_dialog"
         const val DIALOG_CHANGE_NAME = "change_name_dialog"

@@ -4,7 +4,10 @@ import androidx.room.*
 import com.flamyoad.tsukiviewer.db.typeconverter.FolderConverter
 import java.io.File
 
-// Not used anymore
+/* *****************************************************
+    Not used anymore
+   *****************************************************
+ */
 @Entity(tableName = "included_folders",
     foreignKeys = [
         ForeignKey(entity = IncludedPath::class,

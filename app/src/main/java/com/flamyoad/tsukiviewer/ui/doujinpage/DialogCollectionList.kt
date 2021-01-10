@@ -18,7 +18,7 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.CollectionPickerAdapter
 import com.flamyoad.tsukiviewer.model.BookmarkGroup
 
-class DialogCollectionList: DialogFragment(), CollectionDialogListener {
+class DialogCollectionList: DialogFragment(), BookmarkGroupDialogListener {
     private val viewModel: DoujinViewModel by activityViewModels()
 
     companion object {
@@ -92,15 +92,15 @@ class DialogCollectionList: DialogFragment(), CollectionDialogListener {
         }
     }
 
-    override fun onCollectionTicked(collection: BookmarkGroup) {
+    override fun onBookmarkGroupTicked(collection: BookmarkGroup) {
         collectionTickStatus.put(collection, true)
     }
 
-    override fun onCollectionUnticked(collection: BookmarkGroup) {
+    override fun onBookmarkGroupUnticked(collection: BookmarkGroup) {
         collectionTickStatus.put(collection, false)
     }
 
-    override fun onAddCollectionClicked() {
+    override fun onAddBookmarkGroup() {
         this.dismiss()
 
         val dialog = DialogNewCollection()

@@ -21,8 +21,9 @@ const val DATABASE_NAME = "com.flamyoad.android.tsukiviewer.AppDatabase"
     BookmarkGroup::class,
     BookmarkItem::class,
     SearchHistory::class,
-    Collection::class
-    ), version = 3)
+    Collection::class,
+    CollectionCriteria::class
+    ), version = 4)
 
 abstract class AppDatabase: RoomDatabase() {
 
@@ -34,6 +35,9 @@ abstract class AppDatabase: RoomDatabase() {
     abstract fun bookmarkGroupDao(): BookmarkGroupDao
     abstract fun bookmarkItemDao(): BookmarkItemDao
     abstract fun searchHistoryDao(): SearchHistoryDao
+    abstract fun collectionDao(): CollectionDao
+    abstract fun collectionCriteriaDao(): CollectionCriteriaDao
+    abstract fun collectionDoujinDao(): CollectionDoujinDao
 
     companion object {
         @Volatile
@@ -51,13 +55,21 @@ abstract class AppDatabase: RoomDatabase() {
             }
         }
 
+        val MIGRATION_3_4 = object: Migration(3, 4) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("DROP TABLE `collection`")
+                database.execSQL("CREATE TABLE IF NOT EXISTS `collection` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL, `coverPhoto` TEXT NOT NULL, `mustHaveAllTitles` INTEGER NOT NULL, `mustHaveAllIncludedTags` INTEGER NOT NULL, `mustHaveAllExcludedTags` INTEGER NOT NULL, `minNumPages` INTEGER NOT NULL, `maxNumPages` INTEGER NOT NULL)");
+                database.execSQL("CREATE TABLE IF NOT EXISTS `collection_criteria` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `collectionId` INTEGER NOT NULL, `type` TEXT NOT NULL, `value` TEXT NOT NULL, `valueName` TEXT NOT NULL)");
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
                     DATABASE_NAME)
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                     .build()
 
                 INSTANCE = instance

@@ -9,10 +9,10 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.model.BookmarkGroup
-import com.flamyoad.tsukiviewer.ui.doujinpage.CollectionDialogListener
+import com.flamyoad.tsukiviewer.ui.doujinpage.BookmarkGroupDialogListener
 import java.lang.IllegalArgumentException
 
-class CollectionPickerAdapter(private val listener: CollectionDialogListener)
+class CollectionPickerAdapter(private val listener: BookmarkGroupDialogListener)
     : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private val ADD_NEW_BUTTON = 1
     private val COLLECTION_ITEM = 2
@@ -28,7 +28,7 @@ class CollectionPickerAdapter(private val listener: CollectionDialogListener)
                 val holder = ButtonAddNewItem(view)
 
                 holder.itemView.setOnClickListener {
-                    listener.onAddCollectionClicked()
+                    listener.onAddBookmarkGroup()
                 }
                 return holder
             }
@@ -38,17 +38,17 @@ class CollectionPickerAdapter(private val listener: CollectionDialogListener)
                 val holder = CollectionViewHolder(view)
 
                 holder.itemView.setOnClickListener {
-                    val collection = list[holder.adapterPosition - 1]
+                    val bookmarkGroup = list[holder.adapterPosition - 1]
                     holder.toggleCheckbox()
                 }
 
                 val holderCheckbox = holder.itemView.findViewById<CheckBox>(R.id.checkBox)
 
                 holderCheckbox.setOnCheckedChangeListener { compoundButton, isTicked ->
-                    val collection = list[holder.adapterPosition - 1]
+                    val bookmarkGroup = list[holder.adapterPosition - 1]
                     when (isTicked) {
-                        true -> listener.onCollectionTicked(collection)
-                        false -> listener.onCollectionUnticked(collection)
+                        true -> listener.onBookmarkGroupTicked(bookmarkGroup)
+                        false -> listener.onBookmarkGroupUnticked(bookmarkGroup)
                     }
                 }
                 return holder

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/txtCollectionName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/headerGray"
+            android:gravity="center_vertical"
+            android:paddingVertical="12dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="12dp"
+            android:textColor="@color/miWhite"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Thighs CollectionThighs CollectionThighs" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:paddingBottom="4dp">
+
+            <TextView
+                android:id="@+id/lblTitles"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Keywords:"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/txtTitles"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="16dp"
+                android:text="TextView"
+                android:textColor="@color/blackOlive"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/lblTitles"
+                app:layout_constraintTop_toTopOf="@+id/lblTitles"
+                tools:text="Riko, CMD32, カスタムオーダーメイド3D2, 梨子, カスタムオーダーメイド3D2" />
+
+            <!--            <TextView-->
+            <!--                android:id="@+id/lblIncludedTags"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                android:layout_marginTop="16dp"-->
+            <!--                android:text="Included Tags"-->
+            <!--                android:textColor="@color/blackOlive"-->
+            <!--                app:layout_constraintStart_toStartOf="@+id/lblTitles"-->
+            <!--                app:layout_constraintTop_toBottomOf="@+id/txtTitles" />-->
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/listIncludedTags"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                app:layout_constraintEnd_toEndOf="@+id/txtTitles"
+                app:layout_constraintStart_toStartOf="@+id/lblTitles"
+                app:layout_constraintTop_toBottomOf="@+id/txtTitles"
+                tools:layout_height="100dp" />
+
+            <!--            <TextView-->
+            <!--                android:id="@+id/lblExcludedTags"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                android:layout_marginTop="16dp"-->
+            <!--                android:text="Excluded Tags"-->
+            <!--                android:textColor="@color/blackOlive"-->
+            <!--                app:layout_constraintStart_toStartOf="@+id/listIncludedTags"-->
+            <!--                app:layout_constraintTop_toBottomOf="@+id/listIncludedTags" />-->
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/listExcludedTags"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintEnd_toEndOf="@+id/txtTitles"
+                app:layout_constraintStart_toStartOf="@+id/listIncludedTags"
+                app:layout_constraintTop_toBottomOf="@+id/listIncludedTags"
+                tools:layout_height="100dp" />
+
+            <TextView
+                android:id="@+id/lblMinimumPages"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Minimum Pages:"
+                app:layout_constraintStart_toStartOf="@+id/listExcludedTags"
+                app:layout_constraintTop_toBottomOf="@+id/listExcludedTags" />
+
+            <TextView
+                android:id="@+id/txtMinimumPages"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:textColor="@color/blackOlive"
+                app:layout_constraintBottom_toBottomOf="@+id/lblMinimumPages"
+                app:layout_constraintStart_toEndOf="@+id/lblMinimumPages"
+                app:layout_constraintTop_toTopOf="@+id/lblMinimumPages"
+                tools:text="Not specified" />
+
+            <TextView
+                android:id="@+id/lblMaximumPages"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Maximum Pages:"
+                app:layout_constraintStart_toStartOf="@+id/lblMinimumPages"
+                app:layout_constraintTop_toBottomOf="@+id/lblMinimumPages" />
+
+            <TextView
+                android:id="@+id/txtMaximumPages"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/blackOlive"
+                app:layout_constraintBottom_toBottomOf="@+id/lblMaximumPages"
+                app:layout_constraintStart_toStartOf="@+id/txtMinimumPages"
+                app:layout_constraintTop_toTopOf="@+id/lblMaximumPages"
+                tools:text="Not specified" />
+
+            <View
+                android:id="@+id/divider3"
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_marginTop="8dp"
+                android:background="?android:attr/listDivider"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/lblMaximumPages" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/listDirectories"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="@id/divider3"
+                app:layout_constraintTop_toBottomOf="@id/divider3" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

@@ -31,7 +31,7 @@ class TagPickerAdapter(private val listener: TagSelectedListener):
 
             layout.setOnClickListener {
                 val tag = tagListFiltered[holder.adapterPosition]
-                listener.onTagSelected(tag.name)
+                listener.onTagSelected(tag)
             }
             return holder
 

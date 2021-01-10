@@ -81,6 +81,16 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
+    fun initEmptyTags() {
+        parody.value = emptyList()
+        character.value = emptyList()
+        tags.value = emptyList()
+        artist.value = emptyList()
+        group.value = emptyList()
+        language.value = emptyList()
+        category.value = emptyList()
+    }
+
     fun retrieveTagsByCategory(category: String) {
         // Triggers transformation switchMap
         selectedCategory.value = category
@@ -169,8 +179,8 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
         tagsLiveData.value = tags
     }
 
-    fun save() {
-        hasCompletedSaving.value = true
+    fun saveSingleItem() {
+        hasCompletedSaving.value = false
 
         val currentDir = File(currentPath)
         val doujinDetail = DoujinDetails(
@@ -193,11 +203,46 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
             category.value ?: emptyList()
         ).flatten()
 
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             metadataRepo.saveEditedMetadata(doujinDetail, tags)
-        }
 
+            withContext(Dispatchers.Main) {
+                hasCompletedSaving.value = true
+            }
+        }
+    }
+
+    fun saveMultipleItems(dirPaths: List<String>) {
         hasCompletedSaving.value = false
+
+        viewModelScope.launch(Dispatchers.IO) {
+            val tags = listOf(
+                parody.value ?: emptyList(),
+                character.value ?: emptyList(),
+                tags.value ?: emptyList(),
+                artist.value ?: emptyList(),
+                group.value ?: emptyList(),
+                language.value ?: emptyList(),
+                category.value ?: emptyList()
+            ).flatten()
+
+            for (path in dirPaths) {
+                // The query uses SELECT *, so check whether list is empty to know whether item exists or not
+                val previousDoujinDetails = doujinDetailsDao.findByAbsolutePath(path)
+
+                val dir = File(path)
+                val doujinDetail = when (previousDoujinDetails.isEmpty()) {
+                    true -> DoujinDetails.getEmptyObject(dir)
+                    false -> previousDoujinDetails.first()
+                }
+
+                metadataRepo.saveEditedMetadata(doujinDetail, tags)
+            }
+
+            withContext(Dispatchers.Main) {
+                hasCompletedSaving.value = true
+            }
+        }
     }
 
     private fun findTagListByCategory(categoryName: String): MutableLiveData<List<Tag>> {
