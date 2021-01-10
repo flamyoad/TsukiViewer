@@ -25,5 +25,21 @@ class AboutPreference: PreferenceFragmentCompat() {
 
             return@setOnPreferenceClickListener true
         }
+
+        val versionNumberPref: Preference? = findPreference("pref_version_number")
+        versionNumberPref?.summary = getVersionNumber()
+    }
+
+    private fun getVersionNumber(): String {
+        try {
+            val manager = context?.packageManager
+            val info = manager?.getPackageInfo(context?.packageName, 0)
+
+            val versionName = info?.versionName
+            return versionName ?: ""
+
+        } catch (e: Exception) {
+            return ""
+        }
     }
 }
