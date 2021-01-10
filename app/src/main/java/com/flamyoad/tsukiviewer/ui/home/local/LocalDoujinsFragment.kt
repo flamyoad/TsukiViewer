@@ -284,20 +284,35 @@ class LocalDoujinsFragment : BaseFragment(),
                 return
             }
 
-            queryJob = lifecycleScope.launch(Dispatchers.Default) {
-                val dirPaths = viewModel.getSelectedDoujins()
-                    .map { doujin -> doujin.path.absolutePath }
-                    .toTypedArray()
+            val context = this@LocalDoujinsFragment.requireContext()
 
-                val context = this@LocalDoujinsFragment.requireContext()
-                val intent = Intent(context, EditorActivity::class.java)
-                intent.apply {
-                    putExtra(EditorActivity.HAS_MULTIPLE_ITEMS, true)
-                    putExtra(EditorActivity.DOUJIN_MULTIPLE_FILE_PATHS, dirPaths)
-                    putExtra(EditorActivity.DOUJIN_NAME, "Batch Editing")
+            if (viewModel.selectedCount() == 1) {
+                val dirPath = viewModel.getSelectedDoujins().first().path.absolutePath
+                val doujinTitle = viewModel.getSelectedDoujins().first().title
+
+                val newIntent =
+                    Intent(context, EditorActivity::class.java).apply {
+                        putExtra(EditorActivity.HAS_MULTIPLE_ITEMS, false)
+                        putExtra(EditorActivity.DOUJIN_FILE_PATH, dirPath)
+                        putExtra(EditorActivity.DOUJIN_NAME, doujinTitle)
+                    }
+                context.startActivity(newIntent)
+
+            } else {
+                queryJob = lifecycleScope.launch(Dispatchers.Default) {
+                    val dirPaths = viewModel.getSelectedDoujins()
+                        .map { doujin -> doujin.path.absolutePath }
+                        .toTypedArray()
+
+                    val intent = Intent(context, EditorActivity::class.java)
+                    intent.apply {
+                        putExtra(EditorActivity.HAS_MULTIPLE_ITEMS, true)
+                        putExtra(EditorActivity.DOUJIN_MULTIPLE_FILE_PATHS, dirPaths)
+                        putExtra(EditorActivity.DOUJIN_NAME, "Batch Editing")
+                    }
+
+                    context.startActivity(intent)
                 }
-
-                context.startActivity(intent)
             }
         }
     }

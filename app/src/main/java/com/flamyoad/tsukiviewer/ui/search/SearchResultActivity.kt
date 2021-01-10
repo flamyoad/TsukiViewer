@@ -273,18 +273,32 @@ class SearchResultActivity : AppCompatActivity(),
                 return
             }
 
-            queryJob = lifecycleScope.launch(Dispatchers.Default) {
-                val dirPaths = viewModel.getSelectedDoujins()
-                    .map { doujin -> doujin.path.absolutePath }
-                    .toTypedArray()
-                val intent = Intent(this@SearchResultActivity, EditorActivity::class.java)
-                intent.apply {
-                    putExtra(EditorActivity.HAS_MULTIPLE_ITEMS, true)
-                    putExtra(EditorActivity.DOUJIN_MULTIPLE_FILE_PATHS, dirPaths)
-                    putExtra(EditorActivity.DOUJIN_NAME, "Batch Editing")
-                }
+            if (viewModel.selectedCount() == 1) {
+                val dirPath = viewModel.getSelectedDoujins().first().path.absolutePath
+                val doujinTitle = viewModel.getSelectedDoujins().first().title
 
-                this@SearchResultActivity.startActivity(intent)
+                val newIntent =
+                    Intent(this@SearchResultActivity, EditorActivity::class.java).apply {
+                        putExtra(EditorActivity.HAS_MULTIPLE_ITEMS, false)
+                        putExtra(EditorActivity.DOUJIN_FILE_PATH, dirPath)
+                        putExtra(EditorActivity.DOUJIN_NAME, doujinTitle)
+                    }
+                this@SearchResultActivity.startActivity(newIntent)
+
+            } else {
+                queryJob = lifecycleScope.launch(Dispatchers.Default) {
+                    val dirPaths = viewModel.getSelectedDoujins()
+                        .map { doujin -> doujin.path.absolutePath }
+                        .toTypedArray()
+                    val intent = Intent(this@SearchResultActivity, EditorActivity::class.java)
+                    intent.apply {
+                        putExtra(EditorActivity.HAS_MULTIPLE_ITEMS, true)
+                        putExtra(EditorActivity.DOUJIN_MULTIPLE_FILE_PATHS, dirPaths)
+                        putExtra(EditorActivity.DOUJIN_NAME, "Batch Editing")
+                    }
+
+                    this@SearchResultActivity.startActivity(intent)
+                }
             }
         }
     }
