@@ -72,7 +72,7 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
                 // If fetchedImages is null means directory has been renamed or deleted
-                val fetchedImages = dir.listFiles(ImageFileFilter())
+                val fetchedImages = dir.listFiles(ImageFileFilter()) ?: return@withContext
 
                 Arrays.sort(fetchedImages, object : Comparator<File> {
                     private val NATURAL_SORT: Comparator<String> =
@@ -82,13 +82,6 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
                         return NATURAL_SORT.compare(o1.name, o2.name)
                     }
                 })
-
-                if (fetchedImages == null) {
-                    withContext(Dispatchers.Main) {
-                        directoryNoLongerExists.value = true
-                    }
-                    return@withContext
-                }
 
                 withContext(Dispatchers.Main) {
                     imageList.value = fetchedImages.toList()

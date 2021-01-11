@@ -165,7 +165,7 @@ class BookmarkViewModel(app: Application) : AndroidViewModel(app) {
 
         } else {
             val images = dir.listFiles(ImageFileFilter())
-            return images.firstOrNull()?.toUri() ?: Uri.EMPTY
+            return images?.firstOrNull()?.toUri() ?: Uri.EMPTY
         }
     }
 
@@ -264,9 +264,9 @@ class BookmarkViewModel(app: Application) : AndroidViewModel(app) {
         //  If not found, then we have to use Java File api
         val imageList = dir.listFiles(ImageFileFilter())
 
-        val coverImage = imageList.firstOrNull()?.toUri() ?: Uri.EMPTY
+        val coverImage = imageList?.firstOrNull()?.toUri() ?: Uri.EMPTY
         val title = dir.name
-        val numberOfImages = imageList.size
+        val numberOfImages = imageList?.size ?: 0
         val lastModified = dir.lastModified()
 
         val doujin = Doujin(coverImage, title, numberOfImages, lastModified, dir)
