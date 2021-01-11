@@ -31,7 +31,7 @@ const val DIALOG_VIEW_STYLE = "dialog_view_style"
 class FragmentGridImages : Fragment() {
     private val viewModel by activityViewModels<DoujinViewModel>()
 
-    private lateinit var adapter: DoujinImagesAdapter
+    private var adapter: DoujinImagesAdapter? = null
 
     private lateinit var gridLayoutManager: GridLayoutManager
 
@@ -78,8 +78,7 @@ class FragmentGridImages : Fragment() {
 
         viewModel.directoryNoLongerExists().observe(viewLifecycleOwner, Observer { notExists ->
             if (notExists) {
-                // this line doesnt work lul.
-                adapter.setList(emptyList()) // Removes existing list if directory is removed/renamed
+                requireActivity().finish()
             }
         })
 
@@ -89,7 +88,8 @@ class FragmentGridImages : Fragment() {
                 GridViewStyle.Scaled -> setListToScaled(dirPath)
                 GridViewStyle.Row -> setListToRow(dirPath)
                 GridViewStyle.List -> setListToList(dirPath)
-                else -> {}
+                else -> {
+                }
             }
 
             if (this::gridLayoutManager.isInitialized) {
@@ -149,7 +149,7 @@ class FragmentGridImages : Fragment() {
             startActivityForResult(it, IMAGE_POSITION_REQUEST_CODE)
         }
 
-        adapter.setHasStableIds(true)
+        adapter?.setHasStableIds(true)
 
         gridLayoutManager = GridLayoutManager(context, spanCount)
 
@@ -169,7 +169,7 @@ class FragmentGridImages : Fragment() {
         listImages.addItemDecoration(itemDecoration)
 
         viewModel.imageList().observe(viewLifecycleOwner, Observer {
-            adapter.setList(it)
+            adapter?.setList(it)
         })
     }
 
