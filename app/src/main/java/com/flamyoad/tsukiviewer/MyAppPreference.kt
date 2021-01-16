@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
 import com.flamyoad.tsukiviewer.adapter.CollectionListAdapter
+import com.flamyoad.tsukiviewer.model.ViewMode
 import com.flamyoad.tsukiviewer.ui.doujinpage.GridViewStyle
 import com.flamyoad.tsukiviewer.ui.reader.ReaderMode
 import com.flamyoad.tsukiviewer.ui.reader.VolumeButtonScrollDirection
@@ -110,6 +111,19 @@ class MyAppPreference(context: Context) {
 
     fun setCollectionViewStyle(style: Int) {
         put(MainPreferences.COLLECTION_VIEW_STYLE, style)
+    }
+
+    fun getDoujinViewMode(): ViewMode {
+        val name = prefs.getString(MainPreferences.DOUJIN_VIEW_MODE, ViewMode.SCALED.toString())
+        if (name != null) {
+            return ViewMode.valueOf(name)
+        } else {
+            return ViewMode.SCALED
+        }
+    }
+
+    fun setDoujinViewMode(viewMode: ViewMode) {
+        put(MainPreferences.DOUJIN_VIEW_MODE, viewMode.toString())
     }
 
     fun put(key: String, value: String) {

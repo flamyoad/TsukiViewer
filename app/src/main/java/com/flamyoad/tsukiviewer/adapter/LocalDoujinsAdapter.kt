@@ -19,9 +19,6 @@ import com.flamyoad.tsukiviewer.ui.doujinpage.DoujinDetailsActivity
 import com.flamyoad.tsukiviewer.ui.doujinpage.GridViewStyle
 import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
 
-const val SCALED_ITEM = 0
-const val GRID_ITEM = 1
-
 class LocalDoujinsAdapter(private val listener: ActionModeListener<Doujin>) :
     RecyclerView.Adapter<LocalDoujinsAdapter.DoujinViewHolder>(),
     RecyclerViewFastScroller.OnPopupTextUpdate {
@@ -150,11 +147,6 @@ class LocalDoujinsAdapter(private val listener: ActionModeListener<Doujin>) :
                 true -> setIconVisibility(View.VISIBLE)
                 false -> setIconVisibility(View.GONE)
             }
-
-//            val checkIcon = ContextCompat.getDrawable(itemView.context, R.drawable.ic_check)
-//            Glide.with(itemView.context)
-//                .load(checkIcon)
-//                .into(multiSelectIndicator)
 
             txtTitle.text = doujin.title
             txtPageNumber.text = doujin.numberOfItems.toString()

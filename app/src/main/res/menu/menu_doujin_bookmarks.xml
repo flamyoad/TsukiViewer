@@ -2,6 +2,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
+
+    <item
+        android:id="@+id/progress_bar_loading"
+        android:orderInCategory="100"
+        android:title="Progress bar"
+        app:actionLayout="@layout/view_progress_bar"
+        app:showAsAction="always" />
+
     <item
         android:id="@+id/action_search"
         android:icon="@drawable/ic_search_white_24dp"
@@ -12,10 +20,20 @@
         android:visible="false"
         tools:visible="true"/>
 
-    <item
-        android:id="@+id/progress_bar_loading"
-        android:orderInCategory="100"
-        android:title="Progress bar"
-        app:actionLayout="@layout/view_progress_bar"
-        app:showAsAction="always" />
+    <item android:id="@+id/action_view_mode"
+        android:title="View mode"
+        android:orderInCategory="102" >
+
+        <menu>
+            <item android:id="@+id/action_view_normal_grid"
+                android:title="Grid"/>
+
+            <item android:id="@+id/action_view_scaled"
+                android:title="Scaled" />
+
+            <item android:id="@+id/action_view_mini_grid"
+                android:title="Mini Grid" />
+        </menu>
+
+    </item>
 </menu>

@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView.Adapter.StateRestorationPolicy
 import com.flamyoad.tsukiviewer.ActionModeListener
 import com.flamyoad.tsukiviewer.BaseFragment
+import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.model.Doujin
@@ -42,6 +43,8 @@ class LocalDoujinsFragment : BaseFragment(),
     SelectSourceListener {
 
     private val viewModel: LocalDoujinViewModel by activityViewModels()
+
+    private var appPreference: MyAppPreference? = null
 
     private var adapter = LocalDoujinsAdapter(this)
         .apply { setHasStableIds(true) }
@@ -123,10 +126,6 @@ class LocalDoujinsFragment : BaseFragment(),
                 dialog.show(requireActivity().supportFragmentManager, DialogSelectSource.name)
             }
 
-            R.id.action_refresh -> {
-                viewModel.refresh()
-            }
-
             R.id.action_sort_dialog -> {
                 openSortDialog()
             }
@@ -134,16 +133,19 @@ class LocalDoujinsFragment : BaseFragment(),
             R.id.action_view_normal_grid -> {
                 if (adapter.getViewMode() == ViewMode.NORMAL_GRID) return true
                 initRecyclerView(ViewMode.NORMAL_GRID)
+                appPreference?.setDoujinViewMode(ViewMode.NORMAL_GRID)
             }
 
             R.id.action_view_scaled -> {
                 if (adapter.getViewMode() == ViewMode.SCALED) return true
                 initRecyclerView(ViewMode.SCALED)
+                appPreference?.setDoujinViewMode(ViewMode.SCALED)
             }
 
             R.id.action_view_mini_grid -> {
                 if (adapter.getViewMode() == ViewMode.MINI_GRID) return true
                 initRecyclerView(ViewMode.MINI_GRID)
+                appPreference?.setDoujinViewMode(ViewMode.MINI_GRID)
             }
         }
         return false
@@ -151,7 +153,8 @@ class LocalDoujinsFragment : BaseFragment(),
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        initRecyclerView(ViewMode.SCALED)
+        appPreference = MyAppPreference.getInstance(requireContext())
+        initRecyclerView(appPreference?.getDoujinViewMode() ?: ViewMode.SCALED)
 
         if (savedInstanceState != null) {
             val shouldRestartActionMode = savedInstanceState.getBoolean(ACTION_MODE, false)
@@ -221,15 +224,13 @@ class LocalDoujinsFragment : BaseFragment(),
         listLocalDoujins.swapAdapter(adapter, false)
         listLocalDoujins.layoutManager = gridLayoutManager
 
-        val itemDecoration = GridItemDecoration(spanCount, 10, includeEdge = true)
-
         // Prevent the same decor from stacking on top of each other.
         if (listLocalDoujins.itemDecorationCount == 0) {
+            val itemDecoration = GridItemDecoration(spanCount, 10, includeEdge = true)
             listLocalDoujins.addItemDecoration(itemDecoration)
         }
 
         listLocalDoujins.setHasFixedSize(true)
-
         listLocalDoujins.itemAnimator = null
 
         viewModel.doujinList().observe(viewLifecycleOwner, Observer { newList ->

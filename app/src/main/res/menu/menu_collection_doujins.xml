@@ -18,9 +18,29 @@
         app:showAsAction="always|collapseActionView" />
 
     <item
+        android:id="@+id/action_view_mode"
+        android:orderInCategory="102"
+        android:title="View mode">
+
+        <menu>
+            <item
+                android:id="@+id/action_view_normal_grid"
+                android:title="Grid" />
+
+            <item
+                android:id="@+id/action_view_scaled"
+                android:title="Scaled" />
+
+            <item
+                android:id="@+id/action_view_mini_grid"
+                android:title="Mini Grid" />
+        </menu>
+    </item>
+
+    <item
         android:id="@+id/action_more_info"
         android:icon="@drawable/ic_info_white_24dp"
-        android:orderInCategory="102"
-        android:title="More Info"
-        app:showAsAction="always|collapseActionView" />
+        android:orderInCategory="103"
+        android:title="View collection criteria"
+        app:showAsAction="never" />
 </menu>

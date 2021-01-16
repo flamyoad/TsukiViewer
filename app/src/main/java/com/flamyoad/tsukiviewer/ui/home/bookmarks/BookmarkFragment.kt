@@ -16,11 +16,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSnapHelper
 import com.flamyoad.tsukiviewer.ActionModeListener
 import com.flamyoad.tsukiviewer.BaseFragment
+import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.BookmarkGroupAdapter
 import com.flamyoad.tsukiviewer.adapter.BookmarkItemsAdapter
 import com.flamyoad.tsukiviewer.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.model.BookmarkItem
+import com.flamyoad.tsukiviewer.model.ViewMode
 import com.flamyoad.tsukiviewer.utils.GridItemDecoration
 import kotlinx.android.synthetic.main.fragment_bookmark.*
 import java.util.*
@@ -35,8 +37,12 @@ class BookmarkFragment : BaseFragment(),
 
     private val viewModel: BookmarkViewModel by activityViewModels()
     private val groupAdapter = BookmarkGroupAdapter(this::onGroupChange, this::showNewGroupDialog)
-    private val itemAdapter = BookmarkItemsAdapter(this, false)
+    private val itemAdapter = BookmarkItemsAdapter(this, false).apply {
+        setHasStableIds(true)
+    }
     private var actionMode: ActionMode? = null
+
+    private var appPreference: MyAppPreference? = null
 
     private var searchView: SearchView? = null
     private var statusBarColor: Int = -1
@@ -94,8 +100,33 @@ class BookmarkFragment : BaseFragment(),
         })
     }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.action_view_normal_grid -> {
+                if (itemAdapter.getViewMode() == ViewMode.NORMAL_GRID) return true
+                initBookmarkItems(ViewMode.NORMAL_GRID)
+                appPreference?.setDoujinViewMode(ViewMode.NORMAL_GRID)
+            }
+
+            R.id.action_view_scaled -> {
+                if (itemAdapter.getViewMode() == ViewMode.SCALED) return true
+                initBookmarkItems(ViewMode.SCALED)
+                appPreference?.setDoujinViewMode(ViewMode.SCALED)
+            }
+
+            R.id.action_view_mini_grid -> {
+                if (itemAdapter.getViewMode() == ViewMode.MINI_GRID) return true
+                initBookmarkItems(ViewMode.MINI_GRID)
+                appPreference?.setDoujinViewMode(ViewMode.MINI_GRID)
+            }
+        }
+        return true
+    }
+
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        appPreference = MyAppPreference.getInstance(requireContext())
+
         if (savedInstanceState != null) {
             // Restores action mode
             val shouldRestartActionMode = savedInstanceState.getBoolean(ACTION_MODE, false)
@@ -106,7 +137,7 @@ class BookmarkFragment : BaseFragment(),
         }
 
         initBookmarkGroups()
-        initBookmarkItems()
+        initBookmarkItems(appPreference?.getDoujinViewMode() ?: ViewMode.SCALED)
         initUi()
 
         viewModel.groupList.observe(viewLifecycleOwner, Observer {
@@ -145,9 +176,9 @@ class BookmarkFragment : BaseFragment(),
             }
         })
 
-        viewModel.processedBookmarks().observe(viewLifecycleOwner, Observer {
-            itemAdapter.submitList(it.toList())
-        })
+//        viewModel.processedBookmarks().observe(viewLifecycleOwner, Observer {
+//            itemAdapter.submitList(it.toList())
+//        })
     }
 
     private fun initBookmarkGroups() {
@@ -165,24 +196,43 @@ class BookmarkFragment : BaseFragment(),
         linearSnapHelper.attachToRecyclerView(listGroups)
     }
 
-    private fun initBookmarkItems() {
-        itemAdapter.setHasStableIds(true)
+    private fun initBookmarkItems(viewMode: ViewMode) {
+        itemAdapter.setViewMode(viewMode)
 
         val spanCount = when (resources.configuration.orientation) {
-            Configuration.ORIENTATION_PORTRAIT -> 2
-            Configuration.ORIENTATION_LANDSCAPE -> 4
+            Configuration.ORIENTATION_PORTRAIT -> {
+                when (viewMode) {
+                    ViewMode.NORMAL_GRID -> 2
+                    ViewMode.MINI_GRID -> 3
+                    ViewMode.SCALED -> 2
+                }
+            }
+            Configuration.ORIENTATION_LANDSCAPE -> {
+                when (viewMode) {
+                    ViewMode.NORMAL_GRID -> 4
+                    ViewMode.MINI_GRID -> 5
+                    ViewMode.SCALED -> 4
+                }
+            }
             else -> 2
         }
 
         val gridLayoutManager = GridLayoutManager(requireContext(), spanCount)
 
-        val itemDecoration = GridItemDecoration(2, 4, includeEdge = true)
-
         listItems.adapter = itemAdapter
         listItems.layoutManager = gridLayoutManager
-        listItems.addItemDecoration(itemDecoration)
         listItems.setHasFixedSize(true)
         listItems.itemAnimator = null
+
+        // Prevent the same decor from stacking on top of each other.
+        if (listItems.itemDecorationCount == 0) {
+            val itemDecoration = GridItemDecoration(2, 4, includeEdge = true)
+            listItems.addItemDecoration(itemDecoration)
+        }
+
+        viewModel.processedBookmarks().observe(viewLifecycleOwner, Observer {
+            itemAdapter.submitList(it.toList())
+        })
     }
 
     private fun initUi() {
@@ -325,7 +375,8 @@ class BookmarkFragment : BaseFragment(),
         // This method is not called on screen rotation
         override fun onDestroyActionMode(mode: ActionMode?) {
             actionMode = null
-            requireActivity().window.statusBarColor = statusBarColor // Restores the original status bar color
+            requireActivity().window.statusBarColor =
+                statusBarColor // Restores the original status bar color
 
             itemAdapter.actionModeEnabled = false
 
