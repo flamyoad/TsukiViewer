@@ -10,10 +10,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.ui.doujinpage.BookmarkGroupDialogListener
-import java.lang.IllegalArgumentException
 
-class CollectionPickerAdapter(private val listener: BookmarkGroupDialogListener)
-    : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class CollectionPickerAdapter(private val listener: BookmarkGroupDialogListener) :
+    RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private val ADD_NEW_BUTTON = 1
     private val COLLECTION_ITEM = 2
 
@@ -34,27 +33,34 @@ class CollectionPickerAdapter(private val listener: BookmarkGroupDialogListener)
             }
 
             COLLECTION_ITEM -> {
-                val view = inflater.inflate(R.layout.dialog_select_favourite_listitem, parent, false)
+                val view =
+                    inflater.inflate(R.layout.dialog_select_favourite_listitem, parent, false)
                 val holder = CollectionViewHolder(view)
-
-                holder.itemView.setOnClickListener {
-                    val bookmarkGroup = list[holder.adapterPosition - 1]
-                    holder.toggleCheckbox()
-                }
 
                 val holderCheckbox = holder.itemView.findViewById<CheckBox>(R.id.checkBox)
 
-                holderCheckbox.setOnCheckedChangeListener { compoundButton, isTicked ->
-                    val bookmarkGroup = list[holder.adapterPosition - 1]
-                    when (isTicked) {
-                        true -> listener.onBookmarkGroupTicked(bookmarkGroup)
-                        false -> listener.onBookmarkGroupUnticked(bookmarkGroup)
+                holder.itemView.setOnClickListener {
+                    val bookmarkGroup = list[holder.bindingAdapterPosition - 1]
+                    when (holderCheckbox.isChecked) {
+                        true -> untickBookmarkGroup(bookmarkGroup)
+                        false -> tickBookmarkGroup(bookmarkGroup)
                     }
                 }
+
+                holderCheckbox.setOnClickListener {
+                    val bookmarkGroup = list[holder.bindingAdapterPosition - 1]
+                    when (holderCheckbox.isChecked) {
+                        true -> untickBookmarkGroup(bookmarkGroup)
+                        false -> tickBookmarkGroup(bookmarkGroup)
+                    }
+                }
+
                 return holder
             }
 
-            else -> { throw IllegalArgumentException("Wrong item type") }
+            else -> {
+                throw IllegalArgumentException("Wrong item type")
+            }
         }
     }
 
@@ -89,14 +95,38 @@ class CollectionPickerAdapter(private val listener: BookmarkGroupDialogListener)
         notifyDataSetChanged()
     }
 
+    private fun tickBookmarkGroup(group: BookmarkGroup) {
+        listener.onBookmarkGroupTicked(group)
+        val newList = list.map {
+            if (it == group) {
+                return@map it.copy(isTicked = true)
+            } else {
+                return@map it
+            }
+        }
+
+        list = newList
+        notifyDataSetChanged()
+    }
+
+    private fun untickBookmarkGroup(group: BookmarkGroup) {
+        listener.onBookmarkGroupUnticked(group)
+        val newList = list.map {
+            if (it == group) {
+                return@map it.copy(isTicked = false)
+            } else {
+                return@map it
+            }
+        }
+
+        list = newList
+        notifyDataSetChanged()
+    }
+
     inner class CollectionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val txtIcon: TextView = itemView.findViewById(R.id.txtIcon)
         private val txtCollectionName: TextView = itemView.findViewById(R.id.txtCollectionName)
         private val checkBox: CheckBox = itemView.findViewById(R.id.checkBox)
-
-        init {
-
-        }
 
         fun bindTo(collection: BookmarkGroup) {
             val firstLetter = collection.name.first().toUpperCase()
@@ -106,13 +136,12 @@ class CollectionPickerAdapter(private val listener: BookmarkGroupDialogListener)
             checkBox.isChecked = collection.isTicked
         }
 
-        fun toggleCheckbox(): Boolean {
+        fun toggleCheckbox() {
             checkBox.isChecked = !checkBox.isChecked
-            return checkBox.isChecked
         }
     }
 
-    inner class ButtonAddNewItem(itemView: View): RecyclerView.ViewHolder(itemView) {
+    inner class ButtonAddNewItem(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val layout: ConstraintLayout = itemView.findViewById(R.id.root)
     }
 }

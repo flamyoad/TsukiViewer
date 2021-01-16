@@ -227,7 +227,6 @@ class LocalDoujinsFragment : BaseFragment(),
         if (listLocalDoujins.itemDecorationCount == 0) {
             listLocalDoujins.addItemDecoration(itemDecoration)
         }
-//        listLocalDoujins.addItemDecoration(itemDecoration)
 
         listLocalDoujins.setHasFixedSize(true)
 
@@ -268,6 +267,7 @@ class LocalDoujinsFragment : BaseFragment(),
         override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
             when (item?.itemId) {
                 R.id.action_bookmark -> {
+                    viewModel.fetchBookmarkGroup()
                     val dialog = DialogBookmarkItems.newInstance()
                     dialog.show(childFragmentManager, ADD_BOOKMARK_DIALOG)
                 }

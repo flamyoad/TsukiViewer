@@ -163,7 +163,7 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch(Dispatchers.IO) {
             if (currentPath.isNotBlank()) {
                 val dir = File(currentPath)
-                val collections = bookmarkRepo.getAllCollectionsFrom(dir)
+                val collections = bookmarkRepo.getAllGroupsFrom(dir)
 
                 withContext(Dispatchers.Main) {
                     collectionList.value = collections

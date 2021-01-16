@@ -242,6 +242,7 @@ class SearchResultActivity : AppCompatActivity(),
         override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
             when (item?.itemId) {
                 R.id.action_bookmark -> {
+                    viewModel.fetchBookmarkGroup()
                     val dialog = BookmarkGroupDialog.newInstance()
                     dialog.show(supportFragmentManager, ADD_BOOKMARK_DIALOG)
                 }

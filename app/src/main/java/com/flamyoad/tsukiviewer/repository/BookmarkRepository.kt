@@ -21,7 +21,6 @@ class BookmarkRepository(private val context: Context) {
     private val db: AppDatabase = AppDatabase.getInstance(context)
 
     val groupDao: BookmarkGroupDao
-
     val itemDao: BookmarkItemDao
 
     init {
@@ -57,7 +56,7 @@ class BookmarkRepository(private val context: Context) {
         return groupDao.exists(name)
     }
 
-    suspend fun getAllCollectionsFrom(absolutePath: File): List<BookmarkGroup> {
+    suspend fun getAllGroupsFrom(absolutePath: File): List<BookmarkGroup> {
         val collections = groupDao.getAllBlocking()
         val names = groupDao.getCollectionNamesFrom(absolutePath)
 
