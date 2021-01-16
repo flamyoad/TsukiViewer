@@ -30,7 +30,7 @@ class BookmarkItemsAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BookmarkViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.doujin_list_item, parent, false)
+            .inflate(R.layout.doujin_list_item_scaled, parent, false)
 
         val coverImage: ImageView = view.findViewById(R.id.imgCover)
 

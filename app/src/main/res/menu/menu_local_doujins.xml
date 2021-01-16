@@ -28,11 +28,14 @@
         android:orderInCategory="102" >
 
         <menu>
-            <item android:id="@+id/action_view_grid"
+            <item android:id="@+id/action_view_normal_grid"
                 android:title="Grid"/>
 
             <item android:id="@+id/action_view_scaled"
                 android:title="Scaled" />
+
+            <item android:id="@+id/action_view_mini_grid"
+                android:title="Mini Grid" />
         </menu>
 
     </item>

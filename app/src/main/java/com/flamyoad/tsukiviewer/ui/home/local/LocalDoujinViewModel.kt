@@ -47,9 +47,6 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
     private val toastText = MutableLiveData<String?>(null)
     fun toastText(): LiveData<String?> = toastText
 
-    private val refreshResult = MutableLiveData<String?>(null)
-    fun refreshResult(): LiveData<String?> = refreshResult
-
     private val sortMode = MutableLiveData<DoujinSortingMode>(DoujinSortingMode.NONE)
     fun sortMode(): LiveData<DoujinSortingMode> = sortMode.distinctUntilChanged()
 
@@ -206,6 +203,14 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
                 shouldResetSelections = false
             }
         }
+    }
+
+    fun refresh() {
+        loadingJob?.cancel()
+        loadingJob = null
+        doujinListBuffer.clear()
+
+        loadDoujinsFromDir()
     }
 
     fun fetchMetadata(sourceFlags: EnumSet<Source>) {

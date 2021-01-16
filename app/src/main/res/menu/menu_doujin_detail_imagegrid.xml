@@ -2,7 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item android:id="@+id/action_view_grid"
+    <item android:id="@+id/action_view_normal_grid"
         android:title="Image Grid"
         android:icon="@drawable/ic_view_array_white_24dp"
         app:showAsAction="always"

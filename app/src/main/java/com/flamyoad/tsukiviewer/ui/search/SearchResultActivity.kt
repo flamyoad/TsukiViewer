@@ -1,8 +1,10 @@
 package com.flamyoad.tsukiviewer.ui.search
 
+import android.app.ActivityManager
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -11,11 +13,14 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
 import androidx.appcompat.widget.SearchView
+import androidx.core.app.ActivityManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.flamyoad.tsukiviewer.ActionModeListener
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
@@ -75,6 +80,13 @@ class SearchResultActivity : AppCompatActivity(),
                 actionMode?.invalidate()
             }
         })
+
+        Log.d("debugs", "ViewModel ID: ${viewModel.hashCode()}")
+    }
+
+    override fun onStop() {
+        super.onStop()
+//        Glide.get(this).clearMemory()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

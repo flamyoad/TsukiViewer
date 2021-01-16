@@ -60,7 +60,7 @@ class FragmentGridImages : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.action_view_grid -> {
+            R.id.action_view_normal_grid -> {
                 val fragment = DialogViewStyle.newInstance()
                 fragment.show(childFragmentManager, DIALOG_VIEW_STYLE)
             }

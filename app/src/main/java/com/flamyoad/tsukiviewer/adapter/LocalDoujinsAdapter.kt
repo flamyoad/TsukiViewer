@@ -7,16 +7,20 @@ import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.flamyoad.tsukiviewer.ActionModeListener
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.model.Doujin
+import com.flamyoad.tsukiviewer.model.ViewMode
 import com.flamyoad.tsukiviewer.ui.doujinpage.DoujinDetailsActivity
+import com.flamyoad.tsukiviewer.ui.doujinpage.GridViewStyle
 import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
 
-const val LIST_ITEM = 1
+const val SCALED_ITEM = 0
+const val GRID_ITEM = 1
 
 class LocalDoujinsAdapter(private val listener: ActionModeListener<Doujin>) :
     RecyclerView.Adapter<LocalDoujinsAdapter.DoujinViewHolder>(),
@@ -28,14 +32,20 @@ class LocalDoujinsAdapter(private val listener: ActionModeListener<Doujin>) :
     }
 
     private var doujinList: List<Doujin> = emptyList()
+    private var viewMode: ViewMode = ViewMode.SCALED
 
     var actionModeEnabled: Boolean = false
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DoujinViewHolder {
         val inflater = LayoutInflater.from(parent.context)
 
+        val layout = when (viewType) {
+            ViewMode.NORMAL_GRID.toInt() -> inflater.inflate(R.layout.doujin_list_item_grid, parent, false)
+            ViewMode.SCALED.toInt() -> inflater.inflate(R.layout.doujin_list_item_scaled, parent, false)
+            ViewMode.MINI_GRID.toInt() -> inflater.inflate(R.layout.doujin_list_item_grid, parent, false)
+            else -> throw IllegalArgumentException("Illegal view type")
+        }
 
-        val layout = inflater.inflate(R.layout.doujin_list_item, parent, false)
         val holder = DoujinViewHolder(layout)
 
         layout.setOnClickListener {
@@ -92,6 +102,9 @@ class LocalDoujinsAdapter(private val listener: ActionModeListener<Doujin>) :
         return doujinList.size
     }
 
+    override fun getItemViewType(position: Int): Int {
+        return viewMode.toInt()
+    }
 
     override fun onBindViewHolder(holder: DoujinViewHolder, position: Int) {
         holder.bind(doujinList[holder.adapterPosition])
@@ -101,6 +114,12 @@ class LocalDoujinsAdapter(private val listener: ActionModeListener<Doujin>) :
         doujinList = list
         notifyDataSetChanged()
     }
+
+    fun setViewMode(mode: ViewMode) {
+        this.viewMode = mode
+    }
+
+    fun getViewMode() = viewMode
 
     //java.lang.NullPointerException: Attempt to invoke virtual method 'java.io.File com.flamyoad.tsukiviewer.model.Doujin.getPath()' on a null object reference
 //    at com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter.getItemId(LocalDoujinsAdapter.kt:82)
@@ -126,6 +145,11 @@ class LocalDoujinsAdapter(private val listener: ActionModeListener<Doujin>) :
                 .transition(withCrossFade())
                 .sizeMultiplier(0.75f)
                 .into(coverImg)
+
+            val checkIcon = ContextCompat.getDrawable(itemView.context, R.drawable.ic_check)
+            Glide.with(itemView.context)
+                .load(checkIcon)
+                .into(multiSelectIndicator)
 
             txtTitle.text = doujin.title
             txtPageNumber.text = doujin.numberOfItems.toString()
