@@ -175,10 +175,6 @@ class BookmarkFragment : BaseFragment(),
                 viewModel.refreshGroupInfo()
             }
         })
-
-//        viewModel.processedBookmarks().observe(viewLifecycleOwner, Observer {
-//            itemAdapter.submitList(it.toList())
-//        })
     }
 
     private fun initBookmarkGroups() {

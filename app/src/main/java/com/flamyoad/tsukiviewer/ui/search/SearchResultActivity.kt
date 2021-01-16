@@ -89,11 +89,6 @@ class SearchResultActivity : AppCompatActivity(),
         Log.d("debugs", "ViewModel ID: ${viewModel.hashCode()}")
     }
 
-    override fun onStop() {
-        super.onStop()
-//        Glide.get(this).clearMemory()
-    }
-
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         val isInActionMode = actionMode != null

@@ -133,12 +133,6 @@ class BookmarkRepository(private val context: Context) {
 
         return db.withTransaction {
             try {
-                var deleteCount = 0
-                for (name in namesOfCollectionsToRemoveFrom) {
-                    val count = itemDao.delete(absolutePath, name)
-                    deleteCount += count
-                }
-
                 var insertCount = 0
                 for (item in itemsToInsert) {
                     if (itemDao.exists(item.absolutePath, item.parentName)) {
@@ -149,6 +143,12 @@ class BookmarkRepository(private val context: Context) {
                             insertCount++
                         }
                     }
+                }
+
+                var deleteCount = 0
+                for (name in namesOfCollectionsToRemoveFrom) {
+                    val count = itemDao.delete(absolutePath, name)
+                    deleteCount += count
                 }
 
                 // Example message:  Added into 1 collection. Removed from 1 collection.

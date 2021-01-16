@@ -383,9 +383,15 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
     }
 
     fun insertItemIntoTickedCollections() {
-        val bookmarkGroups = bookmarkGroupTickStatus
+        val tickedItems = bookmarkGroupTickStatus
             .filter { x -> x.value == true }
             .map { x -> x.key }
+
+        val untickedItems = bookmarkGroupTickStatus
+            .filter { x -> x.value == false }
+            .map { x -> x.key }
+
+        val bookmarkGroupsToBeAdded = tickedItems.minus(untickedItems)
 
         viewModelScope.launch(Dispatchers.IO) {
             val status: String
@@ -393,7 +399,7 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
                 val doujinPath = selectedDoujins.first().path
                 status = bookmarkRepo.wipeAndInsertNew(doujinPath, bookmarkGroupTickStatus)
             } else {
-                status = bookmarkRepo.insertAllItems(selectedDoujins.toList(), bookmarkGroups)
+                status = bookmarkRepo.insertAllItems(selectedDoujins.toList(), bookmarkGroupsToBeAdded)
             }
 
             withContext(Dispatchers.Main) {
