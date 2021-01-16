@@ -57,6 +57,10 @@ class MyAppPreference(context: Context) {
         }
     }
 
+    fun setDefaultReaderMode(mode: ReaderMode) {
+        put(MainPreferences.DEFAULT_READER_MODE, mode.toString())
+    }
+
     fun shouldUseWindowsSort(): Boolean {
         return prefs.getBoolean(MainPreferences.USE_WINDOWS_EXPLORER_SORT, true)
     }
