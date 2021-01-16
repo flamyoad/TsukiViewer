@@ -197,8 +197,6 @@ class LocalDoujinsFragment : BaseFragment(),
 
     private fun initRecyclerView(viewMode: ViewMode) {
         adapter.setViewMode(viewMode)
-
-        // StateRestorationPolicy is in alpha stage
         adapter.stateRestorationPolicy = StateRestorationPolicy.PREVENT_WHEN_EMPTY
 
         val spanCount = when (resources.configuration.orientation) {

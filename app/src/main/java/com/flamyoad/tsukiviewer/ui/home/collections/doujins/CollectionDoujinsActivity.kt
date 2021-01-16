@@ -43,8 +43,10 @@ class CollectionDoujinsActivity : AppCompatActivity(),
 
     private val viewModel: CollectionDoujinsViewModel by viewModels()
 
-    private val adapter = LocalDoujinsAdapter(this)
-        .apply { setHasStableIds(true) }
+    private val adapter = LocalDoujinsAdapter(this).apply {
+        setHasStableIds(true)
+        stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
+    }
 
     private var appPreference = MyAppPreference.getInstance(this)
 
@@ -59,6 +61,7 @@ class CollectionDoujinsActivity : AppCompatActivity(),
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_collection_doujins)
         initToolbar()
+
         initRecyclerView(appPreference.getDoujinViewMode())
 
         viewModel.snackbarText.observe(this, Observer { text ->
@@ -197,10 +200,6 @@ class CollectionDoujinsActivity : AppCompatActivity(),
         }
 
         val gridLayoutManager = GridLayoutManager(this, spanCount)
-
-        adapter.apply {
-            stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
-        }
 
         listDoujins.adapter = adapter
         listDoujins.layoutManager = gridLayoutManager

@@ -1,7 +1,6 @@
 package com.flamyoad.tsukiviewer.ui.doujinpage
 
 import android.app.Dialog
-import android.content.DialogInterface
 import android.graphics.Point
 import android.os.Bundle
 import android.view.Display
@@ -28,8 +27,6 @@ class DialogCollectionList: DialogFragment(), BookmarkGroupDialogListener {
 
     private val collectionAdapter: CollectionPickerAdapter = CollectionPickerAdapter(this)
 
-    private val collectionTickStatus = hashMapOf<BookmarkGroup, Boolean>()
-
     private lateinit var btnSave: Button
     private lateinit var btnCancel: Button
     private lateinit var listCollections: RecyclerView
@@ -55,14 +52,17 @@ class DialogCollectionList: DialogFragment(), BookmarkGroupDialogListener {
 
         viewModel.initCollectionList()
 
-        viewModel.collectionList().observe(this, Observer {
-            collectionAdapter.setList(it)
+        viewModel.bookmarkGroupList().observe(this, Observer { bookmarkGroups ->
+            val newList = bookmarkGroups.map {
+                it.copy(isTicked = viewModel.bookmarkGroupTickStatus.get(it) ?: false)
+            }
+            collectionAdapter.setList(newList)
         })
 
         setRecyclerviewSize()
 
         btnSave.setOnClickListener {
-            viewModel.insertItemIntoTickedCollections(collectionTickStatus)
+            viewModel.insertItemIntoTickedCollections()
             this.dismiss()
         }
 
@@ -72,10 +72,6 @@ class DialogCollectionList: DialogFragment(), BookmarkGroupDialogListener {
 
         listCollections.adapter = collectionAdapter
         listCollections.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
-    }
-
-    override fun onDismiss(dialog: DialogInterface) {
-        super.onDismiss(dialog)
     }
 
     private fun setRecyclerviewSize() {
@@ -93,11 +89,11 @@ class DialogCollectionList: DialogFragment(), BookmarkGroupDialogListener {
     }
 
     override fun onBookmarkGroupTicked(collection: BookmarkGroup) {
-        collectionTickStatus.put(collection, true)
+        viewModel.bookmarkGroupTickStatus.put(collection, true)
     }
 
     override fun onBookmarkGroupUnticked(collection: BookmarkGroup) {
-        collectionTickStatus.put(collection, false)
+        viewModel.bookmarkGroupTickStatus.put(collection, false)
     }
 
     override fun onAddBookmarkGroup() {

@@ -209,6 +209,7 @@ class SearchResultActivity : AppCompatActivity(),
 
     private fun initRecyclerView(viewMode: ViewMode) {
         adapter.setViewMode(viewMode)
+        adapter.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
 
         val spanCount = when (resources.configuration.orientation) {
             Configuration.ORIENTATION_PORTRAIT -> {
@@ -229,10 +230,6 @@ class SearchResultActivity : AppCompatActivity(),
         }
 
         val gridLayoutManager = GridLayoutManager(this, spanCount)
-
-        adapter.apply {
-            stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
-        }
 
         listSearchedDoujins.adapter = adapter
         listSearchedDoujins.layoutManager = gridLayoutManager

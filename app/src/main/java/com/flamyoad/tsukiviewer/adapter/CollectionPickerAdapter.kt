@@ -41,7 +41,7 @@ class CollectionPickerAdapter(private val listener: BookmarkGroupDialogListener)
 
                 holder.itemView.setOnClickListener {
                     val bookmarkGroup = list[holder.bindingAdapterPosition - 1]
-                    when (holderCheckbox.isChecked) {
+                    when (bookmarkGroup.isTicked) {
                         true -> untickBookmarkGroup(bookmarkGroup)
                         false -> tickBookmarkGroup(bookmarkGroup)
                     }
@@ -49,7 +49,7 @@ class CollectionPickerAdapter(private val listener: BookmarkGroupDialogListener)
 
                 holderCheckbox.setOnClickListener {
                     val bookmarkGroup = list[holder.bindingAdapterPosition - 1]
-                    when (holderCheckbox.isChecked) {
+                    when (bookmarkGroup.isTicked) {
                         true -> untickBookmarkGroup(bookmarkGroup)
                         false -> tickBookmarkGroup(bookmarkGroup)
                     }
