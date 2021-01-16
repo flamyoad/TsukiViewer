@@ -86,7 +86,8 @@
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:srcCompat="@drawable/ic_check"
+            app:srcCompat="@drawable/ic_check_blue_custom"
+            android:background="@color/transparent"
             tools:visibility="visible" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

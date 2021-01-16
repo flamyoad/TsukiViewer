@@ -146,18 +146,18 @@ class LocalDoujinsAdapter(private val listener: ActionModeListener<Doujin>) :
                 .sizeMultiplier(0.75f)
                 .into(coverImg)
 
-            val checkIcon = ContextCompat.getDrawable(itemView.context, R.drawable.ic_check)
-            Glide.with(itemView.context)
-                .load(checkIcon)
-                .into(multiSelectIndicator)
-
-            txtTitle.text = doujin.title
-            txtPageNumber.text = doujin.numberOfItems.toString()
-
             when (doujin.isSelected) {
                 true -> setIconVisibility(View.VISIBLE)
                 false -> setIconVisibility(View.GONE)
             }
+
+//            val checkIcon = ContextCompat.getDrawable(itemView.context, R.drawable.ic_check)
+//            Glide.with(itemView.context)
+//                .load(checkIcon)
+//                .into(multiSelectIndicator)
+
+            txtTitle.text = doujin.title
+            txtPageNumber.text = doujin.numberOfItems.toString()
         }
 
         private fun setIconVisibility(visibility: Int) {
