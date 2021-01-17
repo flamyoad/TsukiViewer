@@ -22,12 +22,4 @@ data class BookmarkGroup(
         lastDate = 0,
         isTicked = false
     )
-
-    override fun equals(other: Any?): Boolean {
-        return this.name === (other as BookmarkGroup).name
-    }
-
-    override fun hashCode(): Int {
-        return this.name.hashCode()
-    }
 }

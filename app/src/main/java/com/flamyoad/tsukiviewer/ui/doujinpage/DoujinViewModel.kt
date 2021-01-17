@@ -50,7 +50,7 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
         return@switchMap bookmarkRepo.groupNameExists(name)
     }
 
-    val bookmarkGroupTickStatus = hashMapOf<BookmarkGroup, Boolean>()
+    val bookmarkGroupTickStatus = hashMapOf<String, Boolean>()
 
     val snackbarText = MutableLiveData<String>("")
 
@@ -193,7 +193,7 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
             withContext(Dispatchers.Main) {
                 for (group in tickedBookmarkGroups) {
                     if (group.isTicked) {
-                        bookmarkGroupTickStatus.put(group, true)
+                        bookmarkGroupTickStatus.put(group.name, true)
                     }
                 }
                 bookmarkGroupList.value = tickedBookmarkGroups

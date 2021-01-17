@@ -13,7 +13,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.SimpleItemAnimator
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.CollectionPickerAdapter
 import com.flamyoad.tsukiviewer.model.BookmarkGroup
@@ -51,7 +50,7 @@ class DialogBookmarkItems : DialogFragment(), BookmarkGroupDialogListener {
 
         viewModel.bookmarkGroupList.observe(this, Observer { bookmarkGroups ->
             val newList = bookmarkGroups.map {
-                it.copy(isTicked = viewModel.bookmarkGroupTickStatus.get(it) ?: false)
+                it.copy(isTicked = viewModel.bookmarkGroupTickStatus.get(it.name) ?: false)
             }
             collectionAdapter.setList(newList)
         })
@@ -90,11 +89,11 @@ class DialogBookmarkItems : DialogFragment(), BookmarkGroupDialogListener {
     }
 
     override fun onBookmarkGroupTicked(collection: BookmarkGroup) {
-        viewModel.bookmarkGroupTickStatus.put(collection, true)
+        viewModel.bookmarkGroupTickStatus.put(collection.name, true)
     }
 
     override fun onBookmarkGroupUnticked(collection: BookmarkGroup) {
-        viewModel.bookmarkGroupTickStatus.put(collection, false)
+        viewModel.bookmarkGroupTickStatus.put(collection.name, false)
     }
 
     override fun onAddBookmarkGroup() {

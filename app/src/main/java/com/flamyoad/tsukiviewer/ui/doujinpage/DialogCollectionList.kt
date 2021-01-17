@@ -54,7 +54,7 @@ class DialogCollectionList: DialogFragment(), BookmarkGroupDialogListener {
 
         viewModel.bookmarkGroupList().observe(this, Observer { bookmarkGroups ->
             val newList = bookmarkGroups.map {
-                it.copy(isTicked = viewModel.bookmarkGroupTickStatus.get(it) ?: false)
+                it.copy(isTicked = viewModel.bookmarkGroupTickStatus.get(it.name) ?: false)
             }
             collectionAdapter.setList(newList)
         })
@@ -89,11 +89,11 @@ class DialogCollectionList: DialogFragment(), BookmarkGroupDialogListener {
     }
 
     override fun onBookmarkGroupTicked(collection: BookmarkGroup) {
-        viewModel.bookmarkGroupTickStatus.put(collection, true)
+        viewModel.bookmarkGroupTickStatus.put(collection.name, true)
     }
 
     override fun onBookmarkGroupUnticked(collection: BookmarkGroup) {
-        viewModel.bookmarkGroupTickStatus.put(collection, false)
+        viewModel.bookmarkGroupTickStatus.put(collection.name, false)
     }
 
     override fun onAddBookmarkGroup() {

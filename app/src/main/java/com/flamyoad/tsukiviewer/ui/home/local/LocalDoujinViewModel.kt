@@ -72,7 +72,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 
     val bookmarkGroupList = MutableLiveData<List<BookmarkGroup>>()
 
-    val bookmarkGroupTickStatus = hashMapOf<BookmarkGroup, Boolean>()
+    val bookmarkGroupTickStatus = hashMapOf<String, Boolean>()
 
     init {
         initDoujinList()
@@ -404,7 +404,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
                 withContext(Dispatchers.Main) {
                     for (group in tickedBookmarkGroups) {
                         if (group.isTicked) {
-                            bookmarkGroupTickStatus.put(group, true)
+                            bookmarkGroupTickStatus.put(group.name, true)
                         }
                     }
                     bookmarkGroupList.value = tickedBookmarkGroups
