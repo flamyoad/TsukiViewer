@@ -17,7 +17,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.*
-import kotlin.collections.HashMap
 
 class DoujinViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -34,8 +33,8 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
     private val coverImage = MutableLiveData<Uri>()
     fun coverImage(): LiveData<Uri> = coverImage
 
-    private val collectionList = MutableLiveData<List<BookmarkGroup>>()
-    fun collectionList(): LiveData<List<BookmarkGroup>> = collectionList
+    private val bookmarkGroupList = MutableLiveData<List<BookmarkGroup>>()
+    fun bookmarkGroupList(): LiveData<List<BookmarkGroup>> = bookmarkGroupList
 
     private val directoryNoLongerExists = MutableLiveData<Boolean>(false)
     fun directoryNoLongerExists(): LiveData<Boolean> = directoryNoLongerExists
@@ -50,6 +49,8 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
     val collectionNameExists: LiveData<Boolean> = newCollectionName.switchMap { name ->
         return@switchMap bookmarkRepo.groupNameExists(name)
     }
+
+    val bookmarkGroupTickStatus = hashMapOf<String, Boolean>()
 
     val snackbarText = MutableLiveData<String>("")
 
@@ -163,25 +164,43 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch(Dispatchers.IO) {
             if (currentPath.isNotBlank()) {
                 val dir = File(currentPath)
-                val collections = bookmarkRepo.getAllCollectionsFrom(dir)
+                val collections = bookmarkRepo.getAllGroupsFrom(dir)
 
                 withContext(Dispatchers.Main) {
-                    collectionList.value = collections
+                    bookmarkGroupList.value = collections
                 }
             }
         }
     }
 
-    fun insertItemIntoTickedCollections(collectionWithTickStatus: HashMap<BookmarkGroup, Boolean>) {
+    fun insertItemIntoTickedCollections() {
         viewModelScope.launch(Dispatchers.IO) {
-            val status =
-                bookmarkRepo.wipeAndInsertNew(File(currentPath), collectionWithTickStatus)
+            val status = bookmarkRepo.wipeAndInsertNew(File(currentPath), bookmarkGroupTickStatus)
 
             withContext(Dispatchers.Main) {
                 snackbarText.value = status
             }
         }
     }
+
+    fun fetchBookmarkGroup() {
+        bookmarkGroupTickStatus.clear()
+
+        val currentDir = File(currentPath)
+
+        viewModelScope.launch(Dispatchers.IO) {
+            val tickedBookmarkGroups = bookmarkRepo.getAllGroupsFrom(currentDir)
+            withContext(Dispatchers.Main) {
+                for (group in tickedBookmarkGroups) {
+                    if (group.isTicked) {
+                        bookmarkGroupTickStatus.put(group.name, true)
+                    }
+                }
+                bookmarkGroupList.value = tickedBookmarkGroups
+            }
+        }
+    }
+
 
     fun createCollection(name: String) {
         viewModelScope.launch(Dispatchers.IO) {

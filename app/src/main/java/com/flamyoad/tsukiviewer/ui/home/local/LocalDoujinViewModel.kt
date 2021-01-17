@@ -47,9 +47,6 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
     private val toastText = MutableLiveData<String?>(null)
     fun toastText(): LiveData<String?> = toastText
 
-    private val refreshResult = MutableLiveData<String?>(null)
-    fun refreshResult(): LiveData<String?> = refreshResult
-
     private val sortMode = MutableLiveData<DoujinSortingMode>(DoujinSortingMode.NONE)
     fun sortMode(): LiveData<DoujinSortingMode> = sortMode.distinctUntilChanged()
 
@@ -73,11 +70,15 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 
     val snackbarText = MutableLiveData<String>("")
 
-    val bookmarkGroupList: LiveData<List<BookmarkGroup>>
+    val bookmarkGroupList = MutableLiveData<List<BookmarkGroup>>()
+
+    val bookmarkGroupTickStatus = hashMapOf<String, Boolean>()
 
     init {
         initDoujinList()
-        bookmarkGroupList = bookmarkRepo.getAllGroups()
+        viewModelScope.launch(Dispatchers.IO) {
+            bookmarkGroupList.postValue(bookmarkRepo.getAllGroupsBlocking())
+        }
     }
 
     private fun initDoujinList() {
@@ -206,6 +207,14 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
                 shouldResetSelections = false
             }
         }
+    }
+
+    fun refresh() {
+        loadingJob?.cancel()
+        loadingJob = null
+        doujinListBuffer.clear()
+
+        loadDoujinsFromDir()
     }
 
     fun fetchMetadata(sourceFlags: EnumSet<Source>) {
@@ -352,9 +361,25 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
         return selectedDoujins.toList()
     }
 
-    fun insertItemIntoTickedCollections(bookmarkGroups: List<BookmarkGroup>) {
+    fun insertItemIntoTickedCollections() {
+        val tickedItems = bookmarkGroupTickStatus
+            .filter { x -> x.value == true }
+            .map { x -> x.key }
+
+        val untickedItems = bookmarkGroupTickStatus
+            .filter { x -> x.value == false }
+            .map { x -> x.key }
+
+        val bookmarkGroupsToBeAdded = tickedItems.minus(untickedItems)
+
         viewModelScope.launch(Dispatchers.IO) {
-            val status = bookmarkRepo.insertAllItems(selectedDoujins.toList(), bookmarkGroups)
+            val status: String
+            if (selectedDoujins.size == 1) {
+                val doujinPath = selectedDoujins.first().path
+                status = bookmarkRepo.wipeAndInsertNew(doujinPath, bookmarkGroupTickStatus)
+            } else {
+                status = bookmarkRepo.insertAllItems(selectedDoujins.toList(), bookmarkGroupsToBeAdded)
+            }
 
             withContext(Dispatchers.Main) {
                 snackbarText.value = status
@@ -368,4 +393,32 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
         }
     }
 
+    fun fetchBookmarkGroup() {
+        bookmarkGroupTickStatus.clear()
+
+        if (selectedDoujins.size == 1) {
+            val doujinPath = selectedDoujins.first().path
+
+            viewModelScope.launch(Dispatchers.IO) {
+                val tickedBookmarkGroups = bookmarkRepo.getAllGroupsFrom(doujinPath)
+                withContext(Dispatchers.Main) {
+                    for (group in tickedBookmarkGroups) {
+                        if (group.isTicked) {
+                            bookmarkGroupTickStatus.put(group.name, true)
+                        }
+                    }
+                    bookmarkGroupList.value = tickedBookmarkGroups
+                }
+            }
+        } else {
+            viewModelScope.launch(Dispatchers.IO) {
+                val allBookmarkGroups = bookmarkRepo.getAllGroupsBlocking()
+                withContext(Dispatchers.Main) {
+                    bookmarkGroupList.value = allBookmarkGroups
+                }
+            }
+        }
+    }
+
 }
+

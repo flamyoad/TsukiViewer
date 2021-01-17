@@ -22,6 +22,8 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
     private val directoryNoLongerExists = MutableLiveData<Boolean>(false)
     fun directoryNoLongerExists(): LiveData<Boolean> = directoryNoLongerExists
 
+    private val appPreference = MyAppPreference.getInstance(application.applicationContext)
+
     private var shouldUseWindowsSort: Boolean = false
 
     var currentImagePosition: Int = 0
@@ -47,19 +49,16 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
     fun readerMode(): LiveData<ReaderMode> = readerMode.distinctUntilChanged()
 
     init {
-        val prefs = MyAppPreference
-            .getInstance(application.applicationContext)
-
-        val defaultReaderMode = prefs.getDefaultReaderMode()
+        val defaultReaderMode = appPreference.getDefaultReaderMode()
         readerMode.value = defaultReaderMode
 
-        shouldScrollWithVolumeButton = prefs.shouldScrollWithVolumeButton()
+        shouldScrollWithVolumeButton = appPreference.shouldScrollWithVolumeButton()
 
         if (shouldScrollWithVolumeButton) {
-            scrollingMode = prefs.getVolumeButtonScrollMode()
-            volumeUpAction = prefs.getVolumeUpAction()
-            volumeDownAction = prefs.getVolumeDownAction()
-            scrollDistance = prefs.getVolumeButtonScrollDistance()
+            scrollingMode = appPreference.getVolumeButtonScrollMode()
+            volumeUpAction = appPreference.getVolumeUpAction()
+            volumeDownAction = appPreference.getVolumeDownAction()
+            scrollDistance = appPreference.getVolumeButtonScrollDistance()
         }
     }
 
@@ -92,6 +91,7 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
 
     fun setReaderMode(mode: ReaderMode) {
         readerMode.value = mode
+        appPreference.setDefaultReaderMode(mode)
     }
 
     fun onThumbnailClick(position: Int) {

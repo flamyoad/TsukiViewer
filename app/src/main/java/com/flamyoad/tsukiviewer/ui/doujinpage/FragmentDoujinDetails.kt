@@ -101,6 +101,7 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
         })
 
         fab.setOnClickListener {
+            viewModel.fetchBookmarkGroup()
             openCollectionDialog()
         }
     }

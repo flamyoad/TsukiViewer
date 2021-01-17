@@ -65,7 +65,7 @@
             android:id="@+id/listSearchedDoujins"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            tools:listitem="@layout/doujin_list_item"/>
+            tools:listitem="@layout/doujin_list_item_scaled"/>
 
     </com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller>
 

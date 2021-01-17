@@ -3,7 +3,9 @@ package com.flamyoad.tsukiviewer
 import android.app.Application
 import android.os.StrictMode
 import android.os.StrictMode.VmPolicy
+import com.bumptech.glide.Glide
 import com.flamyoad.tsukiviewer.model.Doujin
+import com.flamyoad.tsukiviewer.utils.toast
 import com.jakewharton.threetenabp.AndroidThreeTen
 
 
@@ -26,5 +28,10 @@ class MyApplication : Application() {
         */
         val builder = VmPolicy.Builder()
         StrictMode.setVmPolicy(builder.build())
+    }
+
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        Glide.with(this).onTrimMemory(TRIM_MEMORY_MODERATE)
     }
 }

@@ -1,14 +1,11 @@
 package com.flamyoad.tsukiviewer.ui.home.local
 
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.*
-import android.widget.CheckBox
 import android.widget.ProgressBar
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
 import androidx.core.content.ContextCompat
@@ -19,10 +16,12 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView.Adapter.StateRestorationPolicy
 import com.flamyoad.tsukiviewer.ActionModeListener
 import com.flamyoad.tsukiviewer.BaseFragment
+import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.Source
+import com.flamyoad.tsukiviewer.model.ViewMode
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
 import com.flamyoad.tsukiviewer.ui.search.SearchActivity
 import com.flamyoad.tsukiviewer.utils.GridItemDecoration
@@ -41,11 +40,15 @@ private const val ADD_BOOKMARK_DIALOG = "add_bookmark_dialog"
 class LocalDoujinsFragment : BaseFragment(),
     ActionModeListener<Doujin>,
     LocalDoujinsContextualListener,
-    SelectSourceListener{
+    SelectSourceListener {
 
     private val viewModel: LocalDoujinViewModel by activityViewModels()
 
+    private var appPreference: MyAppPreference? = null
+
     private var adapter = LocalDoujinsAdapter(this)
+        .apply { setHasStableIds(true) }
+
     private var actionMode: ActionMode? = null
     private var statusBarColor: Int = -1
 
@@ -116,16 +119,33 @@ class LocalDoujinsFragment : BaseFragment(),
             // https://stackoverflow.com/questions/47045788/fragment-declared-target-fragment-that-does-not-belong-to-this-fragmentmanager
             R.id.action_sync -> {
                 val dialog = DialogSelectSource.newInstance()
-                dialog.setTargetFragment(this, 0) // For passing methods from this fragment to dialog
+                dialog.setTargetFragment(
+                    this,
+                    0
+                ) // For passing methods from this fragment to dialog
                 dialog.show(requireActivity().supportFragmentManager, DialogSelectSource.name)
-            }
-
-            R.id.action_refresh -> {
-
             }
 
             R.id.action_sort_dialog -> {
                 openSortDialog()
+            }
+
+            R.id.action_view_normal_grid -> {
+                if (adapter.getViewMode() == ViewMode.NORMAL_GRID) return true
+                initRecyclerView(ViewMode.NORMAL_GRID)
+                appPreference?.setDoujinViewMode(ViewMode.NORMAL_GRID)
+            }
+
+            R.id.action_view_scaled -> {
+                if (adapter.getViewMode() == ViewMode.SCALED) return true
+                initRecyclerView(ViewMode.SCALED)
+                appPreference?.setDoujinViewMode(ViewMode.SCALED)
+            }
+
+            R.id.action_view_mini_grid -> {
+                if (adapter.getViewMode() == ViewMode.MINI_GRID) return true
+                initRecyclerView(ViewMode.MINI_GRID)
+                appPreference?.setDoujinViewMode(ViewMode.MINI_GRID)
             }
         }
         return false
@@ -133,7 +153,8 @@ class LocalDoujinsFragment : BaseFragment(),
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        initRecyclerView()
+        appPreference = MyAppPreference.getInstance(requireContext())
+        initRecyclerView(appPreference?.getDoujinViewMode() ?: ViewMode.SCALED)
 
         if (savedInstanceState != null) {
             val shouldRestartActionMode = savedInstanceState.getBoolean(ACTION_MODE, false)
@@ -172,24 +193,27 @@ class LocalDoujinsFragment : BaseFragment(),
                 sortingIndicator.visibility = View.GONE
             }
         })
-
-        viewModel.refreshResult().observe(viewLifecycleOwner, Observer {
-            if (it != null) {
-                snackbar(it)
-            }
-        })
     }
 
-    private fun initRecyclerView() {
-        adapter = LocalDoujinsAdapter(this)
-        adapter.setHasStableIds(true)
-
-        // StateRestorationPolicy is in alpha stage
+    private fun initRecyclerView(viewMode: ViewMode) {
+        adapter.setViewMode(viewMode)
         adapter.stateRestorationPolicy = StateRestorationPolicy.PREVENT_WHEN_EMPTY
 
         val spanCount = when (resources.configuration.orientation) {
-            Configuration.ORIENTATION_PORTRAIT -> 2
-            Configuration.ORIENTATION_LANDSCAPE -> 4
+            Configuration.ORIENTATION_PORTRAIT -> {
+                when (viewMode) {
+                    ViewMode.NORMAL_GRID -> 2
+                    ViewMode.MINI_GRID -> 3
+                    ViewMode.SCALED -> 2
+                }
+            }
+            Configuration.ORIENTATION_LANDSCAPE -> {
+                when (viewMode) {
+                    ViewMode.NORMAL_GRID -> 4
+                    ViewMode.MINI_GRID -> 5
+                    ViewMode.SCALED -> 4
+                }
+            }
             else -> 2
         }
 
@@ -198,12 +222,13 @@ class LocalDoujinsFragment : BaseFragment(),
         listLocalDoujins.swapAdapter(adapter, false)
         listLocalDoujins.layoutManager = gridLayoutManager
 
-        val itemDecoration = GridItemDecoration(spanCount, 10, includeEdge = true)
-
-        listLocalDoujins.addItemDecoration(itemDecoration)
+        // Prevent the same decor from stacking on top of each other.
+        if (listLocalDoujins.itemDecorationCount == 0) {
+            val itemDecoration = GridItemDecoration(spanCount, 10, includeEdge = true)
+            listLocalDoujins.addItemDecoration(itemDecoration)
+        }
 
         listLocalDoujins.setHasFixedSize(true)
-
         listLocalDoujins.itemAnimator = null
 
         viewModel.doujinList().observe(viewLifecycleOwner, Observer { newList ->
@@ -241,6 +266,7 @@ class LocalDoujinsFragment : BaseFragment(),
         override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
             when (item?.itemId) {
                 R.id.action_bookmark -> {
+                    viewModel.fetchBookmarkGroup()
                     val dialog = DialogBookmarkItems.newInstance()
                     dialog.show(childFragmentManager, ADD_BOOKMARK_DIALOG)
                 }

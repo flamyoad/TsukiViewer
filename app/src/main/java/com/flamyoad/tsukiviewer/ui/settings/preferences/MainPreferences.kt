@@ -84,6 +84,7 @@ class MainPreferences : PreferenceFragmentCompat(), SharedPreferences.OnSharedPr
         const val USE_WINDOWS_EXPLORER_SORT = "pref_use_windows_explorer_sort"
         const val SCROLL_BY_VOLUME_BUTTONS = "pref_scroll_by_volume_button"
         const val COLLECTION_VIEW_STYLE = "pref_collection_view_style"
+        const val DOUJIN_VIEW_MODE = "pref_doujin_view_mode"
     }
 }
 

@@ -18,13 +18,12 @@ import com.flamyoad.tsukiviewer.adapter.CollectionPickerAdapter
 import com.flamyoad.tsukiviewer.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.ui.doujinpage.BookmarkGroupDialogListener
 
+
 class DialogBookmarkItems : DialogFragment(), BookmarkGroupDialogListener {
 
     private val viewModel: LocalDoujinViewModel by activityViewModels()
 
     private val collectionAdapter: CollectionPickerAdapter = CollectionPickerAdapter(this)
-
-    private val collectionTickStatus = hashMapOf<BookmarkGroup, Boolean>()
 
     private lateinit var btnSave: Button
     private lateinit var btnCancel: Button
@@ -49,18 +48,17 @@ class DialogBookmarkItems : DialogFragment(), BookmarkGroupDialogListener {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        viewModel.bookmarkGroupList.observe(this, Observer {
-            collectionAdapter.setList(it)
+        viewModel.bookmarkGroupList.observe(this, Observer { bookmarkGroups ->
+            val newList = bookmarkGroups.map {
+                it.copy(isTicked = viewModel.bookmarkGroupTickStatus.get(it.name) ?: false)
+            }
+            collectionAdapter.setList(newList)
         })
 
         setRecyclerviewSize()
 
         btnSave.setOnClickListener {
-            val bookmarkGroups = collectionTickStatus
-                .filter { x -> x.value == true }
-                .map { x -> x.key }
-
-            viewModel.insertItemIntoTickedCollections(bookmarkGroups)
+            viewModel.insertItemIntoTickedCollections()
             this.dismiss()
 
             // Cancels action mode
@@ -91,11 +89,11 @@ class DialogBookmarkItems : DialogFragment(), BookmarkGroupDialogListener {
     }
 
     override fun onBookmarkGroupTicked(collection: BookmarkGroup) {
-        collectionTickStatus.put(collection, true)
+        viewModel.bookmarkGroupTickStatus.put(collection.name, true)
     }
 
     override fun onBookmarkGroupUnticked(collection: BookmarkGroup) {
-        collectionTickStatus.put(collection, false)
+        viewModel.bookmarkGroupTickStatus.put(collection.name, false)
     }
 
     override fun onAddBookmarkGroup() {

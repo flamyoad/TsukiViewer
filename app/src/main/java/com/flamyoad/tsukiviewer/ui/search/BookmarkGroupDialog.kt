@@ -21,6 +21,7 @@ import com.flamyoad.tsukiviewer.ui.doujinpage.DialogCollectionList
 import com.flamyoad.tsukiviewer.ui.doujinpage.DialogNewCollection
 
 class BookmarkGroupDialog : DialogFragment(), BookmarkGroupDialogListener {
+
     companion object {
         fun newInstance() = BookmarkGroupDialog()
     }
@@ -28,8 +29,6 @@ class BookmarkGroupDialog : DialogFragment(), BookmarkGroupDialogListener {
     private val viewModel: SearchResultViewModel by activityViewModels()
 
     private val collectionAdapter: CollectionPickerAdapter = CollectionPickerAdapter(this)
-
-    private val collectionTickStatus = hashMapOf<BookmarkGroup, Boolean>()
 
     private lateinit var btnSave: Button
     private lateinit var btnCancel: Button
@@ -54,18 +53,17 @@ class BookmarkGroupDialog : DialogFragment(), BookmarkGroupDialogListener {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        viewModel.bookmarkGroupList.observe(this, Observer {
-            collectionAdapter.setList(it)
+        viewModel.bookmarkGroupList.observe(this, Observer { bookmarkGroups ->
+            val newList = bookmarkGroups.map {
+                it.copy(isTicked = viewModel.bookmarkGroupTickStatus.get(it.name) ?: false)
+            }
+            collectionAdapter.setList(newList)
         })
 
         setRecyclerviewSize()
 
         btnSave.setOnClickListener {
-            val bookmarkGroups = collectionTickStatus
-                .filter { x -> x.value == true }
-                .map { x -> x.key }
-
-            viewModel.insertItemIntoTickedCollections(bookmarkGroups)
+            viewModel.insertItemIntoTickedCollections()
             this.dismiss()
         }
 
@@ -93,11 +91,11 @@ class BookmarkGroupDialog : DialogFragment(), BookmarkGroupDialogListener {
     }
 
     override fun onBookmarkGroupTicked(collection: BookmarkGroup) {
-        collectionTickStatus.put(collection, true)
+        viewModel.bookmarkGroupTickStatus.put(collection.name, true)
     }
 
     override fun onBookmarkGroupUnticked(collection: BookmarkGroup) {
-        collectionTickStatus.put(collection, false)
+        viewModel.bookmarkGroupTickStatus.put(collection.name, false)
     }
 
     override fun onAddBookmarkGroup() {
@@ -106,6 +104,4 @@ class BookmarkGroupDialog : DialogFragment(), BookmarkGroupDialogListener {
         val dialog = DialogNewCollection()
         dialog.show(parentFragmentManager, DialogCollectionList.NEW_COLLECTION_DIALOG)
     }
-
-
 }

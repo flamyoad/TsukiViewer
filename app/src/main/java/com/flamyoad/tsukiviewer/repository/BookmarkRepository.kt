@@ -21,7 +21,6 @@ class BookmarkRepository(private val context: Context) {
     private val db: AppDatabase = AppDatabase.getInstance(context)
 
     val groupDao: BookmarkGroupDao
-
     val itemDao: BookmarkItemDao
 
     init {
@@ -57,7 +56,7 @@ class BookmarkRepository(private val context: Context) {
         return groupDao.exists(name)
     }
 
-    suspend fun getAllCollectionsFrom(absolutePath: File): List<BookmarkGroup> {
+    suspend fun getAllGroupsFrom(absolutePath: File): List<BookmarkGroup> {
         val collections = groupDao.getAllBlocking()
         val names = groupDao.getCollectionNamesFrom(absolutePath)
 
@@ -113,11 +112,11 @@ class BookmarkRepository(private val context: Context) {
     // Returns: Snackbar message to be shown to user indicating the number of insert and delete
     suspend fun wipeAndInsertNew(
         absolutePath: File,
-        hashMap: HashMap<BookmarkGroup, Boolean>
+        hashMap: HashMap<String, Boolean>
     ): String {
         val namesOfCollectionsToRemoveFrom = hashMap
             .filter { kvp -> kvp.value == false }
-            .map { kvp -> kvp.key.name }
+            .map { kvp -> kvp.key }
 
         val dateAdded = Instant.now().toEpochMilli()
 
@@ -127,19 +126,13 @@ class BookmarkRepository(private val context: Context) {
                 BookmarkItem(
                     id = null,
                     absolutePath = absolutePath,
-                    parentName = kvp.key.name,
+                    parentName = kvp.key,
                     dateAdded = dateAdded
                 )
             }
 
         return db.withTransaction {
             try {
-                var deleteCount = 0
-                for (name in namesOfCollectionsToRemoveFrom) {
-                    val count = itemDao.delete(absolutePath, name)
-                    deleteCount += count
-                }
-
                 var insertCount = 0
                 for (item in itemsToInsert) {
                     if (itemDao.exists(item.absolutePath, item.parentName)) {
@@ -150,6 +143,12 @@ class BookmarkRepository(private val context: Context) {
                             insertCount++
                         }
                     }
+                }
+
+                var deleteCount = 0
+                for (name in namesOfCollectionsToRemoveFrom) {
+                    val count = itemDao.delete(absolutePath, name)
+                    deleteCount += count
                 }
 
                 // Example message:  Added into 1 collection. Removed from 1 collection.
@@ -173,15 +172,15 @@ class BookmarkRepository(private val context: Context) {
         }
     }
 
-    suspend fun insertAllItems(doujinList: List<Doujin>, groupList: List<BookmarkGroup>): String {
+    suspend fun insertAllItems(doujinList: List<Doujin>, groupNames: List<String>): String {
         val dateAdded = Instant.now().toEpochMilli()
 
-        val itemsToInsert = groupList.flatMap { group ->
+        val itemsToInsert = groupNames.flatMap { groupName ->
             doujinList.map { doujin ->
                 BookmarkItem(
                     id = null,
                     absolutePath = doujin.path,
-                    parentName = group.name,
+                    parentName = groupName,
                     dateAdded = dateAdded
                 )
             }

@@ -18,9 +18,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.ActionModeListener
+import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.model.Doujin
+import com.flamyoad.tsukiviewer.model.ViewMode
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
 import com.flamyoad.tsukiviewer.ui.home.collections.CollectionFragment
 import com.flamyoad.tsukiviewer.ui.home.collections.DialogCollectionInfo
@@ -41,7 +43,12 @@ class CollectionDoujinsActivity : AppCompatActivity(),
 
     private val viewModel: CollectionDoujinsViewModel by viewModels()
 
-    private lateinit var adapter: LocalDoujinsAdapter
+    private val adapter = LocalDoujinsAdapter(this).apply {
+        setHasStableIds(true)
+        stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
+    }
+
+    private var appPreference = MyAppPreference.getInstance(this)
 
     private var searchView: SearchView? = null
     private var actionMode: ActionMode? = null
@@ -54,7 +61,8 @@ class CollectionDoujinsActivity : AppCompatActivity(),
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_collection_doujins)
         initToolbar()
-        initRecyclerView()
+
+        initRecyclerView(appPreference.getDoujinViewMode())
 
         viewModel.snackbarText.observe(this, Observer { text ->
             if (text.isBlank()) return@Observer
@@ -119,6 +127,24 @@ class CollectionDoujinsActivity : AppCompatActivity(),
                 val dialog = DialogCollectionInfo.newInstance(collectionId)
                 dialog.show(supportFragmentManager, DialogCollectionInfo.NAME)
             }
+
+            R.id.action_view_normal_grid -> {
+                if (adapter.getViewMode() == ViewMode.NORMAL_GRID) return true
+                initRecyclerView(ViewMode.NORMAL_GRID)
+                appPreference.setDoujinViewMode(ViewMode.NORMAL_GRID)
+            }
+
+            R.id.action_view_scaled -> {
+                if (adapter.getViewMode() == ViewMode.SCALED) return true
+                initRecyclerView(ViewMode.SCALED)
+                appPreference.setDoujinViewMode(ViewMode.SCALED)
+            }
+
+            R.id.action_view_mini_grid -> {
+                if (adapter.getViewMode() == ViewMode.MINI_GRID) return true
+                initRecyclerView(ViewMode.MINI_GRID)
+                appPreference.setDoujinViewMode(ViewMode.MINI_GRID)
+            }
         }
         return true
     }
@@ -152,21 +178,28 @@ class CollectionDoujinsActivity : AppCompatActivity(),
         txtCriterias.text = criterias
     }
 
-    private fun initRecyclerView() {
+    private fun initRecyclerView(viewMode: ViewMode) {
+        adapter.setViewMode(viewMode)
+
         val spanCount = when (resources.configuration.orientation) {
-            Configuration.ORIENTATION_PORTRAIT -> 2
-            Configuration.ORIENTATION_LANDSCAPE -> 4
+            Configuration.ORIENTATION_PORTRAIT -> {
+                when (viewMode) {
+                    ViewMode.NORMAL_GRID -> 2
+                    ViewMode.MINI_GRID -> 3
+                    ViewMode.SCALED -> 2
+                }
+            }
+            Configuration.ORIENTATION_LANDSCAPE -> {
+                when (viewMode) {
+                    ViewMode.NORMAL_GRID -> 4
+                    ViewMode.MINI_GRID -> 5
+                    ViewMode.SCALED -> 4
+                }
+            }
             else -> 2
         }
 
         val gridLayoutManager = GridLayoutManager(this, spanCount)
-
-        adapter = LocalDoujinsAdapter(this)
-
-        adapter.apply {
-            setHasStableIds(true)
-            stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
-        }
 
         listDoujins.adapter = adapter
         listDoujins.layoutManager = gridLayoutManager
@@ -210,6 +243,7 @@ class CollectionDoujinsActivity : AppCompatActivity(),
         override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
             when (item?.itemId) {
                 R.id.action_bookmark -> {
+                    viewModel.fetchBookmarkGroup()
                     val dialog = BookmarkGroupDialog.newInstance()
                     dialog.show(supportFragmentManager, ADD_BOOKMARK_DIALOG)
                 }

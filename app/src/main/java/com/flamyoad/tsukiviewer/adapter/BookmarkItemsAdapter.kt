@@ -19,24 +19,32 @@ import com.flamyoad.tsukiviewer.model.BookmarkItem
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.ui.doujinpage.DoujinDetailsActivity
 import com.flamyoad.tsukiviewer.ActionModeListener
+import com.flamyoad.tsukiviewer.model.ViewMode
 import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
 
 class BookmarkItemsAdapter(
     private val actionListener: ActionModeListener<BookmarkItem>,
     var actionModeEnabled: Boolean
 
-) : ListAdapter<BookmarkItem, BookmarkItemsAdapter.BookmarkViewHolder>(BookmarkDiffCallback()),
-    RecyclerViewFastScroller.OnPopupTextUpdate {
+) : ListAdapter<BookmarkItem, BookmarkItemsAdapter.BookmarkViewHolder>(BookmarkDiffCallback()) {
+
+    private var viewMode: ViewMode = ViewMode.NORMAL_GRID
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BookmarkViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.doujin_list_item, parent, false)
+        val inflater = LayoutInflater.from(parent.context)
 
-        val coverImage: ImageView = view.findViewById(R.id.imgCover)
+        val layout = when (viewType) {
+            ViewMode.NORMAL_GRID.toInt() -> inflater.inflate(R.layout.doujin_list_item_grid, parent, false)
+            ViewMode.SCALED.toInt() -> inflater.inflate(R.layout.doujin_list_item_scaled, parent, false)
+            ViewMode.MINI_GRID.toInt() -> inflater.inflate(R.layout.doujin_list_item_grid, parent, false)
+            else -> throw IllegalArgumentException("Illegal view type")
+        }
 
-        val holder = BookmarkViewHolder(view)
+        val coverImage: ImageView = layout.findViewById(R.id.imgCover)
 
-        view.setOnClickListener {
+        val holder = BookmarkViewHolder(layout)
+
+        layout.setOnClickListener {
             val itemIndex = holder.adapterPosition
             val item = getItem(itemIndex)
 
@@ -57,7 +65,7 @@ class BookmarkItemsAdapter(
             }
         }
 
-        view.setOnLongClickListener {
+        layout.setOnLongClickListener {
             if (!actionModeEnabled) {
                 val zoomIn = AnimationUtils.loadAnimation(it.context, R.anim.doujin_img_zoom_in)
                 val zoomOut = AnimationUtils.loadAnimation(it.context, R.anim.doujin_img_zoom_out)
@@ -80,13 +88,22 @@ class BookmarkItemsAdapter(
     }
 
     override fun onBindViewHolder(holder: BookmarkViewHolder, position: Int) {
-        Log.d("debuff", "onBindViewHolder called for position $position")
         holder.bind(getItem(position))
     }
 
     override fun getItemId(position: Int): Long {
         return getItem(position).id ?: -1
     }
+
+    override fun getItemViewType(position: Int): Int {
+        return viewMode.toInt()
+    }
+
+    fun setViewMode(mode: ViewMode) {
+        this.viewMode = mode
+    }
+
+    fun getViewMode() = viewMode
 
     inner class BookmarkViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val coverImg: ImageView = itemView.findViewById(R.id.imgCover)
@@ -134,10 +151,6 @@ class BookmarkItemsAdapter(
         intent.putExtra(LocalDoujinsAdapter.DOUJIN_NAME, doujin.title)
 
         context.startActivity(intent)
-    }
-
-    override fun onChange(position: Int): CharSequence {
-        return ""
     }
 }
 

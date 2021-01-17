@@ -67,7 +67,9 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
 
     val snackbarText = MutableLiveData<String>("")
 
-    val bookmarkGroupList: LiveData<List<BookmarkGroup>>
+    val bookmarkGroupList = MutableLiveData<List<BookmarkGroup>>()
+
+    val bookmarkGroupTickStatus = hashMapOf<String, Boolean>()
 
     init {
         pathDao = db.includedFolderDao()
@@ -76,7 +78,10 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
         doujinTagDao = db.doujinTagDao()
 
         includedPathList = pathDao.getAll()
-        bookmarkGroupList = bookmarkRepo.getAllGroups()
+
+        viewModelScope.launch(Dispatchers.IO) {
+            bookmarkGroupList.postValue(bookmarkRepo.getAllGroupsBlocking())
+        }
     }
 
     fun submitQuery(keyword: String, tags: String, shouldIncludeAllTags: Boolean) {
@@ -350,9 +355,52 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
         return selectedDoujins.toList()
     }
 
-    fun insertItemIntoTickedCollections(bookmarkGroups: List<BookmarkGroup>) {
+    fun fetchBookmarkGroup() {
+        bookmarkGroupTickStatus.clear()
+
+        if (selectedDoujins.size == 1) {
+            val doujinPath = selectedDoujins.first().path
+
+            viewModelScope.launch(Dispatchers.IO) {
+                val tickedBookmarkGroups = bookmarkRepo.getAllGroupsFrom(doujinPath)
+                withContext(Dispatchers.Main) {
+                    for (group in tickedBookmarkGroups) {
+                        if (group.isTicked) {
+                            bookmarkGroupTickStatus.put(group.name, true)
+                        }
+                    }
+                    bookmarkGroupList.value = tickedBookmarkGroups
+                }
+            }
+        } else {
+            viewModelScope.launch(Dispatchers.IO) {
+                val allBookmarkGroups = bookmarkRepo.getAllGroupsBlocking()
+                withContext(Dispatchers.Main) {
+                    bookmarkGroupList.value = allBookmarkGroups
+                }
+            }
+        }
+    }
+
+    fun insertItemIntoTickedCollections() {
+        val tickedItems = bookmarkGroupTickStatus
+            .filter { x -> x.value == true }
+            .map { x -> x.key }
+
+        val untickedItems = bookmarkGroupTickStatus
+            .filter { x -> x.value == false }
+            .map { x -> x.key }
+
+        val bookmarkGroupsToBeAdded = tickedItems.minus(untickedItems)
+
         viewModelScope.launch(Dispatchers.IO) {
-            val status = bookmarkRepo.insertAllItems(selectedDoujins.toList(), bookmarkGroups)
+            val status: String
+            if (selectedDoujins.size == 1) {
+                val doujinPath = selectedDoujins.first().path
+                status = bookmarkRepo.wipeAndInsertNew(doujinPath, bookmarkGroupTickStatus)
+            } else {
+                status = bookmarkRepo.insertAllItems(selectedDoujins.toList(), bookmarkGroupsToBeAdded)
+            }
 
             withContext(Dispatchers.Main) {
                 snackbarText.value = status
