@@ -22,11 +22,8 @@ import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.IncludedPath
 import com.flamyoad.tsukiviewer.repository.BookmarkRepository
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
-import com.flamyoad.tsukiviewer.utils.toDoujin
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.flamyoad.tsukiviewer.utils.extensions.toDoujin
+import kotlinx.coroutines.*
 import java.io.File
 import java.util.*
 
@@ -109,6 +106,18 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
             withContext(Dispatchers.Main) {
                 isLoading.value = false
             }
+        }
+    }
+
+    // Used in onNewIntent. Clears out previous list for the activity since it's singleTask
+    fun clearPrevAndSubmitQuery(keyword: String, tags: String, shouldIncludeAllTags: Boolean) {
+        viewModelScope.launch {
+            loadingJob?.cancelAndJoin()
+            loadingJob = null
+
+            searchResult.value = emptyList()
+            doujinList.clear()
+            submitQuery(keyword, tags, shouldIncludeAllTags)
         }
     }
 

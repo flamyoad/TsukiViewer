@@ -16,7 +16,7 @@ import androidx.transition.TransitionManager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.BottomThumbnailAdapter
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter
-import com.flamyoad.tsukiviewer.utils.toast
+import com.flamyoad.tsukiviewer.utils.extensions.toast
 import kotlinx.android.synthetic.main.activity_reader.*
 import java.io.File
 

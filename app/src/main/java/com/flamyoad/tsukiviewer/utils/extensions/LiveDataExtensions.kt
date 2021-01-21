@@ -1,4 +1,4 @@
-package com.flamyoad.tsukiviewer.utils
+package com.flamyoad.tsukiviewer.utils.extensions
 
 import androidx.lifecycle.MutableLiveData
 

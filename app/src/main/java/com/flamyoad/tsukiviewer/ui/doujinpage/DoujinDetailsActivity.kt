@@ -1,26 +1,21 @@
 package com.flamyoad.tsukiviewer.ui.doujinpage
 
-import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.viewpager.widget.ViewPager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinPagerAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
-import com.flamyoad.tsukiviewer.model.Source
-import com.flamyoad.tsukiviewer.network.FetchMetadataService
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
-import com.flamyoad.tsukiviewer.ui.home.local.SelectSourceListener
-import com.flamyoad.tsukiviewer.utils.toast
+import com.flamyoad.tsukiviewer.utils.ActivityStackUtils
+import com.flamyoad.tsukiviewer.utils.extensions.toast
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_doujin_details.*
-import java.util.*
 
 class DoujinDetailsActivity : AppCompatActivity() {
 
@@ -53,10 +48,15 @@ class DoujinDetailsActivity : AppCompatActivity() {
         })
     }
 
+    override fun onBackPressed() {
+        super.onBackPressed()
+        handleBackPress()
+    }
+
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
             android.R.id.home -> {
-                finish()
+                handleBackPress()
             }
 
             R.id.action_open_in_browser -> {
@@ -149,5 +149,10 @@ class DoujinDetailsActivity : AppCompatActivity() {
         } else {
             toast("Cannot open browser")
         }
+    }
+
+    private fun handleBackPress() {
+        finish()
+        ActivityStackUtils.popAndResumePrevActivity(this)
     }
 }

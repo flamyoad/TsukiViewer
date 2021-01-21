@@ -16,6 +16,8 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.SearchHistoryAdapter
 import com.flamyoad.tsukiviewer.model.SearchHistory
 import com.flamyoad.tsukiviewer.model.Tag
+import com.flamyoad.tsukiviewer.utils.ActivityStackUtils
+import com.flamyoad.tsukiviewer.utils.ActivityType
 import com.google.android.material.chip.Chip
 import kotlinx.android.synthetic.main.activity_search.*
 import kotlinx.android.synthetic.main.search_bar.*
@@ -141,6 +143,7 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
             putExtra(SEARCH_TAGS, tags)
             putExtra(SEARCH_INCLUDE_ALL_TAGS, includeAllTags)
         }
+
         startActivity(intent)
     }
 
@@ -153,6 +156,7 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
                     // No idea why but when you pass CharSequence in, the data is null in next activity,
                     // so I have to convert it to String before putting it in intent
                     intent.putExtra(SEARCH_TITLE, query.toString())
+
                     startActivity(intent)
                 }
                 return true
@@ -210,6 +214,7 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
             putExtra(SEARCH_TAGS, item.tags)
             putExtra(SEARCH_INCLUDE_ALL_TAGS, item.mustIncludeAllTags)
         }
+
         startActivity(intent)
     }
 

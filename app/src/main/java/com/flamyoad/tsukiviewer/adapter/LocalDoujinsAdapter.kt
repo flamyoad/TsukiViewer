@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
@@ -16,10 +15,11 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.ViewMode
 import com.flamyoad.tsukiviewer.ui.doujinpage.DoujinDetailsActivity
-import com.flamyoad.tsukiviewer.ui.doujinpage.GridViewStyle
+import com.flamyoad.tsukiviewer.utils.ActivityStackUtils
 import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
 
-class LocalDoujinsAdapter(private val listener: ActionModeListener<Doujin>) :
+class LocalDoujinsAdapter(private val listener: ActionModeListener<Doujin>,
+                          private val saveActivityInfo: () -> Unit = {}) :
     RecyclerView.Adapter<LocalDoujinsAdapter.DoujinViewHolder>(),
     RecyclerViewFastScroller.OnPopupTextUpdate {
 
@@ -65,6 +65,12 @@ class LocalDoujinsAdapter(private val listener: ActionModeListener<Doujin>) :
                         putExtra(DOUJIN_FILE_PATH, doujin.path.toString())
                         putExtra(DOUJIN_NAME, doujin.title)
                     }
+
+                    if (ActivityStackUtils.shouldStartWithClearTop(context)) {
+                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    }
+
+                    saveActivityInfo()
                     context.startActivity(intent)
                 }
             }

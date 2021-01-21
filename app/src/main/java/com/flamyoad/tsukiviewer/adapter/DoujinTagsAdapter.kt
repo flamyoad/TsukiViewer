@@ -10,9 +10,11 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.ui.search.SearchActivity
 import com.flamyoad.tsukiviewer.ui.search.SearchResultActivity
+import com.flamyoad.tsukiviewer.utils.ActivityStackUtils
 import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
 
-class DoujinTagsAdapter(private val useLargerView: Boolean) :
+class DoujinTagsAdapter(private val useLargerView: Boolean,
+                        private val saveActivityInfo: () -> Unit = {}) :
     RecyclerView.Adapter<DoujinTagsAdapter.DoujinTagHolder>(),
     FastScrollRecyclerView.SectionedAdapter {
 
@@ -38,9 +40,15 @@ class DoujinTagsAdapter(private val useLargerView: Boolean) :
 
             val context = parent.context
 
-            val intent = Intent(context, SearchResultActivity::class.java)
-            intent.putExtra(SearchActivity.SEARCH_TAGS, tag.name)
+            val intent = Intent(context, SearchResultActivity::class.java).apply {
+                putExtra(SearchActivity.SEARCH_TAGS, tag.name)
+            }
 
+            if (ActivityStackUtils.shouldStartWithClearTop(context)) {
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+
+            saveActivityInfo()
             context.startActivity(intent)
         }
 

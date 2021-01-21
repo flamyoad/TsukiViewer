@@ -1,10 +1,8 @@
 package com.flamyoad.tsukiviewer.ui.search
 
-import android.app.ActivityManager
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -13,22 +11,21 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
 import androidx.appcompat.widget.SearchView
-import androidx.core.app.ActivityManagerCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.flamyoad.tsukiviewer.ActionModeListener
+import com.flamyoad.tsukiviewer.utils.ActivityType
 import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.ViewMode
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
-import com.flamyoad.tsukiviewer.utils.GridItemDecoration
+import com.flamyoad.tsukiviewer.utils.ActivityStackUtils
+import com.flamyoad.tsukiviewer.utils.ui.GridItemDecoration
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_search_result.*
 import kotlinx.coroutines.Dispatchers
@@ -45,7 +42,7 @@ class SearchResultActivity : AppCompatActivity(),
 
     private val viewModel: SearchResultViewModel by viewModels()
 
-    private val adapter = LocalDoujinsAdapter(this)
+    private val adapter = LocalDoujinsAdapter(this, this::saveActivityInfo)
         .apply { setHasStableIds(true) }
 
     private var appPreference = MyAppPreference.getInstance(this)
@@ -60,15 +57,16 @@ class SearchResultActivity : AppCompatActivity(),
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search_result)
 
+//        val resumePreviousActivity = intent.getBooleanExtra(ActivityStackUtils.RESUME_PREVIOUS_ACTIVITY, false)
+//        if (resumePreviousActivity) {
+//            overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
+//        } else {
+//            overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
+//        }
+
         initRecyclerView(appPreference.getDoujinViewMode())
-
         initToolbar()
-
-        val title = intent.getStringExtra(SearchActivity.SEARCH_TITLE) ?: ""
-        val tags = intent.getStringExtra(SearchActivity.SEARCH_TAGS) ?: ""
-        val includeAllTags = intent.getBooleanExtra(SearchActivity.SEARCH_INCLUDE_ALL_TAGS, false)
-
-        viewModel.submitQuery(title, tags, includeAllTags)
+        handleIntent(getIntent())
 
         viewModel.snackbarText.observe(this, Observer { text ->
             if (text.isBlank()) return@Observer
@@ -85,8 +83,11 @@ class SearchResultActivity : AppCompatActivity(),
                 actionMode?.invalidate()
             }
         })
+    }
 
-        Log.d("debugs", "ViewModel ID: ${viewModel.hashCode()}")
+    override fun onBackPressed() {
+        super.onBackPressed()
+        handleExitActivity()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -155,7 +156,7 @@ class SearchResultActivity : AppCompatActivity(),
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            android.R.id.home -> finish()
+            android.R.id.home -> handleExitActivity()
 
             R.id.action_view_normal_grid -> {
                 if (adapter.getViewMode() == ViewMode.NORMAL_GRID) return true
@@ -176,6 +177,19 @@ class SearchResultActivity : AppCompatActivity(),
             }
         }
         return true
+    }
+
+    private fun handleExitActivity() {
+        finish()
+        ActivityStackUtils.popAndResumePrevActivity(this)
+    }
+
+    private fun handleIntent(intent: Intent?) {
+        val title = intent?.getStringExtra(SearchActivity.SEARCH_TITLE) ?: ""
+        val tags = intent?.getStringExtra(SearchActivity.SEARCH_TAGS) ?: ""
+        val includeAllTags = intent?.getBooleanExtra(SearchActivity.SEARCH_INCLUDE_ALL_TAGS, false) ?: false
+
+        viewModel.clearPrevAndSubmitQuery(title, tags, includeAllTags)
     }
 
     private fun initToolbar() {
@@ -232,7 +246,12 @@ class SearchResultActivity : AppCompatActivity(),
         listSearchedDoujins.itemAnimator = null
 
         if (listSearchedDoujins.itemDecorationCount == 0) {
-            val itemDecoration = GridItemDecoration(spanCount, 4, includeEdge = true)
+            val itemDecoration =
+                GridItemDecoration(
+                    spanCount,
+                    4,
+                    includeEdge = true
+                )
             listSearchedDoujins.addItemDecoration(itemDecoration)
         }
 
@@ -341,6 +360,10 @@ class SearchResultActivity : AppCompatActivity(),
                 }
             }
         }
+    }
+
+    private fun saveActivityInfo() {
+        ActivityStackUtils.pushNewActivityIntent(this, intent, ActivityType.SearchResultActivity)
     }
 
 }

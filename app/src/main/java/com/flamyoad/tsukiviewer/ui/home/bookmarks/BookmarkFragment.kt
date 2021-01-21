@@ -23,7 +23,7 @@ import com.flamyoad.tsukiviewer.adapter.BookmarkItemsAdapter
 import com.flamyoad.tsukiviewer.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.model.BookmarkItem
 import com.flamyoad.tsukiviewer.model.ViewMode
-import com.flamyoad.tsukiviewer.utils.GridItemDecoration
+import com.flamyoad.tsukiviewer.utils.ui.GridItemDecoration
 import kotlinx.android.synthetic.main.fragment_bookmark.*
 import java.util.*
 
@@ -222,7 +222,12 @@ class BookmarkFragment : BaseFragment(),
 
         // Prevent the same decor from stacking on top of each other.
         if (listItems.itemDecorationCount == 0) {
-            val itemDecoration = GridItemDecoration(2, 4, includeEdge = true)
+            val itemDecoration =
+                GridItemDecoration(
+                    2,
+                    4,
+                    includeEdge = true
+                )
             listItems.addItemDecoration(itemDecoration)
         }
 

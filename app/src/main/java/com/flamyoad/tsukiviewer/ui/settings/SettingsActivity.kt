@@ -10,7 +10,7 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.ui.settings.preferences.MainPreferences
-import com.flamyoad.tsukiviewer.utils.toast
+import com.flamyoad.tsukiviewer.utils.extensions.toast
 import kotlinx.android.synthetic.main.activity_settings.*
 
 private const val TOOLBAR_TITLE = "settings_toolbar_title"

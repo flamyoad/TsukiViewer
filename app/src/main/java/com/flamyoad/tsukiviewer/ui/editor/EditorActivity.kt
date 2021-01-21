@@ -9,7 +9,7 @@ import androidx.core.view.children
 import androidx.lifecycle.Observer
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.model.Tag
-import com.flamyoad.tsukiviewer.utils.toast
+import com.flamyoad.tsukiviewer.utils.extensions.toast
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup

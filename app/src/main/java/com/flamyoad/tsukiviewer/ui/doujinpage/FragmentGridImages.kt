@@ -13,7 +13,7 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter.ItemType
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
-import com.flamyoad.tsukiviewer.utils.GridItemDecoration
+import com.flamyoad.tsukiviewer.utils.ui.GridItemDecoration
 import kotlinx.android.synthetic.main.fragment_grid_images.*
 
 const val GRID_ITEM_SPAN_PORTRAIT = 3
@@ -164,7 +164,12 @@ class FragmentGridImages : Fragment() {
             listImages.removeItemDecorationAt(0)
         }
 
-        val itemDecoration = GridItemDecoration(spanCount, 4, includeEdge = false)
+        val itemDecoration =
+            GridItemDecoration(
+                spanCount,
+                4,
+                includeEdge = false
+            )
 
         listImages.addItemDecoration(itemDecoration)
 

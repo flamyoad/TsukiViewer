@@ -2,7 +2,7 @@ package com.flamyoad.tsukiviewer.model
 
 import android.net.Uri
 import androidx.core.net.toUri
-import com.flamyoad.tsukiviewer.utils.imageExtensions
+import com.flamyoad.tsukiviewer.utils.extensions.imageExtensions
 import java.io.File
 
 data class Doujin(

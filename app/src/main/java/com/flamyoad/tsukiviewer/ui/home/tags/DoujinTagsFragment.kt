@@ -1,7 +1,6 @@
 package com.flamyoad.tsukiviewer.ui.home.tags
 
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.activityViewModels
@@ -10,7 +9,6 @@ import com.flamyoad.tsukiviewer.BaseFragment
 
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.model.TagType
-import com.flamyoad.tsukiviewer.utils.SimpleDialog
 import com.google.android.material.tabs.TabLayoutMediator
 import kotlinx.android.synthetic.main.fragment_doujin_tags.*
 

@@ -24,8 +24,7 @@ import com.flamyoad.tsukiviewer.model.Source
 import com.flamyoad.tsukiviewer.model.ViewMode
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
 import com.flamyoad.tsukiviewer.ui.search.SearchActivity
-import com.flamyoad.tsukiviewer.utils.GridItemDecoration
-import com.flamyoad.tsukiviewer.utils.snackbar
+import com.flamyoad.tsukiviewer.utils.ui.GridItemDecoration
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_local_doujins.*
 import kotlinx.coroutines.Dispatchers
@@ -224,7 +223,12 @@ class LocalDoujinsFragment : BaseFragment(),
 
         // Prevent the same decor from stacking on top of each other.
         if (listLocalDoujins.itemDecorationCount == 0) {
-            val itemDecoration = GridItemDecoration(spanCount, 10, includeEdge = true)
+            val itemDecoration =
+                GridItemDecoration(
+                    spanCount,
+                    10,
+                    includeEdge = true
+                )
             listLocalDoujins.addItemDecoration(itemDecoration)
         }
 

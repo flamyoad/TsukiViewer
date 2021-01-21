@@ -3,7 +3,6 @@ package com.flamyoad.tsukiviewer.ui.home.collections.doujins
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -26,7 +25,7 @@ import com.flamyoad.tsukiviewer.model.ViewMode
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
 import com.flamyoad.tsukiviewer.ui.home.collections.CollectionFragment
 import com.flamyoad.tsukiviewer.ui.home.collections.DialogCollectionInfo
-import com.flamyoad.tsukiviewer.utils.GridItemDecoration
+import com.flamyoad.tsukiviewer.utils.ui.GridItemDecoration
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_collection_doujins.*
 import kotlinx.coroutines.Dispatchers
@@ -206,7 +205,12 @@ class CollectionDoujinsActivity : AppCompatActivity(),
         listDoujins.setHasFixedSize(true)
         listDoujins.itemAnimator = null
 
-        val itemDecoration = GridItemDecoration(spanCount, 4, includeEdge = true)
+        val itemDecoration =
+            GridItemDecoration(
+                spanCount,
+                4,
+                includeEdge = true
+            )
 
         listDoujins.addItemDecoration(itemDecoration)
 
