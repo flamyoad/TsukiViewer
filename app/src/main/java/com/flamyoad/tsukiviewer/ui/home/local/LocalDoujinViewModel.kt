@@ -22,7 +22,6 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.*
 
-
 class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app) {
     private val metadataRepo = MetadataRepository(app)
     private val bookmarkRepo = BookmarkRepository(app)
@@ -110,8 +109,6 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
     private fun loadDoujinsFromDir() {
         loadingJob = viewModelScope.launch {
             isLoading.value = true
-
-            val prevListSize = doujinListBuffer.size
 
             withContext(Dispatchers.IO) {
                 includedDirectories = metadataRepo.pathDao.getAllBlocking()
@@ -207,14 +204,6 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
                 shouldResetSelections = false
             }
         }
-    }
-
-    fun refresh() {
-        loadingJob?.cancel()
-        loadingJob = null
-        doujinListBuffer.clear()
-
-        loadDoujinsFromDir()
     }
 
     fun fetchMetadata(sourceFlags: EnumSet<Source>) {
@@ -421,4 +410,3 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
     }
 
 }
-
