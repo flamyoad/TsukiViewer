@@ -1,18 +1,14 @@
 package com.flamyoad.tsukiviewer.utils
 
 // Contains intents of the activities in back stack (DoujinDetailsActivity.kt and SearchResultActivity.kt)
-data class ActivityHistory(
-    val dirPath: String = "",
-    val doujinName: String = "",
+sealed class ActivityHistory {
 
-    val tags: String = "",
-    val title: String = "",
-    val includeAllTags: Boolean = false,
+    data class DoujinDetailsActivity(val dirPath: String = "", val doujinName: String = "") :
+        ActivityHistory()
 
-    val activityType: ActivityType
-)
-
-enum class ActivityType {
-    DoujinDetailsActivity,
-    SearchResultActivity,
+    data class SearchResultActivity(
+        val tags: String = "",
+        val title: String = "",
+        val includeAllTags: Boolean = false
+    ) : ActivityHistory()
 }

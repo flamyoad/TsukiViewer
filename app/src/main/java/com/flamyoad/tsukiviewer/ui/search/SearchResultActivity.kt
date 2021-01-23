@@ -17,13 +17,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.ActionModeListener
-import com.flamyoad.tsukiviewer.utils.ActivityType
 import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.ViewMode
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
+import com.flamyoad.tsukiviewer.utils.ActivityHistory
 import com.flamyoad.tsukiviewer.utils.ActivityStackUtils
 import com.flamyoad.tsukiviewer.utils.ui.GridItemDecoration
 import com.google.android.material.snackbar.Snackbar
@@ -363,7 +363,7 @@ class SearchResultActivity : AppCompatActivity(),
     }
 
     private fun saveActivityInfo() {
-        ActivityStackUtils.pushNewActivityIntent(this, intent, ActivityType.SearchResultActivity)
+        ActivityStackUtils.pushNewActivityIntent(this, intent, ActivityHistory.SearchResultActivity())
     }
 
 }

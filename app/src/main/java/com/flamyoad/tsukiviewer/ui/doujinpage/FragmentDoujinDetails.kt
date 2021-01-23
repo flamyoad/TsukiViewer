@@ -10,7 +10,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import com.bumptech.glide.Glide
-import com.flamyoad.tsukiviewer.utils.ActivityType
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinTagsAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
@@ -20,6 +19,7 @@ import com.flamyoad.tsukiviewer.model.Source
 import com.flamyoad.tsukiviewer.network.FetchMetadataService
 import com.flamyoad.tsukiviewer.ui.home.local.DialogSelectSource
 import com.flamyoad.tsukiviewer.ui.home.local.SelectSourceListener
+import com.flamyoad.tsukiviewer.utils.ActivityHistory
 import com.flamyoad.tsukiviewer.utils.ActivityStackUtils
 import com.flamyoad.tsukiviewer.utils.TimeUtils
 import com.google.android.flexbox.FlexDirection
@@ -209,7 +209,7 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
         ActivityStackUtils.pushNewActivityIntent(
             requireContext(),
             intent,
-            ActivityType.DoujinDetailsActivity
+            ActivityHistory.DoujinDetailsActivity()
         )
     }
 

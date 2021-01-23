@@ -17,7 +17,6 @@ import com.flamyoad.tsukiviewer.adapter.SearchHistoryAdapter
 import com.flamyoad.tsukiviewer.model.SearchHistory
 import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.utils.ActivityStackUtils
-import com.flamyoad.tsukiviewer.utils.ActivityType
 import com.google.android.material.chip.Chip
 import kotlinx.android.synthetic.main.activity_search.*
 import kotlinx.android.synthetic.main.search_bar.*

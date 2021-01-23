@@ -30,27 +30,24 @@ object ActivityStackUtils {
      */
     private var topClearedAtLeastOnce: Boolean = false
 
-    fun pushNewActivityIntent(context: Context, intent: Intent, activityType: ActivityType) {
+    fun pushNewActivityIntent(context: Context, intent: Intent, emptyHistory: ActivityHistory) {
         val application = context.applicationContext as MyApplication
 
-        val activityHistory = when (activityType) {
-            ActivityType.DoujinDetailsActivity -> {
-                ActivityHistory(
+        val activityHistory = when (emptyHistory) {
+            is ActivityHistory.DoujinDetailsActivity -> {
+                ActivityHistory.DoujinDetailsActivity(
                     dirPath = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH) ?: return,
-                    doujinName = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_NAME) ?: return,
-                    activityType = activityType
+                    doujinName = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_NAME) ?: return
                 )
             }
-            ActivityType.SearchResultActivity -> {
-                ActivityHistory(
+            is ActivityHistory.SearchResultActivity -> {
+                ActivityHistory.SearchResultActivity(
                     tags = intent.getStringExtra(SearchActivity.SEARCH_TAGS) ?: "",
                     title = intent.getStringExtra(SearchActivity.SEARCH_TITLE) ?: "",
-                    includeAllTags = intent.getBooleanExtra(SearchActivity.SEARCH_INCLUDE_ALL_TAGS, false),
-                    activityType = activityType
+                    includeAllTags = intent.getBooleanExtra(SearchActivity.SEARCH_INCLUDE_ALL_TAGS, false)
                 )
             }
         }
-
         application.activityStack.add(activityHistory)
     }
 
@@ -70,15 +67,15 @@ object ActivityStackUtils {
         val lastIndex = activityStack.size - 1
         val activityHistory = activityStack.removeAt(lastIndex)
 
-        val intent = when (activityHistory.activityType) {
-            ActivityType.DoujinDetailsActivity -> {
+        val intent = when (activityHistory) {
+            is ActivityHistory.DoujinDetailsActivity -> {
                 Intent(applicationContext, DoujinDetailsActivity::class.java).apply {
                     flags = FLAG_ACTIVITY_CLEAR_TOP
                     putExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH, activityHistory.dirPath)
                     putExtra(LocalDoujinsAdapter.DOUJIN_NAME, activityHistory.doujinName)
                 }
             }
-            ActivityType.SearchResultActivity -> {
+            is ActivityHistory.SearchResultActivity -> {
                 Intent(applicationContext, SearchResultActivity::class.java).apply {
                     flags = FLAG_ACTIVITY_CLEAR_TOP
                     putExtra(SearchActivity.SEARCH_TAGS, activityHistory.tags)
