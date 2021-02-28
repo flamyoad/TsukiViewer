@@ -126,4 +126,5 @@ dependencies {
     // RecyclerView Selection for Action Mode
     implementation "androidx.recyclerview:recyclerview-selection:1.0.0"
 
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.6'
 }
