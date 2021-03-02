@@ -85,7 +85,10 @@ object ActivityStackUtils {
             }
         }
 
-        applicationContext.startActivity(intent)
+        // android.util.AndroidRuntimeException: Calling startActivity() from outside of an Activity  context requires the FLAG_ACTIVITY_NEW_TASK flag. Is this really what you want?
+//        applicationContext.startActivity(intent)
+
+        context.startActivity(intent)
 
         // Ends the activity
         (context as Activity).finish()
