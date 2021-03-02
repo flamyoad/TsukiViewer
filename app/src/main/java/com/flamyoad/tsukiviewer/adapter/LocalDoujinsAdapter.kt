@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.selection.ItemDetailsLookup
 import androidx.recyclerview.selection.SelectionTracker
 import androidx.recyclerview.widget.RecyclerView
@@ -145,27 +146,22 @@ class LocalDoujinsAdapter(private val listener: ActionModeListener<Doujin>,
             itemView.findViewById(R.id.multiSelectIndicator)
 
         fun bind(doujin: Doujin) {
+            if (doujin.isSelected) {
+                multiSelectIndicator.setImageResource(R.drawable.ic_check_blue_custom)
+            } else {
+                if (multiSelectIndicator.drawable != null) {
+                    multiSelectIndicator.setImageDrawable(null) // Clear selected icon if exists previously
+                }
+            }
+
             Glide.with(itemView.context)
                 .load(doujin.pic)
                 .transition(withCrossFade())
                 .sizeMultiplier(0.75f)
                 .into(coverImg)
 
-            when (doujin.isSelected) {
-                true -> setIconVisibility(View.VISIBLE)
-                false -> setIconVisibility(View.GONE)
-            }
-
             txtTitle.text = doujin.title
             txtPageNumber.text = doujin.numberOfItems.toString()
-        }
-
-        private fun setIconVisibility(visibility: Int) {
-            when (visibility) {
-                View.VISIBLE -> multiSelectIndicator.visibility = visibility
-                View.GONE -> multiSelectIndicator.visibility = visibility
-                else -> return
-            }
         }
     }
 

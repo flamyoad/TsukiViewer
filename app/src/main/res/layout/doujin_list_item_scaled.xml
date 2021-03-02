@@ -83,10 +83,9 @@
             android:layout_gravity="top|right"
             android:layout_margin="20dp"
             android:background="@color/transparent"
-            android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/ic_check_blue_custom"
+
             tools:visibility="visible" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
