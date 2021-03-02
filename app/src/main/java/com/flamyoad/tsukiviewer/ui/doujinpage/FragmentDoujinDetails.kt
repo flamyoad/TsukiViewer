@@ -19,6 +19,8 @@ import com.flamyoad.tsukiviewer.model.Source
 import com.flamyoad.tsukiviewer.network.FetchMetadataService
 import com.flamyoad.tsukiviewer.ui.home.local.DialogSelectSource
 import com.flamyoad.tsukiviewer.ui.home.local.SelectSourceListener
+import com.flamyoad.tsukiviewer.utils.ActivityHistory
+import com.flamyoad.tsukiviewer.utils.ActivityStackUtils
 import com.flamyoad.tsukiviewer.utils.TimeUtils
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
@@ -126,7 +128,10 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
         for (i in listofTagGroups.indices) {
             val group = listofTagGroups[i]
 
-            val adapter = DoujinTagsAdapter(useLargerView = false)
+            val adapter = DoujinTagsAdapter(
+                useLargerView = false,
+                saveActivityInfo = this::saveActivityInfo
+            )
             adapter.setList(group)
 
             val flexLayoutManager = FlexboxLayoutManager(context)
@@ -199,11 +204,13 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
         dialog.show(requireActivity().supportFragmentManager, DialogSelectSource.name)
     }
 
-    companion object {
-        @JvmStatic
-        fun newInstance(): FragmentDoujinDetails {
-            return FragmentDoujinDetails()
-        }
+    private fun saveActivityInfo() {
+        val intent = requireActivity().intent
+        ActivityStackUtils.pushNewActivityIntent(
+            requireContext(),
+            intent,
+            ActivityHistory.DoujinDetailsActivity()
+        )
     }
 
     // Fetch tags/titles if details not yet exists. Otherwise, only reset the tags
@@ -214,6 +221,13 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
             FetchMetadataService.startService(requireContext(), dirPath, sources)
         } else {
             viewModel.resetTags(sources)
+        }
+    }
+
+    companion object {
+        @JvmStatic
+        fun newInstance(): FragmentDoujinDetails {
+            return FragmentDoujinDetails()
         }
     }
 }

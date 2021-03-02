@@ -7,7 +7,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.ui.settings.folderpicker.FolderPickerListener
-import com.flamyoad.tsukiviewer.utils.EmptyViewHolder
+import com.flamyoad.tsukiviewer.utils.ui.EmptyViewHolder
 import java.io.File
 
 class FolderPickerAdapter(private val listener: FolderPickerListener) :

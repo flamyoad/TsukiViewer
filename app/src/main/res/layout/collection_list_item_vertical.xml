@@ -112,7 +112,7 @@
             app:barrierDirection="bottom"
             app:constraint_referenced_ids="lblTitles, txtTitles " />
 
-        <com.flamyoad.tsukiviewer.utils.TouchDisabledRecyclerView
+        <com.flamyoad.tsukiviewer.utils.ui.TouchDisabledRecyclerView
             android:id="@+id/listIncludedTags"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -124,7 +124,7 @@
             tools:layout_height="100dp"
             tools:listitem="@layout/collection_included_tag_item" />
 
-        <com.flamyoad.tsukiviewer.utils.TouchDisabledRecyclerView
+        <com.flamyoad.tsukiviewer.utils.ui.TouchDisabledRecyclerView
             android:id="@+id/listExcludedTags"
             android:layout_width="0dp"
             android:layout_height="wrap_content"

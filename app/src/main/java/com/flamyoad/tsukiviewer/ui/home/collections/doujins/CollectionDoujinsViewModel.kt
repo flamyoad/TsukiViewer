@@ -21,7 +21,7 @@ import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.repository.BookmarkRepository
 import com.flamyoad.tsukiviewer.repository.CollectionRepository
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
-import com.flamyoad.tsukiviewer.utils.toDoujin
+import com.flamyoad.tsukiviewer.utils.extensions.toDoujin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -104,7 +104,7 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
                 if (includedTags.isEmpty() && excludedTags.isEmpty()) {
                     val existingList = (app as MyApplication).fullDoujinList
                     if (existingList != null) {
-                        searchFromExistingList(existingList.toList(), titleKeywords)
+                        searchFromExistingList(existingList.toList())
                     } else {
                         searchFromFileExplorer(titleKeywords)
                     }
@@ -212,10 +212,7 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
         }
     }
 
-    private suspend fun searchFromExistingList(
-        doujinList: List<Doujin>,
-        keywordList: List<String>
-    ) {
+    private suspend fun searchFromExistingList(doujinList: List<Doujin>) {
         for (doujin in doujinList) {
             if (doujin.hasFulfilledCriteria()) {
                 postResult(doujin)

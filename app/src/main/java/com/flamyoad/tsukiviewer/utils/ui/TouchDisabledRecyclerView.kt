@@ -1,4 +1,4 @@
-package com.flamyoad.tsukiviewer.utils
+package com.flamyoad.tsukiviewer.utils.ui
 
 import android.content.Context
 import android.util.AttributeSet

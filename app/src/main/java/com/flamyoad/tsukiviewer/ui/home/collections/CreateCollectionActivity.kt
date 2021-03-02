@@ -16,7 +16,7 @@ import com.flamyoad.tsukiviewer.adapter.CollectionFilterDirectoryAdapter
 import com.flamyoad.tsukiviewer.model.Collection
 import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.ui.search.TagSelectedListener
-import com.flamyoad.tsukiviewer.utils.toast
+import com.flamyoad.tsukiviewer.utils.extensions.toast
 import com.google.android.material.chip.Chip
 import kotlinx.android.synthetic.main.activity_create_collection.*
 import java.io.File

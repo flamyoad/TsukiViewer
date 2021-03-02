@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.model.IncludedPath
 import com.flamyoad.tsukiviewer.ui.settings.includedfolders.RemoveFolderListener
-import com.flamyoad.tsukiviewer.utils.EmptyViewHolder
+import com.flamyoad.tsukiviewer.utils.ui.EmptyViewHolder
 import java.lang.IllegalArgumentException
 
 class IncludedFolderAdapter(private val listener: RemoveFolderListener) :

@@ -15,7 +15,7 @@ import com.flamyoad.tsukiviewer.model.*
 import com.flamyoad.tsukiviewer.model.Collection
 import com.flamyoad.tsukiviewer.repository.CollectionRepository
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
-import com.flamyoad.tsukiviewer.utils.toDoujin
+import com.flamyoad.tsukiviewer.utils.extensions.toDoujin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
