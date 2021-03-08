@@ -113,6 +113,14 @@ class BookmarkItemsAdapter(
             itemView.findViewById(R.id.multiSelectIndicator)
 
         fun bind(item: BookmarkItem) {
+            if (item.isSelected) {
+                multiSelectIndicator.setImageResource(R.drawable.ic_check_blue_custom)
+            } else {
+                if (multiSelectIndicator.drawable != null) {
+                    multiSelectIndicator.setImageDrawable(null) // Clear selected icon if exists previously
+                }
+            }
+
             val doujin = item.doujin
             if (doujin != null) {
                 Glide.with(itemView.context)
@@ -123,19 +131,6 @@ class BookmarkItemsAdapter(
 
                 txtTitle.text = doujin.title
                 txtPageNumber.text = doujin.numberOfItems.toString()
-            }
-
-            when (item.isSelected) {
-                true -> setIconVisibility(View.VISIBLE)
-                false -> setIconVisibility(View.GONE)
-            }
-        }
-
-        private fun setIconVisibility(visibility: Int) {
-            when (visibility) {
-                View.VISIBLE -> multiSelectIndicator.visibility = visibility
-                View.GONE -> multiSelectIndicator.visibility = visibility
-                else -> return
             }
         }
     }

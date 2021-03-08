@@ -23,9 +23,9 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="horizontal"
+            android:background="?android:selectableItemBackground"
             android:clickable="true"
-            android:background="?android:selectableItemBackground">
+            android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/header"
@@ -33,20 +33,20 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:ellipsize="end"
+                android:gravity="center"
                 android:lines="1"
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="10dp"
                 android:textColor="@color/white"
                 android:textSize="14sp"
-                tools:text="Kotowifey"
-                android:gravity="center"/>
+                tools:text="Kotowifey" />
 
             <ImageButton
                 android:id="@+id/btnContextMenu"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:paddingHorizontal="12dp"
                 android:background="@null"
+                android:paddingHorizontal="12dp"
                 app:srcCompat="@drawable/ic_list_white_24dp" />
 
         </LinearLayout>
@@ -60,14 +60,14 @@
         app:fastScrollPopupBgColor="@color/colorAccent"
         app:fastScrollPopupTextColor="@android:color/primary_text_dark"
         app:fastScrollThumbColor="@color/colorAccent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
         android:layout_gravity="end|bottom"
+        android:layout_margin="16dp"
         app:backgroundTint="@color/nh_favourite_button_pink"
         app:srcCompat="@drawable/ic_keyboard_arrow_up_white_24dp"
         app:tint="@android:color/white" />
