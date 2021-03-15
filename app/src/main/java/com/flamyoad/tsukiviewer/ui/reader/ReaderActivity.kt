@@ -154,6 +154,11 @@ class ReaderActivity : AppCompatActivity(),
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowHomeEnabled(true)
         }
+
+        btnTab.setOnClickListener {
+            val intent = Intent(this, ReaderTabsActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun initBottomThumbnails() {
