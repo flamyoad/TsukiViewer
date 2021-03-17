@@ -3,108 +3,61 @@ package com.flamyoad.tsukiviewer.ui.reader
 import android.app.Application
 import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyAppPreference
-import com.flamyoad.tsukiviewer.utils.ImageFileFilter
-import com.flamyoad.tsukiviewer.utils.WindowsExplorerComparator
+import com.flamyoad.tsukiviewer.db.AppDatabase
+import com.flamyoad.tsukiviewer.model.RecentTab
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.util.*
 
 
 class ReaderViewModel(application: Application) : AndroidViewModel(application) {
-    private val imageList = MutableLiveData<List<File>>()
-    fun imageList(): LiveData<List<File>> = imageList
-
-    private val bottomThumbnailSelectedItem = MutableLiveData(-1)
-    fun bottomThumbnailSelectedItem(): LiveData<Int> = bottomThumbnailSelectedItem
-
     private val directoryNoLongerExists = MutableLiveData<Boolean>(false)
     fun directoryNoLongerExists(): LiveData<Boolean> = directoryNoLongerExists
 
-    private val appPreference = MyAppPreference.getInstance(application.applicationContext)
+    private val db = AppDatabase.getInstance(application)
 
-    private var shouldUseWindowsSort: Boolean = false
+    val recentTabDao = db.recentTabDao()
 
     var currentImagePosition: Int = 0
 
-    var currentPath: String = ""
+    private val currentTab = MutableLiveData<RecentTab>()
+    fun currentTab(): LiveData<RecentTab> = currentTab
 
-    var shouldScrollWithVolumeButton: Boolean
-        private set
-
-    var scrollingMode: VolumeButtonScrollMode = VolumeButtonScrollMode.Nothing
-        private set
-
-    var volumeUpAction: VolumeButtonScrollDirection = VolumeButtonScrollDirection.Nothing
-        private set
-
-    var volumeDownAction: VolumeButtonScrollDirection = VolumeButtonScrollDirection.Nothing
-        private set
-
-    var scrollDistance: Int = 0
-        private set
-
-    private val readerMode = MutableLiveData<ReaderMode>()
-    fun readerMode(): LiveData<ReaderMode> = readerMode.distinctUntilChanged()
+    val recentTabs: LiveData<List<RecentTab>>
 
     init {
-        val defaultReaderMode = appPreference.getDefaultReaderMode()
-        readerMode.value = defaultReaderMode
-
-        shouldScrollWithVolumeButton = appPreference.shouldScrollWithVolumeButton()
-
-        if (shouldScrollWithVolumeButton) {
-            scrollingMode = appPreference.getVolumeButtonScrollMode()
-            volumeUpAction = appPreference.getVolumeUpAction()
-            volumeDownAction = appPreference.getVolumeDownAction()
-            scrollDistance = appPreference.getVolumeButtonScrollDistance()
-        }
+        recentTabs = db.recentTabDao().getAll()
     }
 
-    fun scanForImages(dirPath: String) {
-        if (dirPath == currentPath) {
-            return
-        }
-        val dir = File(dirPath)
+    fun insertRecentTab(path: String) {
+        val dir = File(path)
+        val tab = RecentTab(null, dir.name, File(path), File(path))
 
-        viewModelScope.launch {
-            withContext(Dispatchers.Default) {
-                // If fetchedImages is null means directory has been renamed or deleted
-                val fetchedImages = dir.listFiles(ImageFileFilter()) ?: return@withContext
-
-                Arrays.sort(fetchedImages, object : Comparator<File> {
-                    private val NATURAL_SORT: Comparator<String> =
-                        WindowsExplorerComparator()
-
-                    override fun compare(o1: File, o2: File): Int {
-                        return NATURAL_SORT.compare(o1.name, o2.name)
-                    }
-                })
-
+        viewModelScope.launch(Dispatchers.IO) {
+            val lastExistingTab = recentTabDao.getByPath(path)
+            if (lastExistingTab != null) {
                 withContext(Dispatchers.Main) {
-                    imageList.value = fetchedImages.toList()
+                    currentTab.value = lastExistingTab
                 }
+                return@launch
+            }
+
+            val insertId = recentTabDao.insert(tab)
+            val newlyInsertedTab = recentTabDao.get(insertId)
+            withContext(Dispatchers.Main) {
+                currentTab.value = newlyInsertedTab
             }
         }
     }
 
-    fun setReaderMode(mode: ReaderMode) {
-        readerMode.value = mode
-        appPreference.setDefaultReaderMode(mode)
-    }
+    fun setCurrentTab(tabId: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val tab = recentTabDao.get(tabId)
 
-    fun onThumbnailClick(position: Int) {
-        currentImagePosition = position
-        bottomThumbnailSelectedItem.value = position
+            withContext(Dispatchers.Main) {
+                currentTab.value = tab
+            }
+        }
     }
-
-    fun getTotalImagesCount(): Int {
-        return imageList.value?.size ?: 0
-    }
-
-    fun resetBottomThumbnailState() {
-        bottomThumbnailSelectedItem.value = -1
-    }
-
 }

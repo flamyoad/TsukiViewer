@@ -5,12 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import android.view.KeyEvent
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -18,16 +15,15 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_DRAGGING
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.ReaderImageAdapter
+import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabViewModel
 import kotlinx.android.synthetic.main.fragment_vertical_strip_reader.*
 
 class VerticalStripReaderFragment : Fragment() {
-    private val viewModel: ReaderViewModel by activityViewModels()
-
-    private var listener: ReaderListener? = null
+    private val viewModel: ReaderTabViewModel by viewModels(
+        ownerProducer = { requireParentFragment() }
+    )
 
     private val imageAdapter = ReaderImageAdapter()
-
-    private lateinit var linearLayoutManager: LinearLayoutManager
 
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -45,30 +41,57 @@ class VerticalStripReaderFragment : Fragment() {
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
+    private var readerListener: ReaderListener? = null
+
+    private var viewPagerListener: ViewPagerListener? = null
+
+    private lateinit var linearLayoutManager: LinearLayoutManager
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
         return inflater.inflate(R.layout.fragment_vertical_strip_reader, container, false)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Setting up broadcast manager for volume key clicks
+        if (!viewModel.shouldScrollWithVolumeButton) {
+            return
+        }
+
+        LocalBroadcastManager
+            .getInstance(requireContext())
+            .registerReceiver(broadcastReceiver, IntentFilter(KEY_DOWN_INTENT))
+    }
+
+    override fun onPause() {
+        super.onPause()
+        LocalBroadcastManager.getInstance(requireContext())
+            .unregisterReceiver(broadcastReceiver)
     }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        try {
-            listener = context as ReaderListener
-        } catch (ignored: ClassCastException) {
-        }
+        viewPagerListener = context as ViewPagerListener
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+
+        try {
+            readerListener = parentFragment as ReaderListener
+        } catch (e: Exception) { }
+
+        listImages.setOnTouchListener { view, e ->
+            viewPagerListener?.setUserInputEnabled(false)
+            return@setOnTouchListener false
+        }
+
         initReader()
         setupPageIndicator()
-        setupBroadcastReceiver()
 
         viewModel.bottomThumbnailSelectedItem().observe(viewLifecycleOwner, Observer {
             if (!this::linearLayoutManager.isInitialized) return@Observer
@@ -78,12 +101,6 @@ class VerticalStripReaderFragment : Fragment() {
 
             viewModel.resetBottomThumbnailState()
         })
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        LocalBroadcastManager.getInstance(requireContext())
-            .unregisterReceiver(broadcastReceiver)
     }
 
     private fun initReader() {
@@ -102,7 +119,7 @@ class VerticalStripReaderFragment : Fragment() {
 
             if (viewModel.currentPath.isBlank()) {
                 linearLayoutManager.scrollToPosition(positionFromImageGrid)
-                listener?.onPageChange(positionFromImageGrid)
+                readerListener?.onPageChange(positionFromImageGrid)
             } else {
                 linearLayoutManager.scrollToPosition(viewModel.currentImagePosition)
             }
@@ -113,13 +130,13 @@ class VerticalStripReaderFragment : Fragment() {
 
     private fun setupPageIndicator() {
         val currentPage = viewModel.currentImagePosition
-        listener?.onPageChange(currentPage)
+        readerListener?.onPageChange(currentPage)
 
         listImages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
                 if (newState == SCROLL_STATE_DRAGGING) {
-                    listener?.toggleBottomSheet(View.INVISIBLE)
+                    readerListener?.toggleBottomSheet(View.INVISIBLE)
                 }
             }
 
@@ -130,26 +147,17 @@ class VerticalStripReaderFragment : Fragment() {
                 val firstVisible = linearLayoutManager.findFirstVisibleItemPosition()
 
                 if (lastCompletelyVisible != RecyclerView.NO_POSITION) {
-                    listener?.onPageChange(lastCompletelyVisible)
+                    readerListener?.onPageChange(lastCompletelyVisible)
                 } else {
-                    listener?.onPageChange(firstVisible)
+                    readerListener?.onPageChange(firstVisible)
                 }
             }
         })
     }
 
-    private fun setupBroadcastReceiver() {
-        if (!viewModel.shouldScrollWithVolumeButton) {
-            return
-        }
-
-        LocalBroadcastManager.getInstance(requireContext())
-            .registerReceiver(broadcastReceiver, IntentFilter(KEY_DOWN_INTENT))
-    }
-
     private fun handleVolumeKey(scrollDirection: VolumeButtonScrollDirection) {
         // Hides the bottom sheet when scrolling with volume button
-        listener?.toggleBottomSheet(View.GONE)
+        readerListener?.toggleBottomSheet(View.GONE)
 
         when (scrollDirection) {
             VolumeButtonScrollDirection.GoToPrevPage -> {

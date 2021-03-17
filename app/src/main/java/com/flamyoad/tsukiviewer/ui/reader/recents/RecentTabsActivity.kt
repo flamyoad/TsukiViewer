@@ -1,26 +1,27 @@
-package com.flamyoad.tsukiviewer.ui.reader
+package com.flamyoad.tsukiviewer.ui.reader.recents
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.bumptech.glide.Glide
 import com.flamyoad.tsukiviewer.R
-import com.flamyoad.tsukiviewer.adapter.ReaderTabAdapter
-import kotlinx.android.synthetic.main.activity_reader_tabs.*
+import com.flamyoad.tsukiviewer.adapter.RecentTabsAdapter
+import com.flamyoad.tsukiviewer.model.RecentTab
+import kotlinx.android.synthetic.main.activity_recent_tabs.*
 
-class ReaderTabsActivity : AppCompatActivity() {
+class RecentTabsActivity : AppCompatActivity() {
 
-    private val viewModel: ReaderTabsViewModel by viewModels()
+    private val viewModel: RecentTabsViewModel by viewModels()
 
-    private val tabAdapter = ReaderTabAdapter()
+    private val tabAdapter = RecentTabsAdapter(this::onRecentTabClick)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_reader_tabs)
+        setContentView(R.layout.activity_recent_tabs)
         initReaderHistory()
 
         window.setFlags(
@@ -42,8 +43,23 @@ class ReaderTabsActivity : AppCompatActivity() {
             layoutManager = linearLayoutManager
         }
 
+        val touchHelperCallback = RecentTabTouchHelperCallback(tabAdapter, viewModel::removeRecentTab)
+        val touchHelper = ItemTouchHelper(touchHelperCallback)
+        touchHelper.attachToRecyclerView(listTabs)
+
         viewModel.tabList.observe(this, Observer {
             tabAdapter.submitList(it)
         })
+    }
+
+    private fun onRecentTabClick(tab: RecentTab) {
+        val result = Intent()
+        result.putExtra(CHOSEN_TAB_ID, tab.id)
+        setResult(RESULT_OK, result)
+        finish()
+    }
+
+    companion object {
+        const val CHOSEN_TAB_ID = "chosen_tab_id"
     }
 }

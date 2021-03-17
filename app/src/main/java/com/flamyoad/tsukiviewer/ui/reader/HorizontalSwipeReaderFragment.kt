@@ -10,16 +10,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager.widget.ViewPager.SCROLL_STATE_DRAGGING
 import com.flamyoad.tsukiviewer.R
+import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabViewModel
 import kotlinx.android.synthetic.main.fragment_swipe_reader.*
 
 class HorizontalSwipeReaderFragment : Fragment() {
-    private val viewModel: ReaderViewModel by activityViewModels()
+    private val viewModel: ReaderTabViewModel by viewModels(
+        ownerProducer = { requireParentFragment() }
+    )
 
     private var listener: ReaderListener? = null
 
@@ -57,16 +60,13 @@ class HorizontalSwipeReaderFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_swipe_reader, container, false)
     }
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        try {
-            listener = context as ReaderListener
-        } catch (ignored: ClassCastException) {
-        }
-    }
-
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+
+        try {
+            listener = parentFragment as ReaderListener
+        } catch (e: Exception) { }
+
         initReader()
         setupPageIndicator()
         setupBroadcastReceiver()

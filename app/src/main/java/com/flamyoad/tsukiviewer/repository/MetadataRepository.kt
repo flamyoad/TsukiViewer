@@ -14,6 +14,9 @@ import com.flamyoad.tsukiviewer.model.DoujinTag
 import com.flamyoad.tsukiviewer.model.Source
 import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.network.*
+import com.flamyoad.tsukiviewer.network.api.FakkuService
+import com.flamyoad.tsukiviewer.network.api.HenNexusService
+import com.flamyoad.tsukiviewer.network.api.NHService
 import com.flamyoad.tsukiviewer.parser.HenNexusParser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -29,8 +32,8 @@ import java.util.*
 
 class MetadataRepository(private val context: Context) {
     private lateinit var nhService: NHService
-
     private lateinit var henNexusService: HenNexusService
+    private lateinit var fakkuService: FakkuService
 
     private val henNexusParser: HenNexusParser by lazy { HenNexusParser() }
 
@@ -103,6 +106,13 @@ class MetadataRepository(private val context: Context) {
             .build()
 
         henNexusService = henNexusBuilder.create(HenNexusService::class.java)
+
+//        val fakkuBuilder = Retrofit.Builder()
+//            .client(httpClient)
+//            .baseUrl(FakkuService.baseUrl)
+//            .build()
+//
+//        fakkuService = fakkuBuilder.create(FakkuService::class.java)
     }
 
     suspend fun fetchMetadata(dir: File, sources: EnumSet<Source>): FetchHistory {
