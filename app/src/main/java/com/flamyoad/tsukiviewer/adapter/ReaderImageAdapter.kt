@@ -45,11 +45,11 @@ class ReaderImageAdapter
 
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
         holder.bind(imageList[position])
-        Log.d("readerimageadapter", "onBind called for $position")
     }
 
     override fun onViewRecycled(holder: ImageViewHolder) {
         super.onViewRecycled(holder)
+        holder.recycleBitmap()
     }
 
     inner class ImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

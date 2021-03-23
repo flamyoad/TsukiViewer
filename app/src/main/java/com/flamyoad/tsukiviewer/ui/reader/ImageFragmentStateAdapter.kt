@@ -15,6 +15,13 @@ class ImageFragmentStateAdapter(fm: FragmentManager)
         notifyDataSetChanged()
     }
 
+    fun clearMemory() {
+        for (i in imageList.indices) {
+            val fragment = getItem(i) as ReaderFragmentListener
+            fragment.clearMemory()
+        }
+    }
+
     override fun getItem(position: Int): Fragment {
         val image = imageList[position]
         return ImageFragment.newInstance(image)

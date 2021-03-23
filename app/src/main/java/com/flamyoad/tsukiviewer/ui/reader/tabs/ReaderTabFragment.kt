@@ -22,6 +22,7 @@ import com.flamyoad.tsukiviewer.ui.reader.recents.RecentTabsActivity
 import com.flamyoad.tsukiviewer.utils.extensions.toast
 import kotlinx.android.synthetic.main.fragment_reader_tab.*
 import java.io.File
+import java.lang.IllegalArgumentException
 
 private const val SWIPE_READER = "swipe_reader"
 
@@ -32,6 +33,8 @@ class ReaderTabFragment : Fragment(),
     private val viewModel: ReaderTabViewModel by viewModels()
 
     private var viewPagerListener: ViewPagerListener? = null
+
+    private var readerFragmentListener: ReaderFragmentListener? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -46,9 +49,15 @@ class ReaderTabFragment : Fragment(),
         viewPagerListener = context as ViewPagerListener
     }
 
+    override fun onPause() {
+        super.onPause()
+        readerFragmentListener!!.clearMemory()
+    }
+
     override fun onResume() {
         super.onResume()
         viewPagerListener?.setUserInputEnabled(false)
+        Log.d("debuf", "onResume")
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -92,6 +101,11 @@ class ReaderTabFragment : Fragment(),
         }
     }
 
+    override fun onAttachFragment(childFragment: Fragment) {
+        super.onAttachFragment(childFragment)
+        readerFragmentListener = childFragment as ReaderFragmentListener
+    }
+
     private fun setupReader(mode: ReaderMode) {
         val currentDir = arguments?.getString(DIR_PATH) ?: ""
         val positionInGrid = arguments?.getInt(STARTING_IMAGE_POSITION, 0) ?: 0
@@ -107,7 +121,7 @@ class ReaderTabFragment : Fragment(),
                 currentDir,
                 positionInGrid
             )
-        }
+        } as Fragment
 
         childFragmentManager.beginTransaction()
             .replace(R.id.imageContainer, fragment, SWIPE_READER)

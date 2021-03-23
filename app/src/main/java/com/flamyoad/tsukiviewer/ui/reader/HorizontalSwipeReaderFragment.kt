@@ -19,7 +19,7 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabViewModel
 import kotlinx.android.synthetic.main.fragment_swipe_reader.*
 
-class HorizontalSwipeReaderFragment : Fragment() {
+class HorizontalSwipeReaderFragment : Fragment(), ReaderFragmentListener {
     private val viewModel: ReaderTabViewModel by viewModels(
         ownerProducer = { requireParentFragment() }
     )
@@ -142,5 +142,8 @@ class HorizontalSwipeReaderFragment : Fragment() {
                     putInt(POSITION_BEFORE_OPENING_READER, positionBeforeOpenReader)
                 }
             }
+    }
+
+    override fun clearMemory() {
     }
 }
