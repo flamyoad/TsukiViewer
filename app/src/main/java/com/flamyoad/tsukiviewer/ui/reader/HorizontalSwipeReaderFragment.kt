@@ -19,7 +19,7 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabViewModel
 import kotlinx.android.synthetic.main.fragment_swipe_reader.*
 
-class HorizontalSwipeReaderFragment : Fragment(), ReaderFragmentListener {
+class HorizontalSwipeReaderFragment : Fragment() {
     private val viewModel: ReaderTabViewModel by viewModels(
         ownerProducer = { requireParentFragment() }
     )
@@ -86,7 +86,7 @@ class HorizontalSwipeReaderFragment : Fragment(), ReaderFragmentListener {
     }
 
     private fun initReader() {
-        viewpager.offscreenPageLimit = 2
+        viewpager.offscreenPageLimit = 1
 
         val currentDir = arguments?.getString(CURRENT_DIR) ?: ""
         val positionFromImageGrid = arguments?.getInt(POSITION_BEFORE_OPENING_READER, 0) ?: 0
@@ -142,8 +142,5 @@ class HorizontalSwipeReaderFragment : Fragment(), ReaderFragmentListener {
                     putInt(POSITION_BEFORE_OPENING_READER, positionBeforeOpenReader)
                 }
             }
-    }
-
-    override fun clearMemory() {
     }
 }

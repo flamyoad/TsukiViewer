@@ -18,7 +18,7 @@ import com.flamyoad.tsukiviewer.adapter.ReaderImageAdapter
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabViewModel
 import kotlinx.android.synthetic.main.fragment_vertical_strip_reader.*
 
-class VerticalStripReaderFragment : Fragment(), ReaderFragmentListener {
+class VerticalStripReaderFragment : Fragment() {
     private val viewModel: ReaderTabViewModel by viewModels(
         ownerProducer = { requireParentFragment() }
     )
@@ -229,8 +229,5 @@ class VerticalStripReaderFragment : Fragment(), ReaderFragmentListener {
                     putInt(POSITION_BEFORE_OPENING_READER, positionBeforeOpenReader)
                 }
             }
-    }
-
-    override fun clearMemory() {
     }
 }

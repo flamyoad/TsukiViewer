@@ -169,14 +169,19 @@ class LocalDoujinsAdapter(
                 }
             }
 
-            Glide.with(itemView.context)
-                .load(doujin.pic)
-                .transition(withCrossFade())
-                .sizeMultiplier(0.75f)
-                .into(coverImg)
+            // Memory optimization
+            if (coverImg.drawable == null) {
+                Glide.with(itemView.context)
+                    .load(doujin.pic)
+                    .transition(withCrossFade())
+                    .skipMemoryCache(true)
+                    .sizeMultiplier(0.75f)
+                    .into(coverImg)
 
-            txtTitle.text = doujin.title
-            txtPageNumber.text = doujin.numberOfItems.toString()
+
+                txtTitle.text = doujin.title
+                txtPageNumber.text = doujin.numberOfItems.toString()
+            }
         }
     }
 

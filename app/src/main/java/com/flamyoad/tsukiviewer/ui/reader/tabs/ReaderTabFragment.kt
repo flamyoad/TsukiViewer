@@ -34,8 +34,6 @@ class ReaderTabFragment : Fragment(),
 
     private var viewPagerListener: ViewPagerListener? = null
 
-    private var readerFragmentListener: ReaderFragmentListener? = null
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -47,11 +45,6 @@ class ReaderTabFragment : Fragment(),
     override fun onAttach(context: Context) {
         super.onAttach(context)
         viewPagerListener = context as ViewPagerListener
-    }
-
-    override fun onPause() {
-        super.onPause()
-        readerFragmentListener!!.clearMemory()
     }
 
     override fun onResume() {
@@ -101,11 +94,6 @@ class ReaderTabFragment : Fragment(),
         }
     }
 
-    override fun onAttachFragment(childFragment: Fragment) {
-        super.onAttachFragment(childFragment)
-        readerFragmentListener = childFragment as ReaderFragmentListener
-    }
-
     private fun setupReader(mode: ReaderMode) {
         val currentDir = arguments?.getString(DIR_PATH) ?: ""
         val positionInGrid = arguments?.getInt(STARTING_IMAGE_POSITION, 0) ?: 0
@@ -121,7 +109,7 @@ class ReaderTabFragment : Fragment(),
                 currentDir,
                 positionInGrid
             )
-        } as Fragment
+        }
 
         childFragmentManager.beginTransaction()
             .replace(R.id.imageContainer, fragment, SWIPE_READER)

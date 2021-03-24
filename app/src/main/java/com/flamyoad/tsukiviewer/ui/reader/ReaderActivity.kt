@@ -3,6 +3,7 @@ package com.flamyoad.tsukiviewer.ui.reader
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.os.PersistableBundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.WindowManager
@@ -27,6 +28,8 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener {
     private var positionFromImageGrid = 0
 
     private var tabFragmentAdapter: ReaderTabFragmentAdapter? = null
+
+    private var savedStateViewPagerIndex: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,6 +77,16 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(VIEWPAGER_INDEX ,viewPager.currentItem)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        savedStateViewPagerIndex = savedInstanceState.getInt(VIEWPAGER_INDEX)
+    }
+
     private fun initViewPager() {
         tabFragmentAdapter = ReaderTabFragmentAdapter(this)
 
@@ -83,8 +96,8 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener {
         )
 
         viewPager.adapter = tabFragmentAdapter
-        viewPager.isUserInputEnabled = false
-        viewPager.offscreenPageLimit = 1
+
+//        viewPager.isUserInputEnabled = false
 
         viewModel.recentTabs.observe(this, Observer {
             tabFragmentAdapter?.setList(it)
@@ -97,8 +110,13 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener {
         })
 
         viewModel.currentTab().observe(this, Observer {
+            if (savedStateViewPagerIndex != -1) {
+                viewPager.setCurrentItem(savedStateViewPagerIndex, false)
+                return@Observer
+            }
+
             val position = tabFragmentAdapter?.getTabPosition(it.id ?: -1)
-            if (position != null) {
+            if (position as Int != -1) {
                 viewPager.setCurrentItem(position, false)
             }
         })
@@ -153,6 +171,7 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener {
     }
 
     companion object {
+        private const val VIEWPAGER_INDEX = "viewpager_index"
         const val RECENT_TAB_REQUEST_CODE = 101
     }
 

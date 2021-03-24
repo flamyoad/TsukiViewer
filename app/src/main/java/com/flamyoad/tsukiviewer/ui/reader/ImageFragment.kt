@@ -2,6 +2,7 @@ package com.flamyoad.tsukiviewer.ui.reader
 
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,7 +14,7 @@ import java.io.File
 
 private const val IMAGE_PATH = "imagepath"
 
-class ImageFragment : Fragment(), ReaderFragmentListener {
+class ImageFragment : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -54,9 +55,5 @@ class ImageFragment : Fragment(), ReaderFragmentListener {
                 }
             }
         }
-    }
-
-    override fun clearMemory() {
-        photoView.recycle()
     }
 }
