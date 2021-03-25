@@ -45,7 +45,6 @@ class ImageFragment : Fragment() {
             when (motionEvent.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     viewPagerListener?.setUserInputEnabled(false)
-                    return@setOnTouchListener true
                 }
                 MotionEvent.ACTION_UP -> {
                     viewPagerListener?.setUserInputEnabled(true)

@@ -131,30 +131,17 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
         viewPager.isUserInputEnabled = isEnabled
     }
 
-    override fun onBackPressed() {
-        // Hides bottom sheet and toolbar if they are present. Otherwise go back to previous activity.
+//    override fun onBackPressed() {
+////         Hides bottom sheet and toolbar if they are present. Otherwise go back to previous activity.
 //        if (bottomSheetDialog.visibility == View.VISIBLE) {
 //            toggleBottomSheet(View.INVISIBLE)
 //            return
 //        }
 //
 //        handleActivityTermination()
-        super.onBackPressed()
-        // onBackPressed() quits current activity so it must be called last.
-        // Otherwise, lines below onBackPressed() won't be called
-    }
-
-//    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-//        // Only intercept volume button events
-//        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
-//            val intent = Intent(KEY_DOWN_INTENT).apply {
-//                putExtra(KEY_CODE, keyCode)
-//            }
-//            LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
-//            return true
-//        } else {
-//            return super.onKeyDown(keyCode, event)
-//        }
+//        super.onBackPressed()
+//        // onBackPressed() quits current activity so it must be called last.
+//        // Otherwise, lines below onBackPressed() won't be called
 //    }
 
     private fun handleActivityTermination() {
