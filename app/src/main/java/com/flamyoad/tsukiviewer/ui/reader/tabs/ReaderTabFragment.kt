@@ -11,6 +11,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSnapHelper
+import androidx.recyclerview.widget.RecyclerView
 import androidx.transition.Slide
 import androidx.transition.TransitionManager
 import com.flamyoad.tsukiviewer.R
@@ -22,7 +23,6 @@ import com.flamyoad.tsukiviewer.ui.reader.recents.RecentTabsActivity
 import com.flamyoad.tsukiviewer.utils.extensions.toast
 import kotlinx.android.synthetic.main.fragment_reader_tab.*
 import java.io.File
-import java.lang.IllegalArgumentException
 
 private const val SWIPE_READER = "swipe_reader"
 
@@ -33,6 +33,8 @@ class ReaderTabFragment : Fragment(),
     private val viewModel: ReaderTabViewModel by viewModels()
 
     private var viewPagerListener: ViewPagerListener? = null
+
+    private var readerTabListener: ReaderTabListener? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -45,12 +47,7 @@ class ReaderTabFragment : Fragment(),
     override fun onAttach(context: Context) {
         super.onAttach(context)
         viewPagerListener = context as ViewPagerListener
-    }
-
-    override fun onResume() {
-        super.onResume()
-        viewPagerListener?.setUserInputEnabled(false)
-        Log.d("debuf", "onResume")
+        readerTabListener = context as ReaderTabListener
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -61,11 +58,6 @@ class ReaderTabFragment : Fragment(),
 //                finish()
             }
         })
-
-        toolbarContent.setOnTouchListener { view, motionEvent ->
-            viewPagerListener?.setUserInputEnabled(true)
-            return@setOnTouchListener false
-        }
 
         initBottomThumbnails()
         initPageIndicator()
@@ -91,6 +83,10 @@ class ReaderTabFragment : Fragment(),
         btnTab.setOnClickListener {
             val intent = Intent(requireContext(), RecentTabsActivity::class.java)
             requireActivity().startActivityForResult(intent, RECENT_TAB_REQUEST_CODE)
+        }
+
+        btnBack.setOnClickListener {
+            readerTabListener?.quitActivity()
         }
     }
 
@@ -154,6 +150,26 @@ class ReaderTabFragment : Fragment(),
         viewModel.imageList().observe(viewLifecycleOwner, Observer {
             adapter.setList(it)
             linearLayoutManager.scrollToPosition(0)
+        })
+
+        bottomListThumbnails.addOnItemTouchListener(object: RecyclerView.OnItemTouchListener {
+            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+                when (e.actionMasked) {
+                    MotionEvent.ACTION_DOWN -> {
+                        viewPagerListener?.setUserInputEnabled(false)
+                    }
+                    MotionEvent.ACTION_UP -> {
+                        viewPagerListener?.setUserInputEnabled(true)
+                    }
+                    MotionEvent.ACTION_CANCEL -> {
+                        viewPagerListener?.setUserInputEnabled(true)
+                    }
+                }
+                return false
+            }
+
+            override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
+            override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
         })
     }
 

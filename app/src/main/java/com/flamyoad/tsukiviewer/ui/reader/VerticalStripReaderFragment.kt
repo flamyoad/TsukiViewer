@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -48,10 +49,10 @@ class VerticalStripReaderFragment : Fragment() {
     private lateinit var linearLayoutManager: LinearLayoutManager
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
         return inflater.inflate(R.layout.fragment_vertical_strip_reader, container, false)
     }
 
@@ -85,13 +86,28 @@ class VerticalStripReaderFragment : Fragment() {
             readerListener = parentFragment as ReaderListener
         } catch (e: Exception) { }
 
-        listImages.setOnTouchListener { view, e ->
-            viewPagerListener?.setUserInputEnabled(false)
-            return@setOnTouchListener false
-        }
-
         initReader()
         setupPageIndicator()
+
+        listImages.addOnItemTouchListener(object: RecyclerView.OnItemTouchListener {
+            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+                when (e.actionMasked) {
+                    MotionEvent.ACTION_DOWN -> {
+                        viewPagerListener?.setUserInputEnabled(false)
+                    }
+                    MotionEvent.ACTION_UP -> {
+                        viewPagerListener?.setUserInputEnabled(true)
+                    }
+                    MotionEvent.ACTION_CANCEL -> {
+                        viewPagerListener?.setUserInputEnabled(true)
+                    }
+                }
+                return false
+            }
+
+            override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
+            override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
+        })
 
         viewModel.bottomThumbnailSelectedItem().observe(viewLifecycleOwner, Observer {
             if (!this::linearLayoutManager.isInitialized) return@Observer

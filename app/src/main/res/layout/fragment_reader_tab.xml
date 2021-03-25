@@ -5,9 +5,9 @@
     android:id="@+id/parentLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/colorPrimary"
     android:fitsSystemWindows="true"
-    tools:context=".ui.reader.ReaderActivity"
-    android:background="@color/colorPrimary">
+    tools:context=".ui.reader.ReaderActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
@@ -21,6 +21,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
+            app:contentInsetStart="0dp"
             app:popupTheme="@style/AppTheme.PopupOverlay"
             tools:title="Himekawa">
 
@@ -31,6 +32,15 @@
                 android:animateLayoutChanges="false"
                 android:orientation="horizontal">
 
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/btnBack"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:backgroundTint="@color/transparent"
+                    android:paddingHorizontal="14dp"
+                    android:src="@drawable/ic_arrow_back_white_24dp" />
+
                 <TextView
                     android:id="@+id/toolbarTitle"
                     android:layout_width="0dp"
@@ -39,8 +49,9 @@
                     android:layout_weight="1"
                     android:ellipsize="end"
                     android:gravity="center_vertical"
-                    android:lines="1"
-                    android:textColor="@color/white" />
+                    android:lines="2"
+                    android:textColor="@color/white"
+                    tools:text="@string/doujin_name_en" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnTab"
@@ -69,7 +80,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/colorPrimary"
-        app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"/>
+        app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior" />
 
     <View
         android:id="@+id/bottomSheetOpener"

@@ -14,14 +14,17 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter
 import com.flamyoad.tsukiviewer.ui.reader.recents.RecentTabsActivity
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabFragmentAdapter
+import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabListener
 import com.flamyoad.tsukiviewer.utils.extensions.toast
 import kotlinx.android.synthetic.main.activity_reader.*
+import kotlinx.android.synthetic.main.fragment_reader_tab.*
+import android.view.View
 import java.io.File
 
 const val KEY_DOWN_INTENT = "key_down_intent"
 const val KEY_CODE = "key_code"
 
-class ReaderActivity : AppCompatActivity(), ViewPagerListener {
+class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener {
 
     private val viewModel: ReaderViewModel by viewModels()
 
@@ -97,8 +100,6 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener {
 
         viewPager.adapter = tabFragmentAdapter
 
-//        viewPager.isUserInputEnabled = false
-
         viewModel.recentTabs.observe(this, Observer {
             tabFragmentAdapter?.setList(it)
 
@@ -122,8 +123,12 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener {
         })
     }
 
-    override fun setUserInputEnabled(enabled: Boolean) {
-        viewPager.isUserInputEnabled = enabled
+    override fun quitActivity() {
+        finish()
+    }
+
+    override fun setUserInputEnabled(isEnabled: Boolean) {
+        viewPager.isUserInputEnabled = isEnabled
     }
 
     override fun onBackPressed() {
@@ -174,5 +179,4 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener {
         private const val VIEWPAGER_INDEX = "viewpager_index"
         const val RECENT_TAB_REQUEST_CODE = 101
     }
-
 }
