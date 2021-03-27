@@ -1,5 +1,8 @@
 package com.flamyoad.tsukiviewer.ui.reader.recents
 
+import android.annotation.SuppressLint
+import android.graphics.Canvas
+import android.view.MotionEvent
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.adapter.RecentTabsAdapter
@@ -7,13 +10,14 @@ import com.flamyoad.tsukiviewer.model.RecentTab
 
 class RecentTabTouchHelperCallback(
     private val adapter: RecentTabsAdapter,
+    private val currentTabId: Long,
     private val onItemSwiped: (RecentTab) -> Unit) :
     ItemTouchHelper.Callback() {
 
-    override fun getMovementFlags(
-        recyclerView: RecyclerView,
-        viewHolder: RecyclerView.ViewHolder
-    ): Int {
+    override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
+        if (viewHolder.itemId == currentTabId) {
+            return makeMovementFlags(ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0)
+        }
         return makeMovementFlags(0, ItemTouchHelper.UP or ItemTouchHelper.DOWN)
     }
 

@@ -81,7 +81,11 @@ class ReaderTabFragment : Fragment(),
         }
 
         btnTab.setOnClickListener {
+            val tabId = arguments?.getLong(TAB_ID) ?: -1
             val intent = Intent(requireContext(), RecentTabsActivity::class.java)
+            intent.apply {
+                putExtra(TAB_ID, tabId)
+            }
             requireActivity().startActivityForResult(intent, RECENT_TAB_REQUEST_CODE)
         }
 
@@ -199,11 +203,6 @@ class ReaderTabFragment : Fragment(),
 
         bottomSheetDialog.visibility = visibility
         readerModeDialog.visibility = visibility
-
-//        when (visibility) {
-//            View.VISIBLE -> supportActionBar?.show()
-//            else -> supportActionBar?.hide()
-//        }
     }
 
     override fun onPageChange(pageNum: Int) {
@@ -239,12 +238,14 @@ class ReaderTabFragment : Fragment(),
     companion object {
         const val DIR_PATH = "dir_path"
         const val STARTING_IMAGE_POSITION = "starting_image_position"
+        const val TAB_ID = "tab_id"
 
         @JvmStatic
         fun newInstance(tab: RecentTab, startPosition: Int) = ReaderTabFragment().apply {
             arguments = Bundle().apply {
                 putString(DIR_PATH, tab.dirPath.absolutePath)
                 putInt(STARTING_IMAGE_POSITION, startPosition)
+                putLong(TAB_ID, tab.id ?: -1)
             }
         }
     }

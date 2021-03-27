@@ -1,10 +1,14 @@
 package com.flamyoad.tsukiviewer.ui.reader
 
 import android.app.Application
-import androidx.lifecycle.*
-import com.flamyoad.tsukiviewer.MyAppPreference
+import androidx.core.net.toUri
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.model.RecentTab
+import com.flamyoad.tsukiviewer.utils.extensions.imageExtensions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -31,10 +35,21 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun insertRecentTab(path: String) {
-        val dir = File(path)
-        val tab = RecentTab(null, dir.name, File(path), File(path))
-
         viewModelScope.launch(Dispatchers.IO) {
+            val dir = File(path)
+
+            val fileList = dir.listFiles() ?: return@launch
+
+            val imageList = fileList.filter { f -> f.extension in imageExtensions }
+
+            val coverImage = if (imageList.isNotEmpty()) {
+                imageList.first()
+            } else {
+                File("")
+            }
+
+            val tab = RecentTab(null, dir.name, File(path), coverImage)
+
             val lastExistingTab = recentTabDao.getByPath(path)
             if (lastExistingTab != null) {
                 withContext(Dispatchers.Main) {

@@ -8,16 +8,18 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.RecentTabsAdapter
 import com.flamyoad.tsukiviewer.model.RecentTab
+import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabFragment
 import kotlinx.android.synthetic.main.activity_recent_tabs.*
 
 class RecentTabsActivity : AppCompatActivity() {
 
     private val viewModel: RecentTabsViewModel by viewModels()
 
-    private val tabAdapter = RecentTabsAdapter(this::onRecentTabClick)
+    private var touchHelper: ItemTouchHelper? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,14 +30,14 @@ class RecentTabsActivity : AppCompatActivity() {
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
-
-//        val drawable = ContextCompat.getDrawable(this, R.drawable.ayumu)
-//        Glide.with(this)
-//            .load(drawable)
-//            .into(imgBackground)
     }
 
     private fun initReaderHistory() {
+        val currentTabId = intent.getLongExtra(ReaderTabFragment.TAB_ID, -1)
+
+        val tabAdapter = RecentTabsAdapter(this::onRecentTabClick, this::startDrag, currentTabId)
+        tabAdapter.setHasStableIds(true)
+
         val linearLayoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
 
         listTabs.apply {
@@ -43,13 +45,17 @@ class RecentTabsActivity : AppCompatActivity() {
             layoutManager = linearLayoutManager
         }
 
-        val touchHelperCallback = RecentTabTouchHelperCallback(tabAdapter, viewModel::removeRecentTab)
-        val touchHelper = ItemTouchHelper(touchHelperCallback)
-        touchHelper.attachToRecyclerView(listTabs)
+        val touchHelperCallback = RecentTabTouchHelperCallback(tabAdapter, currentTabId, viewModel::removeRecentTab)
+        touchHelper = ItemTouchHelper(touchHelperCallback)
+        touchHelper?.attachToRecyclerView(listTabs)
 
         viewModel.tabList.observe(this, Observer {
             tabAdapter.submitList(it)
         })
+    }
+
+    fun startDrag(viewHolder: RecyclerView.ViewHolder) {
+        touchHelper?.startDrag(viewHolder)
     }
 
     private fun onRecentTabClick(tab: RecentTab) {
