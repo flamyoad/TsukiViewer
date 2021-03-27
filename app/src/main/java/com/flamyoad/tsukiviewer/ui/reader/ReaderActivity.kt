@@ -3,7 +3,6 @@ package com.flamyoad.tsukiviewer.ui.reader
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.WindowManager
@@ -15,16 +14,15 @@ import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter
 import com.flamyoad.tsukiviewer.ui.reader.recents.RecentTabsActivity
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabFragmentAdapter
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabListener
+import com.flamyoad.tsukiviewer.utils.extensions.reduceDragSensitivity
 import com.flamyoad.tsukiviewer.utils.extensions.toast
 import kotlinx.android.synthetic.main.activity_reader.*
-import kotlinx.android.synthetic.main.fragment_reader_tab.*
-import android.view.View
 import java.io.File
 
 const val KEY_DOWN_INTENT = "key_down_intent"
 const val KEY_CODE = "key_code"
 
-class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener {
+class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener, LastReadPageNumberListener {
 
     private val viewModel: ReaderViewModel by viewModels()
 
@@ -91,6 +89,8 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
     }
 
     private fun initViewPager() {
+        viewPager.reduceDragSensitivity()
+
         tabFragmentAdapter = ReaderTabFragmentAdapter(this)
 
         tabFragmentAdapter?.setFirstItem(
@@ -123,7 +123,13 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
         })
     }
 
+    override fun onBackPressed() {
+        returnLastReadPageNumber()
+        super.onBackPressed()
+    }
+
     override fun quitActivity() {
+        returnLastReadPageNumber()
         finish()
     }
 
@@ -131,24 +137,15 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
         viewPager.isUserInputEnabled = isEnabled
     }
 
-//    override fun onBackPressed() {
-////         Hides bottom sheet and toolbar if they are present. Otherwise go back to previous activity.
-//        if (bottomSheetDialog.visibility == View.VISIBLE) {
-//            toggleBottomSheet(View.INVISIBLE)
-//            return
-//        }
-//
-//        handleActivityTermination()
-//        super.onBackPressed()
-//        // onBackPressed() quits current activity so it must be called last.
-//        // Otherwise, lines below onBackPressed() won't be called
-//    }
+    override fun savePageNumber(pageNumber: Int) {
+        viewModel.lastReadImagePosition = pageNumber
+    }
 
-    private fun handleActivityTermination() {
+    private fun returnLastReadPageNumber() {
         val positionInImageGrid =
             intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
 
-        val positionInReader = viewModel.currentImagePosition
+        val positionInReader = viewModel.lastReadImagePosition
 
         // Sends back the position of image currently being viewed if it's different with
         // the position of opened image in previous screen.

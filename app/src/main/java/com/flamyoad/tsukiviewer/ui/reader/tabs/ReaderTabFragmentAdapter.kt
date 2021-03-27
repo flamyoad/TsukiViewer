@@ -41,9 +41,9 @@ class ReaderTabFragmentAdapter(activity: FragmentActivity): FragmentStateAdapter
 
     override fun createFragment(position: Int): Fragment {
         if (position == positionOfStartingFragment) {
-            return ReaderTabFragment.newInstance(tabList[position], positionOfStartingImage)
+            return ReaderTabFragment.newInstance(tabList[position], positionOfStartingImage, true)
         } else {
-            return ReaderTabFragment.newInstance(tabList[position], 0)
+            return ReaderTabFragment.newInstance(tabList[position], 0, false)
         }
     }
 }

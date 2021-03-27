@@ -51,6 +51,8 @@ class RecentTabsActivity : AppCompatActivity() {
 
         viewModel.tabList.observe(this, Observer {
             tabAdapter.submitList(it)
+            val position = it.indexOfFirst { tab -> tab.id == currentTabId }
+            linearLayoutManager.scrollToPosition(position)
         })
     }
 

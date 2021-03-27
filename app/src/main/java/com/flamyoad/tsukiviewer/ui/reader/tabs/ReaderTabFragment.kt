@@ -3,7 +3,6 @@ package com.flamyoad.tsukiviewer.ui.reader.tabs
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -34,7 +33,16 @@ class ReaderTabFragment : Fragment(),
 
     private var viewPagerListener: ViewPagerListener? = null
 
-    private var readerTabListener: ReaderTabListener? = null
+    private var readerListener: ReaderTabListener? = null
+
+    private var lastReadPageNumberListener: LastReadPageNumberListener? = null
+
+    private var shouldReturnLastReadPosition: Boolean = false
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        shouldReturnLastReadPosition = arguments?.getBoolean(RETURN_LAST_READ_POSITION) ?: false
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,7 +55,8 @@ class ReaderTabFragment : Fragment(),
     override fun onAttach(context: Context) {
         super.onAttach(context)
         viewPagerListener = context as ViewPagerListener
-        readerTabListener = context as ReaderTabListener
+        readerListener = context as ReaderTabListener
+        lastReadPageNumberListener = context as LastReadPageNumberListener
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -90,7 +99,7 @@ class ReaderTabFragment : Fragment(),
         }
 
         btnBack.setOnClickListener {
-            readerTabListener?.quitActivity()
+            readerListener?.quitActivity()
         }
     }
 
@@ -156,7 +165,7 @@ class ReaderTabFragment : Fragment(),
             linearLayoutManager.scrollToPosition(0)
         })
 
-        bottomListThumbnails.addOnItemTouchListener(object: RecyclerView.OnItemTouchListener {
+        bottomListThumbnails.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
             override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
                 when (e.actionMasked) {
                     MotionEvent.ACTION_DOWN -> {
@@ -211,6 +220,10 @@ class ReaderTabFragment : Fragment(),
 
         val bottomLayoutManager = bottomListThumbnails.layoutManager as LinearLayoutManager
         bottomLayoutManager.scrollToPosition(pageNum)
+
+        if (shouldReturnLastReadPosition) {
+            lastReadPageNumberListener?.savePageNumber(pageNum)
+        }
     }
 
     override fun onThumbnailClick(adapterPosition: Int) {
@@ -236,18 +249,21 @@ class ReaderTabFragment : Fragment(),
     }
 
     companion object {
+        const val TAB_ID = "tab_id"
         const val DIR_PATH = "dir_path"
         const val STARTING_IMAGE_POSITION = "starting_image_position"
-        const val TAB_ID = "tab_id"
+        const val RETURN_LAST_READ_POSITION = "return_last_read_position"
 
         @JvmStatic
-        fun newInstance(tab: RecentTab, startPosition: Int) = ReaderTabFragment().apply {
-            arguments = Bundle().apply {
-                putString(DIR_PATH, tab.dirPath.absolutePath)
-                putInt(STARTING_IMAGE_POSITION, startPosition)
-                putLong(TAB_ID, tab.id ?: -1)
+        fun newInstance(tab: RecentTab, startPosition: Int, returnLastReadPosition: Boolean) =
+            ReaderTabFragment().apply {
+                arguments = Bundle().apply {
+                    putLong(TAB_ID, tab.id ?: -1)
+                    putString(DIR_PATH, tab.dirPath.absolutePath)
+                    putInt(STARTING_IMAGE_POSITION, startPosition)
+                    putBoolean(RETURN_LAST_READ_POSITION, returnLastReadPosition)
+                }
             }
-        }
     }
 
 }

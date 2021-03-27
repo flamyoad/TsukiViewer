@@ -24,7 +24,7 @@ class HorizontalSwipeReaderFragment : Fragment() {
         ownerProducer = { requireParentFragment() }
     )
 
-    private var listener: ReaderListener? = null
+    private var readerListener: ReaderListener? = null
 
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -33,7 +33,7 @@ class HorizontalSwipeReaderFragment : Fragment() {
 
             when (keyCode) {
                 KeyEvent.KEYCODE_VOLUME_DOWN -> {
-                    listener?.toggleBottomSheet(View.GONE) // Hides the bottom sheet when scrolling with volume button
+                    readerListener?.toggleBottomSheet(View.GONE) // Hides the bottom sheet when scrolling with volume button
 
                     when (viewModel.volumeDownAction) {
                         VolumeButtonScrollDirection.GoToNextPage -> viewpager?.arrowScroll(View.FOCUS_RIGHT)
@@ -41,7 +41,7 @@ class HorizontalSwipeReaderFragment : Fragment() {
                     }
                 }
                 KeyEvent.KEYCODE_VOLUME_UP -> {
-                    listener?.toggleBottomSheet(View.GONE)
+                    readerListener?.toggleBottomSheet(View.GONE)
 
                     when (viewModel.volumeDownAction) {
                         VolumeButtonScrollDirection.GoToNextPage -> viewpager?.arrowScroll(View.FOCUS_RIGHT)
@@ -64,7 +64,7 @@ class HorizontalSwipeReaderFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
 
         try {
-            listener = parentFragment as ReaderListener
+            readerListener = parentFragment as ReaderListener
         } catch (e: Exception) { }
 
         initReader()
@@ -99,7 +99,7 @@ class HorizontalSwipeReaderFragment : Fragment() {
 
             if (viewModel.currentPath.isBlank()) {
                 viewpager.setCurrentItem(positionFromImageGrid, false)
-                listener?.onPageChange(positionFromImageGrid)
+                readerListener?.onPageChange(positionFromImageGrid)
             } else {
                 viewpager.setCurrentItem(viewModel.currentImagePosition)
             }
@@ -110,17 +110,17 @@ class HorizontalSwipeReaderFragment : Fragment() {
 
     private fun setupPageIndicator() {
         val currentPage = viewModel.currentImagePosition
-        listener?.onPageChange(currentPage)
+        readerListener?.onPageChange(currentPage)
 
         viewpager.addOnPageChangeListener(object : ViewPager.SimpleOnPageChangeListener() {
             override fun onPageScrollStateChanged(state: Int) {
                 if (state == SCROLL_STATE_DRAGGING) {
-                    listener?.toggleBottomSheet(View.INVISIBLE)
+                    readerListener?.toggleBottomSheet(View.INVISIBLE)
                 }
             }
 
             override fun onPageSelected(position: Int) {
-                listener?.onPageChange(position)
+                readerListener?.onPageChange(position)
             }
         })
     }

@@ -23,7 +23,7 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
 
     val recentTabDao = db.recentTabDao()
 
-    var currentImagePosition: Int = 0
+    var lastReadImagePosition: Int = 0
 
     private val currentTab = MutableLiveData<RecentTab>()
     fun currentTab(): LiveData<RecentTab> = currentTab

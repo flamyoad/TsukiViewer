@@ -5,6 +5,8 @@ import android.content.Context
 import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.snackbar.Snackbar
 
 val imageExtensions = arrayOf("jpg", "png", "gif", "jpeg", "webp", "jpe", "bmp")
@@ -58,5 +60,22 @@ fun Fragment.snackbar(message: String, lengthLong: Boolean = false) {
             false -> Snackbar.LENGTH_SHORT
         }
         Snackbar.make(it.findViewById(android.R.id.content), message, length)
+    }
+}
+
+/**
+ * Reduces drag sensitivity of [ViewPager2] widget
+ */
+fun ViewPager2.reduceDragSensitivity() {
+    try {
+        val recyclerViewField = ViewPager2::class.java.getDeclaredField("mRecyclerView")
+        recyclerViewField.isAccessible = true
+        val recyclerView = recyclerViewField.get(this) as RecyclerView
+
+        val touchSlopField = RecyclerView::class.java.getDeclaredField("mTouchSlop")
+        touchSlopField.isAccessible = true
+        val touchSlop = touchSlopField.get(recyclerView) as Int
+        touchSlopField.set(recyclerView, touchSlop*8)       // "8" was obtained experimentally
+    } catch (ignored: Exception) {
     }
 }
