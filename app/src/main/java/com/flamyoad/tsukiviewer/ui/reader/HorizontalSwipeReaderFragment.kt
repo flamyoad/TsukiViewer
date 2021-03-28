@@ -127,7 +127,7 @@ class HorizontalSwipeReaderFragment : Fragment() {
 
     private fun setupBroadcastReceiver() {
         LocalBroadcastManager.getInstance(requireContext())
-            .registerReceiver(broadcastReceiver, IntentFilter(KEY_DOWN_INTENT))
+            .registerReceiver(broadcastReceiver, IntentFilter(MY_KEY_DOWN_INTENT))
     }
 
     companion object {

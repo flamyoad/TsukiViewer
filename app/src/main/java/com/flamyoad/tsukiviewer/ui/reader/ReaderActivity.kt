@@ -3,23 +3,25 @@ package com.flamyoad.tsukiviewer.ui.reader
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.WindowManager
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter
 import com.flamyoad.tsukiviewer.ui.reader.recents.RecentTabsActivity
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabFragmentAdapter
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabListener
-import com.flamyoad.tsukiviewer.utils.extensions.reduceDragSensitivity
+import com.flamyoad.tsukiviewer.utils.extensions.reduceDragSensitivitySlightly
 import com.flamyoad.tsukiviewer.utils.extensions.toast
 import kotlinx.android.synthetic.main.activity_reader.*
 import java.io.File
 
-const val KEY_DOWN_INTENT = "key_down_intent"
+const val MY_KEY_DOWN_INTENT = "my_key_down_intent"
 const val KEY_CODE = "key_code"
 
 class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener, LastReadPageNumberListener {
@@ -88,8 +90,21 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
         savedStateViewPagerIndex = savedInstanceState.getInt(VIEWPAGER_INDEX)
     }
 
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        // Only intercept volume button events
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            val intent = Intent(MY_KEY_DOWN_INTENT).apply {
+                putExtra(KEY_CODE, keyCode)
+            }
+            LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+            return true
+        } else {
+            return super.onKeyDown(keyCode, event)
+        }
+    }
+
     private fun initViewPager() {
-        viewPager.reduceDragSensitivity()
+        viewPager.reduceDragSensitivitySlightly()
 
         tabFragmentAdapter = ReaderTabFragmentAdapter(this)
 

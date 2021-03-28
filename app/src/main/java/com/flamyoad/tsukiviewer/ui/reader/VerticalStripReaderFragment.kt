@@ -64,7 +64,7 @@ class VerticalStripReaderFragment : Fragment() {
 
         LocalBroadcastManager
             .getInstance(requireContext())
-            .registerReceiver(broadcastReceiver, IntentFilter(KEY_DOWN_INTENT))
+            .registerReceiver(broadcastReceiver, IntentFilter(MY_KEY_DOWN_INTENT))
     }
 
     override fun onPause() {

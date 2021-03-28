@@ -77,9 +77,9 @@ class DoujinTagsFragment : BaseFragment(), SearchView.OnQueryTextListener {
 
         viewpager.adapter = TagFragmentAdapter(requireActivity(), tagList)
 
-        TabLayoutMediator(tabLayout, viewpager, false, false) { tab, position ->
+        TabLayoutMediator(tabLayout, viewpager, false, true) { tab, position ->
             tab.text = tagList[position].toString()
-            viewpager.setCurrentItem(tab.position, false)
+            viewpager.setCurrentItem(tab.position, true)
         }.attach()
         
         viewpager.reduceDragSensitivity()

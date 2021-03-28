@@ -19,7 +19,7 @@
         tools:src="@drawable/ayumu" />
 
     <TextView
-        android:id="@+id/textView7"
+        android:id="@+id/btnBack"
         style="?android:attr/borderlessButtonStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -27,13 +27,13 @@
         android:layout_marginTop="?attr/actionBarSize"
         android:adjustViewBounds="true"
         android:clickable="true"
-        android:translationZ="2dp"
         android:drawableStart="@drawable/ic_view_agenda_gray_24dp"
         android:drawablePadding="5dp"
         android:focusable="true"
         android:gravity="center_vertical"
-        android:text="Switch view"
+        android:text="Go Back to Reader"
         android:textColor="#B9B9B9"
+        android:translationZ="2dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -43,7 +43,8 @@
         android:layout_height="match_parent"
         android:clipToPadding="false"
         android:paddingStart="80dp"
-        android:paddingVertical="100dp"
+        android:paddingTop="100dp"
+        android:paddingBottom="130dp"
         android:scrollbars="none"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -52,6 +53,23 @@
         tools:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:listitem="@layout/reader_tab_item"
         tools:orientation="horizontal" />
+
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/fab_border"
+            app:layout_constraintBottom_toTopOf="@id/txtHint"
+            app:layout_constraintEnd_toEndOf="@id/txtHint"
+            app:layout_constraintStart_toStartOf="@id/txtHint">
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:layout_width="54dp"
+                android:layout_height="54dp"
+                android:src="@drawable/ic_close_gray_24dp"
+                android:background="?android:selectableItemBackground"
+                android:backgroundTint="@color/transparent"/>
+
+        </FrameLayout>
 
     <TextView
         android:id="@+id/txtHint"

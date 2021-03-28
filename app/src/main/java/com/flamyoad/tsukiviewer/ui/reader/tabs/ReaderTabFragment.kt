@@ -120,6 +120,10 @@ class ReaderTabFragment : Fragment(),
             )
         }
 
+        if (mode == ReaderMode.HorizontalSwipe) {
+            appBarLayout.setExpanded(true)
+        }
+
         childFragmentManager.beginTransaction()
             .replace(R.id.imageContainer, fragment, SWIPE_READER)
             .commit()
