@@ -90,8 +90,16 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
         savedStateViewPagerIndex = savedInstanceState.getInt(VIEWPAGER_INDEX)
     }
 
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        // Only intercept volume button events
+    /* dispatchKeyEvent is preferred over onKeyDown
+       This is because onKeyDown will still emit the volume click sound, whereas dispatchKeyEvent does not
+     */
+    override fun dispatchKeyEvent(event: KeyEvent?): Boolean {
+        // https://stackoverflow.com/questions/24121644/dispatchkeyevent-invoking-twice
+        if (event?.action != KeyEvent.ACTION_DOWN) {
+            return true
+        }
+
+        val keyCode = event.keyCode
         if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
             val intent = Intent(MY_KEY_DOWN_INTENT).apply {
                 putExtra(KEY_CODE, keyCode)
@@ -99,7 +107,7 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
             LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
             return true
         } else {
-            return super.onKeyDown(keyCode, event)
+            return super.dispatchKeyEvent(event)
         }
     }
 
