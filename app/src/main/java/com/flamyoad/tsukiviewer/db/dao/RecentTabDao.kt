@@ -26,4 +26,7 @@ interface RecentTabDao {
 
     @Delete
     fun delete(tab: RecentTab)
+
+    @Query("DELETE FROM recent_tabs WHERE id != :tabId")
+    fun deleteAllExcept(tabId: Long): Int
 }

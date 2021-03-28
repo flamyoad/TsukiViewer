@@ -52,7 +52,8 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:listitem="@layout/reader_tab_item"
-        tools:orientation="horizontal" />
+        tools:orientation="horizontal"
+        tools:ignore="RtlSymmetry" />
 
         <FrameLayout
             android:layout_width="wrap_content"
@@ -63,11 +64,11 @@
             app:layout_constraintStart_toStartOf="@id/txtHint">
 
             <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/btnClearRecents"
                 android:layout_width="54dp"
                 android:layout_height="54dp"
                 android:src="@drawable/ic_close_gray_24dp"
-                android:background="?android:selectableItemBackground"
-                android:backgroundTint="@color/transparent"/>
+                android:background="?android:attr/selectableItemBackgroundBorderless" />
 
         </FrameLayout>
 

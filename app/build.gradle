@@ -123,8 +123,7 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.3"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.3"
 
-    // RecyclerView Selection for Action Mode
-    implementation "androidx.recyclerview:recyclerview-selection:1.0.0"
+    implementation 'jp.wasabeef:recyclerview-animators:4.0.2'
 
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.6'
 }

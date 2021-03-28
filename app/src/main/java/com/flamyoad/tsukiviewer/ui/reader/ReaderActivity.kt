@@ -34,6 +34,8 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
 
     private var savedStateViewPagerIndex: Int = -1
 
+    private var tabChosenFromRecentTabs: Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reader)
@@ -42,7 +44,7 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
         viewModel.directoryNoLongerExists().observe(this, Observer { notExists ->
             if (notExists) {
                 toast("Directory not found. Renamed or deleted?")
-                finish()
+//                finish()
             }
         })
 
@@ -77,6 +79,7 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
                 return
             }
             viewModel.setCurrentTab(tabId)
+            tabChosenFromRecentTabs = true
         }
     }
 
@@ -94,16 +97,13 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
        This is because onKeyDown will still emit the volume click sound, whereas dispatchKeyEvent does not
      */
     override fun dispatchKeyEvent(event: KeyEvent?): Boolean {
-        // https://stackoverflow.com/questions/24121644/dispatchkeyevent-invoking-twice
-        if (event?.action != KeyEvent.ACTION_DOWN) {
-            return true
-        }
-
-        val keyCode = event.keyCode
+        val keyCode = event?.keyCode
         if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
-            val intent = Intent(MY_KEY_DOWN_INTENT).apply {
-                putExtra(KEY_CODE, keyCode)
-            }
+            // https://stackoverflow.com/questions/24121644/dispatchkeyevent-invoking-twice
+            if (event.action != KeyEvent.ACTION_DOWN) return true
+
+            val intent = Intent(MY_KEY_DOWN_INTENT)
+            intent.putExtra(KEY_CODE, keyCode)
             LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
             return true
         } else {
@@ -133,8 +133,11 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
             }
         })
 
+        // TODO : Below 2 observes are buggy
+        // Clicking tab on recenttabs does not bring the reader to correct tab chosen from recentabs
+
         viewModel.currentTab().observe(this, Observer {
-            if (savedStateViewPagerIndex != -1) {
+            if (savedStateViewPagerIndex != -1 && !tabChosenFromRecentTabs) {
                 viewPager.setCurrentItem(savedStateViewPagerIndex, false)
                 return@Observer
             }

@@ -8,6 +8,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.model.RecentTab
+import com.flamyoad.tsukiviewer.utils.FileUtils
 import com.flamyoad.tsukiviewer.utils.extensions.imageExtensions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -20,8 +21,7 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
     fun directoryNoLongerExists(): LiveData<Boolean> = directoryNoLongerExists
 
     private val db = AppDatabase.getInstance(application)
-
-    val recentTabDao = db.recentTabDao()
+    private val recentTabDao = db.recentTabDao()
 
     var lastReadImagePosition: Int = 0
 
@@ -37,18 +37,9 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
     fun insertRecentTab(path: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val dir = File(path)
+            val coverImage = FileUtils.getCoverImage(dir)
 
-            val fileList = dir.listFiles() ?: return@launch
-
-            val imageList = fileList.filter { f -> f.extension in imageExtensions }
-
-            val coverImage = if (imageList.isNotEmpty()) {
-                imageList.first()
-            } else {
-                File("")
-            }
-
-            val tab = RecentTab(null, dir.name, File(path), coverImage)
+            val tab = RecentTab(null, dir.name, dir, coverImage)
 
             val lastExistingTab = recentTabDao.getByPath(path)
             if (lastExistingTab != null) {
