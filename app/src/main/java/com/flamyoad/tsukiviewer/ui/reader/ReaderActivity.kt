@@ -133,9 +133,6 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
             }
         })
 
-        // TODO : Below 2 observes are buggy
-        // Clicking tab on recenttabs does not bring the reader to correct tab chosen from recentabs
-
         viewModel.currentTab().observe(this, Observer {
             if (savedStateViewPagerIndex != -1 && !tabChosenFromRecentTabs) {
                 viewPager.setCurrentItem(savedStateViewPagerIndex, false)

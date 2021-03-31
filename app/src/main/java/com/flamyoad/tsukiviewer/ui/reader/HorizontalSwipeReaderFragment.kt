@@ -43,7 +43,7 @@ class HorizontalSwipeReaderFragment : Fragment() {
                 KeyEvent.KEYCODE_VOLUME_UP -> {
                     readerListener?.toggleBottomSheet(View.GONE)
 
-                    when (viewModel.volumeDownAction) {
+                    when (viewModel.volumeUpAction) {
                         VolumeButtonScrollDirection.GoToNextPage -> viewpager?.arrowScroll(View.FOCUS_RIGHT)
                         VolumeButtonScrollDirection.GoToPrevPage -> viewpager?.arrowScroll(View.FOCUS_LEFT)
                     }
