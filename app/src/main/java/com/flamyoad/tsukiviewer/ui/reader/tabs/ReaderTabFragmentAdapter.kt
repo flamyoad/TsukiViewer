@@ -20,9 +20,7 @@ class ReaderTabFragmentAdapter(activity: FragmentActivity): FragmentStateAdapter
 
     fun setList(list: List<RecentTab>) {
         this.tabList = list
-
         positionOfStartingFragment = list.indexOfFirst { tab -> tab.dirPath.absolutePath == dirPath }
-
         notifyDataSetChanged()
     }
 
@@ -37,6 +35,10 @@ class ReaderTabFragmentAdapter(activity: FragmentActivity): FragmentStateAdapter
 
     fun getTabPosition(dirPath: File): Int {
         return tabList.indexOfFirst { tab -> tab.dirPath == dirPath }
+    }
+
+    fun getTab(path: String): RecentTab? {
+        return tabList.firstOrNull { tab -> tab.dirPath.absolutePath == path }
     }
 
     override fun createFragment(position: Int): Fragment {

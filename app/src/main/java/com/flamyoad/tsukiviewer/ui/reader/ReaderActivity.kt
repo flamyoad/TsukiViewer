@@ -3,6 +3,7 @@ package com.flamyoad.tsukiviewer.ui.reader
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
@@ -13,13 +14,13 @@ import androidx.lifecycle.Observer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter
+import com.flamyoad.tsukiviewer.model.RecentTab
 import com.flamyoad.tsukiviewer.ui.reader.recents.RecentTabsActivity
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabFragmentAdapter
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabListener
 import com.flamyoad.tsukiviewer.utils.extensions.reduceDragSensitivitySlightly
 import com.flamyoad.tsukiviewer.utils.extensions.toast
 import kotlinx.android.synthetic.main.activity_reader.*
-import java.io.File
 
 const val MY_KEY_DOWN_INTENT = "my_key_down_intent"
 const val KEY_CODE = "key_code"
@@ -30,11 +31,11 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
 
     private var positionFromImageGrid = 0
 
-    private var tabFragmentAdapter: ReaderTabFragmentAdapter? = null
-
-    private var savedStateViewPagerIndex: Int = -1
+    private var viewPagerIndex: Int = -1
 
     private var tabChosenFromRecentTabs: Boolean = false
+
+    private lateinit var tabFragmentAdapter: ReaderTabFragmentAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,13 +48,14 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
 //                finish()
             }
         })
-
-        val currentDir = intent.getStringExtra(DoujinImagesAdapter.DIRECTORY_PATH) ?: ""
-
         positionFromImageGrid = intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
 
+        val currentDir = intent.getStringExtra(DoujinImagesAdapter.DIRECTORY_PATH) ?: ""
         viewModel.insertRecentTab(currentDir)
+    }
 
+    override fun onResume() {
+        super.onResume()
         initViewPager()
     }
 
@@ -90,16 +92,17 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
-        savedStateViewPagerIndex = savedInstanceState.getInt(VIEWPAGER_INDEX)
+        viewPagerIndex = savedInstanceState.getInt(VIEWPAGER_INDEX)
     }
 
     /* dispatchKeyEvent is preferred over onKeyDown
        This is because onKeyDown will still emit the volume click sound, whereas dispatchKeyEvent does not
+
+       https://stackoverflow.com/questions/24121644/dispatchkeyevent-invoking-twice
      */
     override fun dispatchKeyEvent(event: KeyEvent?): Boolean {
         val keyCode = event?.keyCode
         if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
-            // https://stackoverflow.com/questions/24121644/dispatchkeyevent-invoking-twice
             if (event.action != KeyEvent.ACTION_DOWN) return true
 
             val intent = Intent(MY_KEY_DOWN_INTENT)
@@ -116,7 +119,7 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
 
         tabFragmentAdapter = ReaderTabFragmentAdapter(this)
 
-        tabFragmentAdapter?.setFirstItem(
+        tabFragmentAdapter.setFirstItem(
             intent.getStringExtra(DoujinImagesAdapter.DIRECTORY_PATH) ?: "",
             intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
         )
@@ -124,26 +127,33 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
         viewPager.adapter = tabFragmentAdapter
 
         viewModel.recentTabs.observe(this, Observer {
-            tabFragmentAdapter?.setList(it)
-
+            tabFragmentAdapter.setList(it)
             val currentDir = intent.getStringExtra(DoujinImagesAdapter.DIRECTORY_PATH) ?: ""
-            val position = tabFragmentAdapter?.getTabPosition(File(currentDir))
-            if (position != null) {
-                viewPager.setCurrentItem(position, false)
-            }
+            val currentTab = tabFragmentAdapter.getTab(currentDir) ?: return@Observer
+            switchReaderTab(currentTab)
         })
 
         viewModel.currentTab().observe(this, Observer {
-            if (savedStateViewPagerIndex != -1 && !tabChosenFromRecentTabs) {
-                viewPager.setCurrentItem(savedStateViewPagerIndex, false)
-                return@Observer
-            }
+            switchReaderTab(it)
+        })
+    }
 
-            val position = tabFragmentAdapter?.getTabPosition(it.id ?: -1)
-            if (position as Int != -1) {
+    private fun switchReaderTab(tab: RecentTab) {
+        if (tabChosenFromRecentTabs) {
+            val position = tabFragmentAdapter.getTabPosition(tab.id ?: -1)
+            if (position != -1) {
                 viewPager.setCurrentItem(position, false)
             }
-        })
+            return
+        }
+
+        if (viewPagerIndex != -1) {
+            viewPager.setCurrentItem(viewPagerIndex, false)
+            return
+        }
+
+        val position = tabFragmentAdapter.getTabPosition(tab.id ?: return)
+        viewPager.setCurrentItem(position, false)
     }
 
     override fun onBackPressed() {
