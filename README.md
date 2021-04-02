@@ -42,10 +42,10 @@ Tsuki Viewer is coded in Kotlin and makes full use of [Android Jetpack](https://
 # Libraries
  List of libraries used in this project.
 * [Android Jetpack](https://developer.android.com/jetpack) *(ViewModel, LiveData, Room Database, Paging Library)*
-* [Kotlin Coroutines](https://kotlinlang.org/docs/reference/coroutines-overview.html)
+* [Kotlin Coroutines](https://kotlinlang.org/docs/reference/coroutines-overview.html) & [Flow](https://kotlinlang.org/docs/flow.html)
 * [Retrofit](https://github.com/square/retrofit)
 * [JSoup](https://github.com/jhy/jsoup)
-* [PhotoView](https://github.com/chrisbanes/PhotoView)
+* [Subsampling Scale Image View](https://github.com/davemorrissey/subsampling-scale-image-view)
 * [Glide](https://github.com/bumptech/glide)
 * [FlexboxLayout](https://github.com/google/flexbox-layout)
 * [RecyclerView-FastScroll](https://github.com/timusus/RecyclerView-FastScroll)
