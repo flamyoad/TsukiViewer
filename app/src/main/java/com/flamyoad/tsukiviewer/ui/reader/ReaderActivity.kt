@@ -32,6 +32,8 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
 
     private var viewPagerIndex: Int = -1
 
+    private var chosenTabId: Long? = null
+
     private var tabChosenFromRecentTabs: Boolean = false
 
     private lateinit var tabFragmentAdapter: ReaderTabFragmentAdapter
@@ -79,6 +81,7 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
             }
             viewModel.setCurrentTab(tabId)
             tabChosenFromRecentTabs = true
+            chosenTabId = tabId
         }
     }
 
@@ -124,8 +127,15 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
         viewModel.recentTabs.observe(this, Observer {
             tabFragmentAdapter.setList(it)
             val currentDir = intent.getStringExtra(DoujinImagesAdapter.DIRECTORY_PATH) ?: ""
-            val currentTab = tabFragmentAdapter.getTab(currentDir) ?: return@Observer
-            switchReaderTab(currentTab)
+
+            val currentTab = when (tabChosenFromRecentTabs) {
+                true -> tabFragmentAdapter.getTab(chosenTabId ?: -1)
+                false -> tabFragmentAdapter.getTab(currentDir)
+            }
+
+            if (currentTab != null) {
+                switchReaderTab(currentTab)
+            }
         })
 
         viewModel.currentTab().observe(this, Observer {
@@ -134,16 +144,9 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
     }
 
     private fun switchReaderTab(tab: RecentTab) {
-        if (tabChosenFromRecentTabs) {
-            val position = tabFragmentAdapter.getTabPosition(tab.id ?: -1)
-            if (position != -1) {
-                viewPager.setCurrentItem(position, false)
-            }
-            return
-        }
-
         if (viewPagerIndex != -1) {
             viewPager.setCurrentItem(viewPagerIndex, false)
+            viewPagerIndex = -1 // resets the index
             return
         }
 

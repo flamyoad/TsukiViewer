@@ -36,6 +36,10 @@ class ReaderTabFragmentAdapter(activity: FragmentActivity): FragmentStateAdapter
         return tabList.firstOrNull { tab -> tab.dirPath.absolutePath == path }
     }
 
+    fun getTab(id: Long): RecentTab? {
+        return tabList.firstOrNull { tab -> tab.id == id }
+    }
+
     override fun createFragment(position: Int): Fragment {
         if (position == positionOfStartingFragment) {
             return ReaderTabFragment.newInstance(tabList[position], positionOfStartingImage, true)

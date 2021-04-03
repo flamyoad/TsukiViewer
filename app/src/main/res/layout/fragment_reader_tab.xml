@@ -22,8 +22,8 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:contentInsetStart="0dp"
-            app:popupTheme="@style/AppTheme.PopupOverlay"
             app:layout_scrollFlags="scroll|enterAlways"
+            app:popupTheme="@style/AppTheme.PopupOverlay"
             tools:title="Himekawa">
 
             <LinearLayout
@@ -63,12 +63,12 @@
                     android:backgroundTint="#C35A5757"
                     android:letterSpacing="0"
                     android:padding="0dp"
-                    android:text="30"
                     android:textColor="@color/white"
                     android:textSize="14dp"
                     app:cornerRadius="6dp"
                     app:strokeColor="@color/white"
-                    app:strokeWidth="1dp" />
+                    app:strokeWidth="1dp"
+                    tools:text="30" />
 
             </LinearLayout>
 
