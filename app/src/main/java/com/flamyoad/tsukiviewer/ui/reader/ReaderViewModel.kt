@@ -2,10 +2,8 @@ package com.flamyoad.tsukiviewer.ui.reader
 
 import android.app.Application
 import androidx.core.net.toUri
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
+import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.model.RecentTab
 import com.flamyoad.tsukiviewer.utils.FileUtils
@@ -17,6 +15,8 @@ import java.io.File
 
 
 class ReaderViewModel(application: Application) : AndroidViewModel(application) {
+    private val appPreference = MyAppPreference.getInstance(application.applicationContext)
+
     private val directoryNoLongerExists = MutableLiveData<Boolean>(false)
     fun directoryNoLongerExists(): LiveData<Boolean> = directoryNoLongerExists
 
@@ -25,6 +25,9 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
 
     var lastReadImagePosition: Int = 0
 
+    private val readerMode = MutableLiveData<ReaderMode>()
+    fun readerMode(): LiveData<ReaderMode> = readerMode.distinctUntilChanged()
+
     private val currentTab = MutableLiveData<RecentTab>()
     fun currentTab(): LiveData<RecentTab> = currentTab
 
@@ -32,6 +35,8 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
 
     init {
         recentTabs = db.recentTabDao().getAll()
+        val defaultReaderMode = appPreference.getDefaultReaderMode()
+        readerMode.value = defaultReaderMode
     }
 
     fun insertRecentTab(path: String) {
@@ -65,5 +70,10 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
                 currentTab.value = tab
             }
         }
+    }
+
+    fun setReaderMode(mode: ReaderMode) {
+        readerMode.value = mode
+        appPreference.setDefaultReaderMode(mode)
     }
 }

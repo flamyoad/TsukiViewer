@@ -3,7 +3,6 @@ package com.flamyoad.tsukiviewer.ui.reader
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
@@ -52,11 +51,9 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
 
         val currentDir = intent.getStringExtra(DoujinImagesAdapter.DIRECTORY_PATH) ?: ""
         viewModel.insertRecentTab(currentDir)
-    }
 
-    override fun onResume() {
-        super.onResume()
-        initViewPager()
+        setupViewPager()
+        viewPager.reduceDragSensitivitySlightly()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -87,7 +84,7 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt(VIEWPAGER_INDEX ,viewPager.currentItem)
+        outState.putInt(VIEWPAGER_INDEX, viewPager.currentItem)
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
@@ -114,9 +111,7 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
         }
     }
 
-    private fun initViewPager() {
-        viewPager.reduceDragSensitivitySlightly()
-
+    private fun setupViewPager() {
         tabFragmentAdapter = ReaderTabFragmentAdapter(this)
 
         tabFragmentAdapter.setFirstItem(

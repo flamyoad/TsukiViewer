@@ -17,7 +17,7 @@ import androidx.viewpager.widget.ViewPager
 import androidx.viewpager.widget.ViewPager.SCROLL_STATE_DRAGGING
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabViewModel
-import kotlinx.android.synthetic.main.fragment_swipe_reader.*
+import kotlinx.android.synthetic.main.fragment_horizontal_reader.*
 
 class HorizontalSwipeReaderFragment : Fragment() {
     private val viewModel: ReaderTabViewModel by viewModels(
@@ -57,7 +57,7 @@ class HorizontalSwipeReaderFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_swipe_reader, container, false)
+        return inflater.inflate(R.layout.fragment_horizontal_reader, container, false)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -65,7 +65,8 @@ class HorizontalSwipeReaderFragment : Fragment() {
 
         try {
             readerListener = parentFragment as ReaderListener
-        } catch (e: Exception) { }
+        } catch (e: Exception) {
+        }
 
         initReader()
         setupPageIndicator()
@@ -89,7 +90,11 @@ class HorizontalSwipeReaderFragment : Fragment() {
         viewpager.offscreenPageLimit = 1
 
         val currentDir = arguments?.getString(CURRENT_DIR) ?: ""
-        val positionFromImageGrid = arguments?.getInt(POSITION_BEFORE_OPENING_READER, 0) ?: 0
+
+        val readerPosition = when (viewModel.currentScrolledPosition != -1) {
+            true -> viewModel.currentScrolledPosition
+            false -> arguments?.getInt(POSITION_BEFORE_OPENING_READER, 0) ?: 0
+        }
 
         val imageAdapter = ImageFragmentStateAdapter(childFragmentManager)
         viewpager.adapter = imageAdapter
@@ -97,21 +102,22 @@ class HorizontalSwipeReaderFragment : Fragment() {
         viewModel.imageList().observe(viewLifecycleOwner, Observer {
             imageAdapter.setList(it)
 
-            if (viewModel.currentPath.isBlank()) {
-                viewpager.setCurrentItem(positionFromImageGrid, false)
-                readerListener?.onPageChange(positionFromImageGrid)
-            } else {
-                viewpager.setCurrentItem(viewModel.currentImagePosition)
-            }
+            viewpager.setCurrentItem(readerPosition, false)
+            readerListener?.onPageChange(readerPosition)
 
             viewModel.currentPath = currentDir
+        })
+
+        viewpager.addOnPageChangeListener(object: ViewPager.OnPageChangeListener {
+            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
+                viewModel.currentScrolledPosition = position
+            }
+            override fun onPageSelected(position: Int) {}
+            override fun onPageScrollStateChanged(state: Int) {}
         })
     }
 
     private fun setupPageIndicator() {
-        val currentPage = viewModel.currentImagePosition
-        readerListener?.onPageChange(currentPage)
-
         viewpager.addOnPageChangeListener(object : ViewPager.SimpleOnPageChangeListener() {
             override fun onPageScrollStateChanged(state: Int) {
                 if (state == SCROLL_STATE_DRAGGING) {

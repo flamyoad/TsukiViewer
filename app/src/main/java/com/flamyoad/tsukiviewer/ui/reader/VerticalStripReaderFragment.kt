@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -85,8 +86,17 @@ class VerticalStripReaderFragment : Fragment() {
             readerListener = parentFragment as ReaderListener
         } catch (e: Exception) { }
 
-        initReader()
-        setupPageIndicator()
+        /* This used to restore reader position on screen rotation
+           onRestoreInstanceState wouldn't work since the fragment gets recreated multiple times.
+           First time it has value, but on subsequent calls the {savedInstanceState} is null
+        */
+        val readerPosition = when (viewModel.currentScrolledPosition != -1) {
+            true -> viewModel.currentScrolledPosition
+            false -> arguments?.getInt(POSITION_BEFORE_OPENING_READER, 0) ?: 0
+        }
+
+        initReader(readerPosition)
+        setupPageIndicator(readerPosition)
 
         listImages.addOnItemTouchListener(object: RecyclerView.OnItemTouchListener {
             override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
@@ -118,10 +128,8 @@ class VerticalStripReaderFragment : Fragment() {
         })
     }
 
-    private fun initReader() {
+    private fun initReader(readerPosition: Int) {
         val currentDir = arguments?.getString(CURRENT_DIR) ?: ""
-        val positionFromImageGrid = arguments?.getInt(POSITION_BEFORE_OPENING_READER, 0) ?: 0
-
         linearLayoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
 
@@ -132,20 +140,16 @@ class VerticalStripReaderFragment : Fragment() {
         viewModel.imageList().observe(viewLifecycleOwner, Observer {
             imageAdapter.setList(it)
 
-            if (viewModel.currentPath.isBlank()) {
-                linearLayoutManager.scrollToPosition(positionFromImageGrid)
-                readerListener?.onPageChange(positionFromImageGrid)
-            } else {
-                linearLayoutManager.scrollToPosition(viewModel.currentImagePosition)
-            }
+            linearLayoutManager.scrollToPosition(readerPosition)
+            readerListener?.onPageChange(readerPosition)
 
             viewModel.currentPath = currentDir
         })
     }
 
-    private fun setupPageIndicator() {
-        val currentPage = viewModel.currentImagePosition
-        readerListener?.onPageChange(currentPage)
+    private fun setupPageIndicator(readerPosition: Int) {
+//        val currentPage = viewModel.currentImagePosition
+        readerListener?.onPageChange(readerPosition)
 
         listImages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
@@ -166,6 +170,8 @@ class VerticalStripReaderFragment : Fragment() {
                 } else {
                     readerListener?.onPageChange(firstVisible)
                 }
+
+                viewModel.currentScrolledPosition = firstVisible
             }
         })
     }
@@ -234,6 +240,7 @@ class VerticalStripReaderFragment : Fragment() {
 
     companion object {
         const val CURRENT_DIR = "current_dir"
+        const val READER_POSITION = "reader_position"
         const val POSITION_BEFORE_OPENING_READER = "position_before_opening_reader"
 
         @JvmStatic

@@ -4,7 +4,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.flamyoad.tsukiviewer.model.RecentTab
-import java.io.File
 
 class ReaderTabFragmentAdapter(activity: FragmentActivity): FragmentStateAdapter(activity) {
 
@@ -31,10 +30,6 @@ class ReaderTabFragmentAdapter(activity: FragmentActivity): FragmentStateAdapter
 
     fun getTabPosition(tabId: Long): Int {
         return tabList.indexOfFirst { tab -> tab.id == tabId }
-    }
-
-    fun getTabPosition(dirPath: File): Int {
-        return tabList.indexOfFirst { tab -> tab.dirPath == dirPath }
     }
 
     fun getTab(path: String): RecentTab? {

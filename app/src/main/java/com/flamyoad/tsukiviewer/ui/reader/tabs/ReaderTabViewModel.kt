@@ -31,12 +31,9 @@ class ReaderTabViewModel(application: Application) : AndroidViewModel(applicatio
     private val directoryNoLongerExists = MutableLiveData<Boolean>(false)
     fun directoryNoLongerExists(): LiveData<Boolean> = directoryNoLongerExists
 
-    private val readerMode = MutableLiveData<ReaderMode>()
-    fun readerMode(): LiveData<ReaderMode> = readerMode.distinctUntilChanged()
-
     val recentTabs: LiveData<List<RecentTab>>
 
-    var currentImagePosition: Int = 0
+    var currentScrolledPosition: Int = -1
 
     var currentPath: String = ""
 
@@ -56,8 +53,6 @@ class ReaderTabViewModel(application: Application) : AndroidViewModel(applicatio
         private set
 
     init {
-        val defaultReaderMode = appPreference.getDefaultReaderMode()
-        readerMode.value = defaultReaderMode
         recentTabs = db.recentTabDao().getAll()
 
         shouldScrollWithVolumeButton = appPreference.shouldScrollWithVolumeButton()
@@ -97,13 +92,8 @@ class ReaderTabViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    fun setReaderMode(mode: ReaderMode) {
-        readerMode.value = mode
-        appPreference.setDefaultReaderMode(mode)
-    }
-
     fun onThumbnailClick(position: Int) {
-        currentImagePosition = position
+//        currentImagePosition = position
         bottomThumbnailSelectedItem.value = position
     }
 

@@ -2,10 +2,12 @@ package com.flamyoad.tsukiviewer.ui.reader.tabs
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.*
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -13,15 +15,18 @@ import androidx.recyclerview.widget.LinearSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.transition.Slide
 import androidx.transition.TransitionManager
+import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.BottomThumbnailAdapter
 import com.flamyoad.tsukiviewer.model.RecentTab
 import com.flamyoad.tsukiviewer.ui.reader.*
 import com.flamyoad.tsukiviewer.ui.reader.ReaderActivity.Companion.RECENT_TAB_REQUEST_CODE
 import com.flamyoad.tsukiviewer.ui.reader.recents.RecentTabsActivity
+import com.flamyoad.tsukiviewer.ui.settings.preferences.MainPreferences
 import com.flamyoad.tsukiviewer.utils.extensions.toast
 import kotlinx.android.synthetic.main.fragment_reader_tab.*
 import java.io.File
+import java.util.prefs.PreferenceChangeListener
 
 private const val SWIPE_READER = "swipe_reader"
 
@@ -30,13 +35,11 @@ class ReaderTabFragment : Fragment(),
     BottomThumbnailAdapter.OnItemClickListener {
 
     private val viewModel: ReaderTabViewModel by viewModels()
+    private val parentViewModel: ReaderViewModel by activityViewModels()
 
     private var viewPagerListener: ViewPagerListener? = null
-
     private var readerListener: ReaderTabListener? = null
-
     private var lastReadPageNumberListener: LastReadPageNumberListener? = null
-
     private var shouldReturnLastReadPosition: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,21 +75,21 @@ class ReaderTabFragment : Fragment(),
         initPageIndicator()
         initToolbar()
 
-        viewModel.readerMode().observe(viewLifecycleOwner, Observer {
-            setupReader(it)
-            setupSideMenu(it)
-        })
-
         viewModel.recentTabs.observe(viewLifecycleOwner, Observer {
             btnTab.text = it.size.toString()
         })
 
+        parentViewModel.readerMode().observe(viewLifecycleOwner, Observer {
+            setupReader(it)
+            setupSideMenu(it)
+        })
+
         btnHorizReader.setOnClickListener {
-            viewModel.setReaderMode(ReaderMode.HorizontalSwipe)
+            parentViewModel.setReaderMode(ReaderMode.HorizontalSwipe)
         }
 
         btnVertReader.setOnClickListener {
-            viewModel.setReaderMode(ReaderMode.VerticalStrip)
+            parentViewModel.setReaderMode(ReaderMode.VerticalStrip)
         }
 
         btnTab.setOnClickListener {
@@ -219,7 +222,7 @@ class ReaderTabFragment : Fragment(),
     }
 
     override fun onPageChange(pageNum: Int) {
-        viewModel.currentImagePosition = pageNum
+        viewModel.currentScrolledPosition = pageNum
         setPageIndicatorNumber(pageNum + 1)
 
         val bottomLayoutManager = bottomListThumbnails.layoutManager as LinearLayoutManager
