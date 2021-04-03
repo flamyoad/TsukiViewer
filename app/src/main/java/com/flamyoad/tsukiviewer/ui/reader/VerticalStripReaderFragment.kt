@@ -5,11 +5,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -18,6 +18,8 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.ReaderImageAdapter
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabViewModel
 import kotlinx.android.synthetic.main.fragment_vertical_strip_reader.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 
 class VerticalStripReaderFragment : Fragment() {
     private val viewModel: ReaderTabViewModel by viewModels(
@@ -46,7 +48,7 @@ class VerticalStripReaderFragment : Fragment() {
 
     private var viewPagerListener: ViewPagerListener? = null
 
-    private lateinit var linearLayoutManager: LinearLayoutManager
+    private lateinit var layoutManager: LinearLayoutManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -84,7 +86,8 @@ class VerticalStripReaderFragment : Fragment() {
 
         try {
             readerListener = parentFragment as ReaderListener
-        } catch (e: Exception) { }
+        } catch (e: Exception) {
+        }
 
         /* This used to restore reader position on screen rotation
            onRestoreInstanceState wouldn't work since the fragment gets recreated multiple times.
@@ -98,7 +101,7 @@ class VerticalStripReaderFragment : Fragment() {
         initReader(readerPosition)
         setupPageIndicator(readerPosition)
 
-        listImages.addOnItemTouchListener(object: RecyclerView.OnItemTouchListener {
+        listImages.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
             override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
                 when (e.actionMasked) {
                     MotionEvent.ACTION_DOWN -> {
@@ -119,28 +122,25 @@ class VerticalStripReaderFragment : Fragment() {
         })
 
         viewModel.bottomThumbnailSelectedItem().observe(viewLifecycleOwner, Observer {
-            if (!this::linearLayoutManager.isInitialized) return@Observer
+            if (!this::layoutManager.isInitialized) return@Observer
             if (it == -1) return@Observer
 
-            linearLayoutManager.scrollToPosition(it)
-
+            layoutManager.scrollToPosition(it)
             viewModel.resetBottomThumbnailState()
         })
     }
 
     private fun initReader(readerPosition: Int) {
         val currentDir = arguments?.getString(CURRENT_DIR) ?: ""
-        linearLayoutManager =
-            LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+        layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
 
         listImages.adapter = imageAdapter
-        listImages.layoutManager = linearLayoutManager
+        listImages.layoutManager = layoutManager
         listImages.setHasFixedSize(true)
 
         viewModel.imageList().observe(viewLifecycleOwner, Observer {
             imageAdapter.setList(it)
-
-            linearLayoutManager.scrollToPosition(readerPosition)
+            layoutManager.scrollToPosition(readerPosition)
             readerListener?.onPageChange(readerPosition)
 
             viewModel.currentPath = currentDir
@@ -162,8 +162,8 @@ class VerticalStripReaderFragment : Fragment() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 val lastCompletelyVisible =
-                    linearLayoutManager.findLastCompletelyVisibleItemPosition()
-                val firstVisible = linearLayoutManager.findFirstVisibleItemPosition()
+                    layoutManager.findLastCompletelyVisibleItemPosition()
+                val firstVisible = layoutManager.findFirstVisibleItemPosition()
 
                 if (lastCompletelyVisible != RecyclerView.NO_POSITION) {
                     readerListener?.onPageChange(lastCompletelyVisible)
@@ -209,30 +209,30 @@ class VerticalStripReaderFragment : Fragment() {
     }
 
     private fun scrollToNextItem() {
-        if (this::linearLayoutManager.isInitialized) {
-            val lastCompletelyVisible = linearLayoutManager.findLastCompletelyVisibleItemPosition()
-            val firstVisible = linearLayoutManager.findFirstVisibleItemPosition()
+        if (this::layoutManager.isInitialized) {
+            val lastCompletelyVisible = layoutManager.findLastCompletelyVisibleItemPosition()
+            val firstVisible = layoutManager.findFirstVisibleItemPosition()
 
             // Offset has to be 0, if not it scrolls to the middle of the item
             if (lastCompletelyVisible != RecyclerView.NO_POSITION) {
-                linearLayoutManager.scrollToPositionWithOffset(lastCompletelyVisible + 1, 0)
+                layoutManager.scrollToPositionWithOffset(lastCompletelyVisible + 1, 0)
             } else {
-                linearLayoutManager.scrollToPositionWithOffset(firstVisible + 1, 0)
+                layoutManager.scrollToPositionWithOffset(firstVisible + 1, 0)
             }
         }
     }
 
     private fun scrollToPrevItem() {
-        if (this::linearLayoutManager.isInitialized) {
+        if (this::layoutManager.isInitialized) {
             val firstCompletelyVisible =
-                linearLayoutManager.findFirstCompletelyVisibleItemPosition()
-            val lastVisible = linearLayoutManager.findLastVisibleItemPosition()
+                layoutManager.findFirstCompletelyVisibleItemPosition()
+            val lastVisible = layoutManager.findLastVisibleItemPosition()
 
             // Offset has to be 0, if not it scrolls to the middle of the item
             if (firstCompletelyVisible != RecyclerView.NO_POSITION) {
-                linearLayoutManager.scrollToPositionWithOffset(firstCompletelyVisible - 1, 0)
+                layoutManager.scrollToPositionWithOffset(firstCompletelyVisible - 1, 0)
             } else {
-                linearLayoutManager.scrollToPositionWithOffset(lastVisible - 1, 0)
+                layoutManager.scrollToPositionWithOffset(lastVisible - 1, 0)
             }
         }
     }

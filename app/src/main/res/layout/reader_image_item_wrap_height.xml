@@ -22,3 +22,5 @@
         tools:srcCompat="@drawable/himekawa" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+

@@ -21,7 +21,6 @@ import com.flamyoad.tsukiviewer.ui.doujinpage.DialogCollectionList
 import com.flamyoad.tsukiviewer.ui.doujinpage.DialogNewCollection
 
 class BookmarkGroupDialog : DialogFragment(), BookmarkGroupDialogListener {
-
     companion object {
         fun newInstance() = BookmarkGroupDialog()
     }
