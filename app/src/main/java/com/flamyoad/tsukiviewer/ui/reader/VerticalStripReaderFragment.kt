@@ -17,9 +17,6 @@ import androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_DRAGGING
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.ReaderImageAdapter
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabViewModel
-import com.google.android.flexbox.AlignItems
-import com.google.android.flexbox.FlexDirection
-import com.google.android.flexbox.FlexboxLayoutManager
 import kotlinx.android.synthetic.main.fragment_vertical_strip_reader.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -53,7 +50,7 @@ class VerticalStripReaderFragment : Fragment() {
 
     private var scrollJob: Job? = null
 
-    private lateinit var layoutManager: FlexboxLayoutManager
+    private lateinit var layoutManager: LinearLayoutManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -135,10 +132,7 @@ class VerticalStripReaderFragment : Fragment() {
 
     private fun initReader(readerPosition: Int) {
         val currentDir = arguments?.getString(CURRENT_DIR) ?: ""
-        layoutManager = FlexboxLayoutManager(requireContext()).apply {
-//            flexDirection = FlexDirection.COLUMN
-//            alignItems = AlignItems.STRETCH
-        }
+        layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
 
         listImages.adapter = imageAdapter
         listImages.layoutManager = layoutManager
@@ -190,9 +184,14 @@ class VerticalStripReaderFragment : Fragment() {
     private fun scrollTo(position: Int) {
         scrollJob?.cancel()
         scrollJob = lifecycleScope.launchWhenResumed {
-            while (layoutManager.findFirstCompletelyVisibleItemPosition() != position) {
+            val a = layoutManager.findLastVisibleItemPosition()
+            val b = layoutManager.findFirstVisibleItemPosition()
+            val hasReachedLastItem = layoutManager.findLastVisibleItemPosition() == position
+            val hasReachedTargetItem = layoutManager.findFirstVisibleItemPosition() == position
+
+            while (!(hasReachedLastItem || hasReachedTargetItem)) {
                 layoutManager.scrollToPosition(position)
-                delay(100) // Prevent infinite looping
+                delay(100)
             }
             viewModel.resetBottomThumbnailState()
         }
