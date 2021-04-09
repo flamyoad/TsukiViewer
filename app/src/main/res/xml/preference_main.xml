@@ -25,6 +25,15 @@
             app:summary="%s"
             app:title="Default style for image grid" />
 
+        <ListPreference
+            app:defaultValue="DoujinDetails"
+            app:entries="@array/pref_doujin_details_landing_screen_name"
+            app:entryValues="@array/pref_doujin_details_landing_screen_value"
+            app:key="pref_doujin_details_landing_screen"
+            app:summary="%s"
+            app:title="Landing screen"
+            android:summary="Screen shown when you tap on doujin"/>
+
         <androidx.preference.SwitchPreference
             android:summary="Reverts to length-based natural sort if disabled. Should not be disabled in most cases."
             app:defaultValue="true"
@@ -35,11 +44,6 @@
             app:defaultValue="true"
             app:key="pref_confirm_before_quit"
             app:title="Show confirmation dialog before quitting" />
-
-<!--        <Preference-->
-<!--            android:fragment="com.flamyoad.tsukiviewer.ui.settings.preferences.FetchSourcePreference"-->
-<!--            app:allowDividerBelow="true"-->
-<!--            app:title="Fetcher options" />-->
 
     </PreferenceCategory>
 
