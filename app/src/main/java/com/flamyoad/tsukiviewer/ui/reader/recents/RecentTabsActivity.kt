@@ -73,12 +73,12 @@ class RecentTabsActivity : AppCompatActivity() {
         listTabs.apply {
             adapter = tabAdapter
             layoutManager = linearLayoutManager
-            itemAnimator = SlideInUpAnimator().apply {
-                addDuration = 150
-                removeDuration = 150
-                moveDuration = 100
-                changeDuration = 300
-            }
+//            itemAnimator = SlideInUpAnimator().apply {
+//                addDuration = 150
+//                removeDuration = 150
+//                moveDuration = 100
+//                changeDuration = 300
+//            }
         }
 
         listTabs.addOnScrollListener(object: RecyclerView.OnScrollListener() {

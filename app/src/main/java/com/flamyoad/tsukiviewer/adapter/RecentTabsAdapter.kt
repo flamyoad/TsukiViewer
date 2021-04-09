@@ -1,5 +1,7 @@
 package com.flamyoad.tsukiviewer.adapter
 
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -76,6 +78,11 @@ class RecentTabsAdapter(
         return getItem(position).id ?: -1
     }
 
+    override fun onViewRecycled(holder: TabViewHolder) {
+        super.onViewRecycled(holder)
+        holder.recycle()
+    }
+
     fun getRecentTab(position: Int): RecentTab {
         return getItem(position)
     }
@@ -91,6 +98,10 @@ class RecentTabsAdapter(
                 .into(imgScreenshot)
 
             txtDoujinTitle.text = tabHistory.title
+        }
+
+        fun recycle() {
+            Glide.with(itemView.context).clear(imgScreenshot)
         }
     }
 }
