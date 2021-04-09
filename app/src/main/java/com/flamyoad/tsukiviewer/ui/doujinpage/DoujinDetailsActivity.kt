@@ -128,7 +128,8 @@ class DoujinDetailsActivity : AppCompatActivity() {
 
         val uri: Uri
 
-        if (nukeCode != null) {
+//        if (nukeCode != null) {
+        if (!(nukeCode == null || nukeCode == "-1")) {
             val address = "https://nhentai.net/g/${nukeCode}"
             uri = Uri.parse(address)
         } else {
