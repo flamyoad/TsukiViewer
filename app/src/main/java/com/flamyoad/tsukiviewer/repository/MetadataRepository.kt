@@ -160,14 +160,14 @@ class MetadataRepository(private val context: Context) {
             }
         }
 
-        if (sources.contains(Source.HentaiNexus)) {
-            Log.d("fetchbug", "Query HentaiNexus with Cleaned Name")
-            if (cleanedTitle == "") {
-                cleanedTitle = fullTitle.replace(regex, "")
-            }
-
-            return requestFromHenNexus(cleanedTitle)
-        }
+//        if (sources.contains(Source.HentaiNexus)) {
+//            Log.d("fetchbug", "Query HentaiNexus with Cleaned Name")
+//            if (cleanedTitle == "") {
+//                cleanedTitle = fullTitle.replace(regex, "")
+//            }
+//
+//            return requestFromHenNexus(cleanedTitle)
+//        }
 
         Log.d("fetchbug", "No match")
         return FetchResult(null, FetchStatus.NO_MATCH)
