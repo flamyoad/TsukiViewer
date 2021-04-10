@@ -126,7 +126,7 @@
 
             <!-- #6D313335 -->
             <Button
-                android:id="@+id/btnHorizReader"
+                android:id="@+id/btnHorizontalSwipe"
                 style="@style/appcompat_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -135,11 +135,11 @@
                 android:drawablePadding="4dp"
                 android:lines="2"
                 android:paddingTop="16dp"
-                android:text="Read \nhorizontally"
+                android:text="Swipe \nhorizontally"
                 app:cornerRadius="0dp" />
 
             <Button
-                android:id="@+id/btnVertReader"
+                android:id="@+id/btnVerticalSwipe"
                 style="@style/appcompat_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -148,7 +148,20 @@
                 android:drawablePadding="4dp"
                 android:lines="2"
                 android:paddingTop="16dp"
-                android:text="Read \nvertically"
+                android:text="Swipe \nhorizontally"
+                app:cornerRadius="0dp" />
+
+            <Button
+                android:id="@+id/btnVerticalStrip"
+                style="@style/appcompat_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/read_mode_button_inactive"
+                android:drawableTop="@drawable/ic_swap_vert_white_24dp"
+                android:drawablePadding="4dp"
+                android:lines="2"
+                android:paddingTop="16dp"
+                android:text="Scroll \nvertically"
                 app:cornerRadius="0dp" />
 
         </LinearLayout>

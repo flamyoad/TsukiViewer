@@ -2,7 +2,6 @@ package com.flamyoad.tsukiviewer.ui.reader.tabs
 
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.*
 import androidx.core.content.ContextCompat
@@ -15,18 +14,15 @@ import androidx.recyclerview.widget.LinearSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.transition.Slide
 import androidx.transition.TransitionManager
-import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.BottomThumbnailAdapter
 import com.flamyoad.tsukiviewer.model.RecentTab
 import com.flamyoad.tsukiviewer.ui.reader.*
 import com.flamyoad.tsukiviewer.ui.reader.ReaderActivity.Companion.RECENT_TAB_REQUEST_CODE
 import com.flamyoad.tsukiviewer.ui.reader.recents.RecentTabsActivity
-import com.flamyoad.tsukiviewer.ui.settings.preferences.MainPreferences
 import com.flamyoad.tsukiviewer.utils.extensions.toast
 import kotlinx.android.synthetic.main.fragment_reader_tab.*
 import java.io.File
-import java.util.prefs.PreferenceChangeListener
 
 private const val SWIPE_READER = "swipe_reader"
 
@@ -84,11 +80,15 @@ class ReaderTabFragment : Fragment(),
             setupSideMenu(it)
         })
 
-        btnHorizReader.setOnClickListener {
+        btnHorizontalSwipe.setOnClickListener {
             parentViewModel.setReaderMode(ReaderMode.HorizontalSwipe)
         }
 
-        btnVertReader.setOnClickListener {
+        btnVerticalSwipe.setOnClickListener {
+            parentViewModel.setReaderMode(ReaderMode.VerticalSwipe)
+        }
+
+        btnVerticalStrip.setOnClickListener {
             parentViewModel.setReaderMode(ReaderMode.VerticalStrip)
         }
 
@@ -117,13 +117,17 @@ class ReaderTabFragment : Fragment(),
                 currentDir,
                 positionInGrid
             )
+            ReaderMode.VerticalSwipe -> VerticalSwipeReaderFragment.newInstance(
+                currentDir,
+                positionInGrid
+            )
             ReaderMode.VerticalStrip -> VerticalStripReaderFragment.newInstance(
                 currentDir,
                 positionInGrid
             )
         }
 
-        if (mode == ReaderMode.HorizontalSwipe) {
+        if (mode == ReaderMode.HorizontalSwipe || mode == ReaderMode.VerticalSwipe) {
             appBarLayout.setExpanded(true)
         }
 
@@ -145,12 +149,12 @@ class ReaderTabFragment : Fragment(),
 
         when (mode) {
             ReaderMode.HorizontalSwipe -> {
-                btnHorizReader.background.setTint(activeBtnColor)
-                btnVertReader.background.setTint(inactiveBtnColor)
+                btnHorizontalSwipe.background.setTint(activeBtnColor)
+                btnVerticalStrip.background.setTint(inactiveBtnColor)
             }
             ReaderMode.VerticalStrip -> {
-                btnVertReader.background.setTint(activeBtnColor)
-                btnHorizReader.background.setTint(inactiveBtnColor)
+                btnVerticalStrip.background.setTint(activeBtnColor)
+                btnHorizontalSwipe.background.setTint(inactiveBtnColor)
             }
         }
     }
