@@ -11,9 +11,9 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_DRAGGING
+import androidx.recyclerview.widget.WebtoonLayoutManager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.ReaderImageAdapter
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabViewModel
@@ -25,8 +25,6 @@ class VerticalStripReaderFragment : Fragment() {
     private val viewModel: ReaderTabViewModel by viewModels(
         ownerProducer = { requireParentFragment() }
     )
-
-    private val imageAdapter = ReaderImageAdapter()
 
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -50,7 +48,7 @@ class VerticalStripReaderFragment : Fragment() {
 
     private var scrollJob: Job? = null
 
-    private lateinit var layoutManager: LinearLayoutManager
+    private lateinit var layoutManager: WebtoonLayoutManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -126,13 +124,15 @@ class VerticalStripReaderFragment : Fragment() {
         viewModel.bottomThumbnailSelectedItem().observe(viewLifecycleOwner, Observer {
             if (!this::layoutManager.isInitialized) return@Observer
             if (it == -1) return@Observer
-            scrollTo(readerPosition)
+            startScrollingTo(readerPosition)
         })
     }
 
     private fun initReader(readerPosition: Int) {
         val currentDir = arguments?.getString(CURRENT_DIR) ?: ""
-        layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+
+        val imageAdapter = ReaderImageAdapter(listImages.height)
+        layoutManager = WebtoonLayoutManager(requireActivity() as ReaderActivity)
 
         listImages.adapter = imageAdapter
         listImages.layoutManager = layoutManager
@@ -141,8 +141,7 @@ class VerticalStripReaderFragment : Fragment() {
         viewModel.imageList().observe(viewLifecycleOwner, Observer {
             imageAdapter.setList(it)
 
-//            linearLayoutManager.scrollToPosition(readerPosition)
-            scrollTo(readerPosition)
+            startScrollingTo(readerPosition)
 
             readerListener?.onPageChange(readerPosition)
 
@@ -179,20 +178,19 @@ class VerticalStripReaderFragment : Fragment() {
         })
     }
 
-    // Cannot use normal kind of {LinearLayoutManager.scrollToPosition()} because the child height is wrap_content
-    // So we have to keep scrolling and keep checking whether we have reached the position we want
-    private fun scrollTo(position: Int) {
+    private fun startScrollingTo(position: Int) {
         scrollJob?.cancel()
+        // handler cancel job()
+        var hasReachedTargetItem = false
         scrollJob = lifecycleScope.launchWhenResumed {
-            val a = layoutManager.findLastVisibleItemPosition()
-            val b = layoutManager.findFirstVisibleItemPosition()
-            val hasReachedLastItem = layoutManager.findLastVisibleItemPosition() == position
-            val hasReachedTargetItem = layoutManager.findFirstVisibleItemPosition() == position
-
-            while (!(hasReachedLastItem || hasReachedTargetItem)) {
-                layoutManager.scrollToPosition(position)
+            while (!hasReachedTargetItem) {
+                listImages.post {
+                    hasReachedTargetItem = layoutManager.findLastEndVisibleItemPosition() == position
+                    layoutManager.scrollToPositionWithOffset(position, 0)
+                }
                 delay(100)
             }
+
             viewModel.resetBottomThumbnailState()
         }
     }
