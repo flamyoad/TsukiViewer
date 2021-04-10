@@ -6,27 +6,24 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.view.*
+import androidx.core.view.doOnLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_DRAGGING
+import androidx.recyclerview.widget.WebtoonLayoutManager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.ReaderImageAdapter
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabViewModel
 import kotlinx.android.synthetic.main.fragment_vertical_strip_reader.*
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 
 class VerticalStripReaderFragment : Fragment() {
     private val viewModel: ReaderTabViewModel by viewModels(
         ownerProducer = { requireParentFragment() }
     )
-
-    private val imageAdapter = ReaderImageAdapter()
 
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -48,7 +45,7 @@ class VerticalStripReaderFragment : Fragment() {
 
     private var viewPagerListener: ViewPagerListener? = null
 
-    private lateinit var layoutManager: LinearLayoutManager
+    private lateinit var layoutManager: WebtoonLayoutManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -124,27 +121,31 @@ class VerticalStripReaderFragment : Fragment() {
         viewModel.bottomThumbnailSelectedItem().observe(viewLifecycleOwner, Observer {
             if (!this::layoutManager.isInitialized) return@Observer
             if (it == -1) return@Observer
-
-            layoutManager.scrollToPosition(it)
-            viewModel.resetBottomThumbnailState()
+            scrollTo(it)
         })
     }
 
     private fun initReader(readerPosition: Int) {
         val currentDir = arguments?.getString(CURRENT_DIR) ?: ""
-        layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
 
-        listImages.adapter = imageAdapter
-        listImages.layoutManager = layoutManager
-        listImages.setHasFixedSize(true)
+        listImages.doOnLayout {
+            val imageAdapter = ReaderImageAdapter(listImages.height)
+            layoutManager = WebtoonLayoutManager(requireActivity() as ReaderActivity)
 
-        viewModel.imageList().observe(viewLifecycleOwner, Observer {
-            imageAdapter.setList(it)
-            layoutManager.scrollToPosition(readerPosition)
-            readerListener?.onPageChange(readerPosition)
+            listImages.adapter = imageAdapter
+            listImages.layoutManager = layoutManager
+            listImages.setHasFixedSize(true)
 
-            viewModel.currentPath = currentDir
-        })
+            viewModel.imageList().observe(viewLifecycleOwner, Observer {
+                imageAdapter.setList(it)
+
+                scrollTo(readerPosition)
+
+                readerListener?.onPageChange(readerPosition)
+
+                viewModel.currentPath = currentDir
+            })
+        }
     }
 
     private fun setupPageIndicator(readerPosition: Int) {
@@ -174,6 +175,11 @@ class VerticalStripReaderFragment : Fragment() {
                 viewModel.currentScrolledPosition = firstVisible
             }
         })
+    }
+
+    private fun scrollTo(position: Int) {
+        layoutManager.scrollToPositionWithOffset(position, 0)
+        viewModel.resetBottomThumbnailState()
     }
 
     private fun handleVolumeKey(scrollDirection: VolumeButtonScrollDirection) {
@@ -215,9 +221,9 @@ class VerticalStripReaderFragment : Fragment() {
 
             // Offset has to be 0, if not it scrolls to the middle of the item
             if (lastCompletelyVisible != RecyclerView.NO_POSITION) {
-                layoutManager.scrollToPositionWithOffset(lastCompletelyVisible + 1, 0)
+                layoutManager.scrollToPosition(lastCompletelyVisible + 1)
             } else {
-                layoutManager.scrollToPositionWithOffset(firstVisible + 1, 0)
+                layoutManager.scrollToPosition(firstVisible + 1)
             }
         }
     }
@@ -230,9 +236,9 @@ class VerticalStripReaderFragment : Fragment() {
 
             // Offset has to be 0, if not it scrolls to the middle of the item
             if (firstCompletelyVisible != RecyclerView.NO_POSITION) {
-                layoutManager.scrollToPositionWithOffset(firstCompletelyVisible - 1, 0)
+                layoutManager.scrollToPosition(firstCompletelyVisible - 1)
             } else {
-                layoutManager.scrollToPositionWithOffset(lastVisible - 1, 0)
+                layoutManager.scrollToPosition(lastVisible - 1)
             }
         }
     }

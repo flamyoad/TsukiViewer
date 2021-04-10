@@ -1,27 +1,24 @@
 package com.flamyoad.tsukiviewer.adapter
 
-import android.graphics.drawable.Drawable
+import android.content.Context
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.net.Uri
-import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.net.toUri
+import android.widget.FrameLayout
+import android.widget.ProgressBar
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.target.Target
 import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import com.flamyoad.tsukiviewer.R
-import com.github.chrisbanes.photoview.PhotoView
 import java.io.File
 
-class ReaderImageAdapter
-    : RecyclerView.Adapter<ReaderImageAdapter.ImageViewHolder>() {
+class ReaderImageAdapter(private val recyclerViewHeight: Int) :
+    RecyclerView.Adapter<ReaderImageAdapter.ImageViewHolder>() {
 
     private var imageList: List<File> = emptyList()
 
@@ -49,17 +46,40 @@ class ReaderImageAdapter
 
     override fun onViewRecycled(holder: ImageViewHolder) {
         super.onViewRecycled(holder)
-        holder.recycleBitmap()
+        holder.recycle()
     }
 
     inner class ImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val photoView: SubsamplingScaleImageView = itemView.findViewById(R.id.photoView)
+        private val frame: FrameLayout = itemView.findViewById(R.id.frame)
 
         fun bind(file: File) {
+            val progressContainer = createProgressBar(itemView.context)
+            photoView.setOnImageEventListener(object: SubsamplingScaleImageView.DefaultOnImageEventListener() {
+                override fun onReady() {
+                    super.onReady()
+                    progressContainer.isVisible = false
+                }
+            })
             photoView.setImage(ImageSource.uri(Uri.fromFile(file)))
         }
 
-        fun recycleBitmap() {
+        private fun createProgressBar(context: Context): FrameLayout {
+            val progressContainer = FrameLayout(context)
+            frame.addView(progressContainer, ViewGroup.LayoutParams.MATCH_PARENT, recyclerViewHeight)
+            val progress = ProgressBar(context).apply {
+                val size = 72
+                indeterminateTintList = ColorStateList.valueOf(Color.WHITE)
+                layoutParams = FrameLayout.LayoutParams(size, size).apply {
+                    gravity = Gravity.CENTER_HORIZONTAL
+                    setMargins(0, recyclerViewHeight / 4, 0, 0)
+                }
+            }
+            progressContainer.addView(progress)
+            return progressContainer
+        }
+
+        fun recycle() {
             photoView.recycle()
         }
     }
