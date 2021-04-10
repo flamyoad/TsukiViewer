@@ -6,10 +6,10 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.view.*
+import androidx.core.view.doOnLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_DRAGGING
@@ -19,7 +19,6 @@ import com.flamyoad.tsukiviewer.adapter.ReaderImageAdapter
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabViewModel
 import kotlinx.android.synthetic.main.fragment_vertical_strip_reader.*
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 
 class VerticalStripReaderFragment : Fragment() {
     private val viewModel: ReaderTabViewModel by viewModels(
@@ -45,8 +44,6 @@ class VerticalStripReaderFragment : Fragment() {
     private var readerListener: ReaderListener? = null
 
     private var viewPagerListener: ViewPagerListener? = null
-
-    private var scrollJob: Job? = null
 
     private lateinit var layoutManager: WebtoonLayoutManager
 
@@ -124,29 +121,31 @@ class VerticalStripReaderFragment : Fragment() {
         viewModel.bottomThumbnailSelectedItem().observe(viewLifecycleOwner, Observer {
             if (!this::layoutManager.isInitialized) return@Observer
             if (it == -1) return@Observer
-            startScrollingTo(readerPosition)
+            scrollTo(it)
         })
     }
 
     private fun initReader(readerPosition: Int) {
         val currentDir = arguments?.getString(CURRENT_DIR) ?: ""
 
-        val imageAdapter = ReaderImageAdapter(listImages.height)
-        layoutManager = WebtoonLayoutManager(requireActivity() as ReaderActivity)
+        listImages.doOnLayout {
+            val imageAdapter = ReaderImageAdapter(listImages.height)
+            layoutManager = WebtoonLayoutManager(requireActivity() as ReaderActivity)
 
-        listImages.adapter = imageAdapter
-        listImages.layoutManager = layoutManager
-        listImages.setHasFixedSize(true)
+            listImages.adapter = imageAdapter
+            listImages.layoutManager = layoutManager
+            listImages.setHasFixedSize(true)
 
-        viewModel.imageList().observe(viewLifecycleOwner, Observer {
-            imageAdapter.setList(it)
+            viewModel.imageList().observe(viewLifecycleOwner, Observer {
+                imageAdapter.setList(it)
 
-            startScrollingTo(readerPosition)
+                scrollTo(readerPosition)
 
-            readerListener?.onPageChange(readerPosition)
+                readerListener?.onPageChange(readerPosition)
 
-            viewModel.currentPath = currentDir
-        })
+                viewModel.currentPath = currentDir
+            })
+        }
     }
 
     private fun setupPageIndicator(readerPosition: Int) {
@@ -178,21 +177,9 @@ class VerticalStripReaderFragment : Fragment() {
         })
     }
 
-    private fun startScrollingTo(position: Int) {
-        scrollJob?.cancel()
-        // handler cancel job()
-        var hasReachedTargetItem = false
-        scrollJob = lifecycleScope.launchWhenResumed {
-            while (!hasReachedTargetItem) {
-                listImages.post {
-                    hasReachedTargetItem = layoutManager.findLastEndVisibleItemPosition() == position
-                    layoutManager.scrollToPositionWithOffset(position, 0)
-                }
-                delay(100)
-            }
-
-            viewModel.resetBottomThumbnailState()
-        }
+    private fun scrollTo(position: Int) {
+        layoutManager.scrollToPositionWithOffset(position, 0)
+        viewModel.resetBottomThumbnailState()
     }
 
     private fun handleVolumeKey(scrollDirection: VolumeButtonScrollDirection) {
