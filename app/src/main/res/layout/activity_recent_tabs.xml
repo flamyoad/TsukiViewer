@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context=".ui.reader.recents.RecentTabsActivity">
+
+    <ImageView
+        android:id="@+id/imgBackground"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorPrimary"
+        android:scaleType="centerCrop"
+        android:tint="#6F000000"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@drawable/ayumu" />
+
+    <TextView
+        android:id="@+id/btnBack"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:adjustViewBounds="true"
+        android:clickable="true"
+        android:drawableStart="@drawable/ic_view_agenda_gray_24dp"
+        android:drawablePadding="5dp"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:text="Go Back to Reader"
+        android:textColor="#B9B9B9"
+        android:translationZ="2dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/listTabs"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingStart="80dp"
+        android:paddingTop="100dp"
+        android:paddingBottom="130dp"
+        android:scrollbars="none"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/reader_tab_item"
+        tools:orientation="horizontal"
+        tools:ignore="RtlSymmetry" />
+
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/fab_border"
+            app:layout_constraintBottom_toTopOf="@id/txtHint"
+            app:layout_constraintEnd_toEndOf="@id/txtHint"
+            app:layout_constraintStart_toStartOf="@id/txtHint">
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/btnClearRecents"
+                android:layout_width="54dp"
+                android:layout_height="54dp"
+                android:src="@drawable/ic_close_gray_24dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless" />
+
+        </FrameLayout>
+
+    <TextView
+        android:id="@+id/txtHint"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:gravity="center_vertical"
+        android:text="Swipe left/right. Click to change tabs"
+        android:textColor="#B9B9B9"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

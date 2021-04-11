@@ -1,15 +1,13 @@
 package com.flamyoad.tsukiviewer.adapter
 
 import android.content.Intent
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.content.ContextCompat
-import androidx.recyclerview.selection.ItemDetailsLookup
-import androidx.recyclerview.selection.SelectionTracker
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
@@ -21,8 +19,10 @@ import com.flamyoad.tsukiviewer.ui.doujinpage.DoujinDetailsActivity
 import com.flamyoad.tsukiviewer.utils.ActivityStackUtils
 import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
 
-class LocalDoujinsAdapter(private val listener: ActionModeListener<Doujin>,
-                          private val saveActivityInfo: () -> Unit = {}) :
+class LocalDoujinsAdapter(
+    private val listener: ActionModeListener<Doujin>,
+    private val saveActivityInfo: () -> Unit = {}
+) :
     RecyclerView.Adapter<LocalDoujinsAdapter.DoujinViewHolder>(),
     RecyclerViewFastScroller.OnPopupTextUpdate {
 
@@ -40,9 +40,21 @@ class LocalDoujinsAdapter(private val listener: ActionModeListener<Doujin>,
         val inflater = LayoutInflater.from(parent.context)
 
         val layout = when (viewType) {
-            ViewMode.NORMAL_GRID.toInt() -> inflater.inflate(R.layout.doujin_list_item_grid, parent, false)
-            ViewMode.SCALED.toInt() -> inflater.inflate(R.layout.doujin_list_item_scaled, parent, false)
-            ViewMode.MINI_GRID.toInt() -> inflater.inflate(R.layout.doujin_list_item_grid, parent, false)
+            ViewMode.NORMAL_GRID.toInt() -> inflater.inflate(
+                R.layout.doujin_list_item_grid,
+                parent,
+                false
+            )
+            ViewMode.SCALED.toInt() -> inflater.inflate(
+                R.layout.doujin_list_item_scaled,
+                parent,
+                false
+            )
+            ViewMode.MINI_GRID.toInt() -> inflater.inflate(
+                R.layout.doujin_list_item_grid,
+                parent,
+                false
+            )
             else -> throw IllegalArgumentException("Illegal view type")
         }
 
@@ -127,8 +139,6 @@ class LocalDoujinsAdapter(private val listener: ActionModeListener<Doujin>,
 
     fun getViewMode() = viewMode
 
-    //java.lang.NullPointerException: Attempt to invoke virtual method 'java.io.File com.flamyoad.tsukiviewer.model.Doujin.getPath()' on a null object reference
-//    at com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter.getItemId(LocalDoujinsAdapter.kt:82)
     override fun getItemId(position: Int): Long {
         if (doujinList.isEmpty()) {
             return 0
@@ -138,8 +148,13 @@ class LocalDoujinsAdapter(private val listener: ActionModeListener<Doujin>,
         return pathName.hashCode().toLong()
     }
 
+    override fun onViewRecycled(holder: DoujinViewHolder) {
+        super.onViewRecycled(holder)
+        Glide.with(holder.itemView).clear(holder.coverImg)
+    }
+
     inner class DoujinViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val coverImg: ImageView = itemView.findViewById(R.id.imgCover)
+        val coverImg: ImageView = itemView.findViewById(R.id.imgCover)
         private val txtTitle: TextView = itemView.findViewById(R.id.txtTitleEng)
         private val txtPageNumber: TextView = itemView.findViewById(R.id.txtPageNumber)
         private val multiSelectIndicator: ImageView =
@@ -154,14 +169,19 @@ class LocalDoujinsAdapter(private val listener: ActionModeListener<Doujin>,
                 }
             }
 
-            Glide.with(itemView.context)
-                .load(doujin.pic)
-                .transition(withCrossFade())
-                .sizeMultiplier(0.75f)
-                .into(coverImg)
+            // Memory optimization
+            if (coverImg.drawable == null) {
+                Glide.with(itemView.context)
+                    .load(doujin.pic)
+                    .transition(withCrossFade())
+                    .skipMemoryCache(true)
+                    .sizeMultiplier(0.75f)
+                    .into(coverImg)
 
-            txtTitle.text = doujin.title
-            txtPageNumber.text = doujin.numberOfItems.toString()
+
+                txtTitle.text = doujin.title
+                txtPageNumber.text = doujin.numberOfItems.toString()
+            }
         }
     }
 

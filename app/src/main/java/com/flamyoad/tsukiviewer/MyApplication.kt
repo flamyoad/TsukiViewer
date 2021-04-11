@@ -7,9 +7,14 @@ import com.bumptech.glide.Glide
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.utils.ActivityHistory
 import com.jakewharton.threetenabp.AndroidThreeTen
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.plus
 
 
 class MyApplication : Application() {
+
+    val coroutineScope = MainScope() + CoroutineName("Application Scope")
 
     val activityStack = mutableListOf<ActivityHistory>()
 

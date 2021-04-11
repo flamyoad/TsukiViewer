@@ -21,7 +21,6 @@ import com.flamyoad.tsukiviewer.ui.doujinpage.DialogCollectionList
 import com.flamyoad.tsukiviewer.ui.doujinpage.DialogNewCollection
 
 class BookmarkGroupDialog : DialogFragment(), BookmarkGroupDialogListener {
-
     companion object {
         fun newInstance() = BookmarkGroupDialog()
     }
@@ -76,8 +75,10 @@ class BookmarkGroupDialog : DialogFragment(), BookmarkGroupDialogListener {
             LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
     }
 
+    /**
+     * Set height and width of recyclerview to fixed size
+     */
     private fun setRecyclerviewSize() {
-        // Set height and width of recyclerview to fixed size
         val window: Window? = dialog!!.window
         val size = Point()
 

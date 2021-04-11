@@ -142,7 +142,10 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
         }
     }
 
-    // Recursive method to search for directories & sub-directories
+
+    /**
+     * Recursive method to search for directories & sub-directories
+     */
     private suspend fun walk(currentDir: File, parentDir: File) {
         if (currentDir.isDirectory) {
             val fileList = currentDir.listFiles() ?: return
