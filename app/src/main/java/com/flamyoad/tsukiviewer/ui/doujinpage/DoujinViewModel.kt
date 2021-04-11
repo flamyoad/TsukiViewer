@@ -42,6 +42,9 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
     private val gridViewStyle = MutableLiveData<GridViewStyle>()
     fun gridViewStyle(): LiveData<GridViewStyle> = gridViewStyle
 
+    private val landingPage = MutableLiveData<LandingPageMode>()
+    fun landingPage(): LiveData<LandingPageMode> = landingPage
+
     private var shouldUseWindowsSort: Boolean = false
 
     val newCollectionName = MutableLiveData<String>()
@@ -58,6 +61,7 @@ class DoujinViewModel(application: Application) : AndroidViewModel(application) 
 
     init {
         gridViewStyle.value = myAppPreference.getDefaultViewStyle()
+        landingPage.value = myAppPreference.getDefaultLandingPage()
         shouldUseWindowsSort = myAppPreference.shouldUseWindowsSort()
     }
 

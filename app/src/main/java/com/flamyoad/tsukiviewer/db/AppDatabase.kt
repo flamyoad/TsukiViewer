@@ -22,8 +22,9 @@ const val DATABASE_NAME = "com.flamyoad.android.tsukiviewer.AppDatabase"
     BookmarkItem::class,
     SearchHistory::class,
     Collection::class,
-    CollectionCriteria::class
-    ), version = 4)
+    CollectionCriteria::class,
+    RecentTab::class
+    ), version = 5)
 
 abstract class AppDatabase: RoomDatabase() {
 
@@ -38,6 +39,7 @@ abstract class AppDatabase: RoomDatabase() {
     abstract fun collectionDao(): CollectionDao
     abstract fun collectionCriteriaDao(): CollectionCriteriaDao
     abstract fun collectionDoujinDao(): CollectionDoujinDao
+    abstract fun recentTabDao(): RecentTabDao
 
     companion object {
         @Volatile
@@ -63,13 +65,19 @@ abstract class AppDatabase: RoomDatabase() {
             }
         }
 
+        val MIGRATION_4_5 = object: Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("CREATE TABLE IF NOT EXISTS `recent_tabs` (`id` INTEGER, `title` TEXT NOT NULL, `dirPath` TEXT NOT NULL, `thumbnail` TEXT NOT NULL, PRIMARY KEY(`id`))");
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
                     DATABASE_NAME)
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                     .build()
 
                 INSTANCE = instance
