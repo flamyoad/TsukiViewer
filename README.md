@@ -35,6 +35,11 @@
 
 ![second](https://user-images.githubusercontent.com/35066207/97465168-bcda6300-197c-11eb-8922-d1e82347f70d.JPG)
 
+## Chrome-style Tab Reader
+| Switch tabs by swiping toolbar / bottom bar                                                                           | Switch tabs from Recent Tabs screen          | 
+| :-------------------------------------------------------------------------------------------------------------------: |:-------------:|
+| ![swipe-demo](https://user-images.githubusercontent.com/35066207/114297060-14aaf780-9ae1-11eb-956c-1737ab90d2be.gif)  |![tab demo](https://user-images.githubusercontent.com/35066207/114297058-14126100-9ae1-11eb-8d3e-f1d0c061108d.gif) |
+
 
 # Architecture
 Tsuki Viewer is coded in Kotlin and makes full use of [Android Jetpack](https://developer.android.com/jetpack) components such as ```ViewModel``` and ```LiveData``` to implement MVVM architecture. 
