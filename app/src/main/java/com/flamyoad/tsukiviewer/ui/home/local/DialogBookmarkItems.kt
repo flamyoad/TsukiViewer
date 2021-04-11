@@ -74,8 +74,10 @@ class DialogBookmarkItems : DialogFragment(), BookmarkGroupDialogListener {
             LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
     }
 
+    /**
+     * Set height and width of recyclerview to fixed size
+     */
     private fun setRecyclerviewSize() {
-        // Set height and width of recyclerview to fixed size
         val window: Window? = dialog!!.window
         val size = Point()
 

@@ -2,6 +2,9 @@ package androidx.recyclerview.widget
 
 import com.flamyoad.tsukiviewer.ui.reader.ReaderActivity
 
+/**
+ *  Class package is intentionally androidx.recyclerview.widget to allow access to some package-private methods
+ */
 class WebtoonLayoutManager(activity: ReaderActivity) : LinearLayoutManager(activity) {
 
     /**

@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.view.*
-import androidx.core.view.doOnLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -18,7 +17,6 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.ReaderImageAdapter
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabViewModel
 import kotlinx.android.synthetic.main.fragment_vertical_strip_reader.*
-import kotlinx.coroutines.Job
 
 class VerticalStripReaderFragment : Fragment() {
     private val viewModel: ReaderTabViewModel by viewModels(
@@ -128,28 +126,33 @@ class VerticalStripReaderFragment : Fragment() {
     private fun initReader(readerPosition: Int) {
         val currentDir = arguments?.getString(CURRENT_DIR) ?: ""
 
-        listImages.doOnLayout {
-            val imageAdapter = ReaderImageAdapter(listImages.height)
-            layoutManager = WebtoonLayoutManager(requireActivity() as ReaderActivity)
+        val imageAdapter = ReaderImageAdapter()
+        layoutManager = WebtoonLayoutManager(requireActivity() as ReaderActivity)
 
-            listImages.adapter = imageAdapter
-            listImages.layoutManager = layoutManager
-            listImages.setHasFixedSize(true)
+        listImages.adapter = imageAdapter
+        listImages.layoutManager = layoutManager
+        listImages.setHasFixedSize(true)
 
-            viewModel.imageList().observe(viewLifecycleOwner, Observer {
-                imageAdapter.setList(it)
+        viewModel.imageList().observe(viewLifecycleOwner, Observer {
+            imageAdapter.setList(it)
 
-                scrollTo(readerPosition)
+            scrollTo(readerPosition)
 
-                readerListener?.onPageChange(readerPosition)
+            /* Dirty hack that works by scrolling infinitely small pixel to trigger onBind in RecyclerView
+               Only needed in Scrolling Vertically reading mode
+               This is to solve the issue that, the image does not reload on screen rotation on my Xiaomi Note 4x
+               but it does reload on my Zenfone (Device-speficic-bug?)
+             */
+            listImages.scrollBy(0, 1)
+            listImages.scrollBy(0, -1)
 
-                viewModel.currentPath = currentDir
-            })
-        }
+            readerListener?.onPageChange(readerPosition)
+
+            viewModel.currentPath = currentDir
+        })
     }
 
     private fun setupPageIndicator(readerPosition: Int) {
-//        val currentPage = viewModel.currentImagePosition
         readerListener?.onPageChange(readerPosition)
 
         listImages.addOnScrollListener(object : RecyclerView.OnScrollListener() {

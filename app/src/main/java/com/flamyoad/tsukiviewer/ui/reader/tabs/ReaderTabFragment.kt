@@ -3,6 +3,7 @@ package com.flamyoad.tsukiviewer.ui.reader.tabs
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -37,6 +38,7 @@ class ReaderTabFragment : Fragment(),
     private var readerListener: ReaderTabListener? = null
     private var lastReadPageNumberListener: LastReadPageNumberListener? = null
     private var shouldReturnLastReadPosition: Boolean = false
+    private var isFirstLoad: Boolean = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,8 +60,12 @@ class ReaderTabFragment : Fragment(),
         lastReadPageNumberListener = context as LastReadPageNumberListener
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onResume() {
+        super.onResume()
+        if (!isFirstLoad) {
+            return
+        }
+
         viewModel.directoryNoLongerExists().observe(viewLifecycleOwner, Observer { notExists ->
             if (notExists) {
                 toast("Directory not found. Renamed or deleted?")
@@ -104,6 +110,8 @@ class ReaderTabFragment : Fragment(),
         btnBack.setOnClickListener {
             readerListener?.quitActivity()
         }
+
+        isFirstLoad = false
     }
 
     private fun setupReader(mode: ReaderMode) {
@@ -136,8 +144,8 @@ class ReaderTabFragment : Fragment(),
             .commit()
     }
 
+    // Changes button color according to active/inactive state
     private fun setupSideMenu(mode: ReaderMode) {
-        // Changes button color according to active/inactive state
         val activeBtnColor = ContextCompat.getColor(
             requireContext(),
             R.color.read_mode_button_active
@@ -150,10 +158,17 @@ class ReaderTabFragment : Fragment(),
         when (mode) {
             ReaderMode.HorizontalSwipe -> {
                 btnHorizontalSwipe.background.setTint(activeBtnColor)
+                btnVerticalSwipe.background.setTint(inactiveBtnColor)
+                btnVerticalStrip.background.setTint(inactiveBtnColor)
+            }
+            ReaderMode.VerticalSwipe -> {
+                btnHorizontalSwipe.background.setTint(inactiveBtnColor)
+                btnVerticalSwipe.background.setTint(activeBtnColor)
                 btnVerticalStrip.background.setTint(inactiveBtnColor)
             }
             ReaderMode.VerticalStrip -> {
                 btnVerticalStrip.background.setTint(activeBtnColor)
+                btnVerticalSwipe.background.setTint(inactiveBtnColor)
                 btnHorizontalSwipe.background.setTint(inactiveBtnColor)
             }
         }
@@ -229,8 +244,8 @@ class ReaderTabFragment : Fragment(),
         viewModel.currentScrolledPosition = pageNum
         setPageIndicatorNumber(pageNum + 1)
 
-        val bottomLayoutManager = bottomListThumbnails.layoutManager as LinearLayoutManager
-        bottomLayoutManager.scrollToPosition(pageNum)
+        val bottomLayoutManager = bottomListThumbnails.layoutManager as LinearLayoutManager?
+        bottomLayoutManager?.scrollToPosition(pageNum)
 
         if (shouldReturnLastReadPosition) {
             lastReadPageNumberListener?.savePageNumber(pageNum)
@@ -240,8 +255,8 @@ class ReaderTabFragment : Fragment(),
     override fun onThumbnailClick(adapterPosition: Int) {
         viewModel.onThumbnailClick(adapterPosition)
 
-        val thumbnailLayoutManager = bottomListThumbnails.layoutManager as LinearLayoutManager
-        thumbnailLayoutManager.scrollToPosition(adapterPosition)
+        val thumbnailLayoutManager = bottomListThumbnails.layoutManager as LinearLayoutManager?
+        thumbnailLayoutManager?.scrollToPosition(adapterPosition)
 
         hideReaderModeDialog()
     }

@@ -11,6 +11,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter
 import com.flamyoad.tsukiviewer.model.RecentTab
@@ -20,6 +21,7 @@ import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabListener
 import com.flamyoad.tsukiviewer.utils.extensions.reduceDragSensitivitySlightly
 import com.flamyoad.tsukiviewer.utils.extensions.toast
 import kotlinx.android.synthetic.main.activity_reader.*
+
 
 const val MY_KEY_DOWN_INTENT = "my_key_down_intent"
 const val KEY_CODE = "key_code"
@@ -49,7 +51,10 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
 //                finish()
             }
         })
-        positionFromImageGrid = intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
+        positionFromImageGrid = intent.getIntExtra(
+            DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER,
+            0
+        )
 
         val currentDir = intent.getStringExtra(DoujinImagesAdapter.DIRECTORY_PATH) ?: ""
         viewModel.insertRecentTab(currentDir)
@@ -122,12 +127,13 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
             intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
         )
 
-        viewPager.adapter = tabFragmentAdapter
+        viewPager.apply {
+            adapter = tabFragmentAdapter
+        }
 
         viewModel.recentTabs.observe(this, Observer {
             tabFragmentAdapter.setList(it)
             val currentDir = intent.getStringExtra(DoujinImagesAdapter.DIRECTORY_PATH) ?: ""
-
             val currentTab = when (tabChosenFromRecentTabs) {
                 true -> tabFragmentAdapter.getTab(chosenTabId ?: -1)
                 false -> tabFragmentAdapter.getTab(currentDir)
@@ -136,6 +142,8 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
             if (currentTab != null) {
                 switchReaderTab(currentTab)
             }
+
+            (viewPager.getChildAt(0) as RecyclerView).layoutManager!!.isItemPrefetchEnabled = false
         })
 
         viewModel.currentTab().observe(this, Observer {

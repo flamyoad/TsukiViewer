@@ -18,13 +18,15 @@
     </string-array>
 
     <string-array name="pref_reader_mode_name">
-        <item>Vertical Strip</item>
         <item>Horizontal Swipe</item>
+        <item>Vertical Swipe</item>
+        <item>Vertical Strip</item>
     </string-array>
 
     <string-array name="pref_reader_mode_value">
-        <item>VerticalStrip</item>
         <item>HorizontalSwipe</item>
+        <item>VerticalSwipe</item>
+        <item>VerticalStrip</item>
     </string-array>
 
     <string-array name="pref_volume_button_name">

@@ -148,7 +148,7 @@
                 android:drawablePadding="4dp"
                 android:lines="2"
                 android:paddingTop="16dp"
-                android:text="Swipe \nhorizontally"
+                android:text="Swipe \nvertically"
                 app:cornerRadius="0dp" />
 
             <Button
@@ -157,7 +157,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:backgroundTint="@color/read_mode_button_inactive"
-                android:drawableTop="@drawable/ic_swap_vert_white_24dp"
+                android:drawableTop="@drawable/ic_swap_vertical_circle_white_24dp"
                 android:drawablePadding="4dp"
                 android:lines="2"
                 android:paddingTop="16dp"
