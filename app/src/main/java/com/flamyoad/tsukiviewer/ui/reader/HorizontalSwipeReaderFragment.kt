@@ -10,21 +10,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager.widget.ViewPager.SCROLL_STATE_DRAGGING
 import com.flamyoad.tsukiviewer.R
-import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabViewModel
-import kotlinx.android.synthetic.main.fragment_horizontal_reader.*
+import kotlinx.android.synthetic.main.fragment_swipe_reader.*
 
 class HorizontalSwipeReaderFragment : Fragment() {
-    private val viewModel: ReaderTabViewModel by viewModels(
-        ownerProducer = { requireParentFragment() }
-    )
+    private val viewModel: ReaderViewModel by activityViewModels()
 
-    private var readerListener: ReaderListener? = null
+    private var listener: ReaderListener? = null
 
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -33,7 +30,7 @@ class HorizontalSwipeReaderFragment : Fragment() {
 
             when (keyCode) {
                 KeyEvent.KEYCODE_VOLUME_DOWN -> {
-                    readerListener?.toggleBottomSheet(View.GONE) // Hides the bottom sheet when scrolling with volume button
+                    listener?.toggleBottomSheet(View.GONE) // Hides the bottom sheet when scrolling with volume button
 
                     when (viewModel.volumeDownAction) {
                         VolumeButtonScrollDirection.GoToNextPage -> viewpager?.arrowScroll(View.FOCUS_RIGHT)
@@ -41,9 +38,9 @@ class HorizontalSwipeReaderFragment : Fragment() {
                     }
                 }
                 KeyEvent.KEYCODE_VOLUME_UP -> {
-                    readerListener?.toggleBottomSheet(View.GONE)
+                    listener?.toggleBottomSheet(View.GONE)
 
-                    when (viewModel.volumeUpAction) {
+                    when (viewModel.volumeDownAction) {
                         VolumeButtonScrollDirection.GoToNextPage -> viewpager?.arrowScroll(View.FOCUS_RIGHT)
                         VolumeButtonScrollDirection.GoToPrevPage -> viewpager?.arrowScroll(View.FOCUS_LEFT)
                     }
@@ -57,18 +54,21 @@ class HorizontalSwipeReaderFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_horizontal_reader, container, false)
+        return inflater.inflate(R.layout.fragment_swipe_reader, container, false)
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        try {
+            listener = context as ReaderListener
+        } catch (ignored: ClassCastException) {
+        }
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-
-        try {
-            readerListener = parentFragment as ReaderListener
-        } catch (e: Exception) {
-        }
-
         initReader()
+        setupPageIndicator()
         setupBroadcastReceiver()
 
         viewModel.bottomThumbnailSelectedItem().observe(viewLifecycleOwner, Observer {
@@ -86,14 +86,10 @@ class HorizontalSwipeReaderFragment : Fragment() {
     }
 
     private fun initReader() {
-        viewpager.offscreenPageLimit = 1
+        viewpager.offscreenPageLimit = 2
 
         val currentDir = arguments?.getString(CURRENT_DIR) ?: ""
-
-        val readerPosition = when (viewModel.currentScrolledPosition != -1) {
-            true -> viewModel.currentScrolledPosition
-            false -> arguments?.getInt(POSITION_BEFORE_OPENING_READER, 0) ?: 0
-        }
+        val positionFromImageGrid = arguments?.getInt(POSITION_BEFORE_OPENING_READER, 0) ?: 0
 
         val imageAdapter = ImageFragmentStateAdapter(childFragmentManager)
         viewpager.adapter = imageAdapter
@@ -101,30 +97,37 @@ class HorizontalSwipeReaderFragment : Fragment() {
         viewModel.imageList().observe(viewLifecycleOwner, Observer {
             imageAdapter.setList(it)
 
-            viewpager.setCurrentItem(readerPosition, false)
-            readerListener?.onPageChange(readerPosition)
+            if (viewModel.currentPath.isBlank()) {
+                viewpager.setCurrentItem(positionFromImageGrid, false)
+                listener?.onPageChange(positionFromImageGrid)
+            } else {
+                viewpager.setCurrentItem(viewModel.currentImagePosition)
+            }
 
             viewModel.currentPath = currentDir
         })
+    }
 
-        viewpager.addOnPageChangeListener(object: ViewPager.OnPageChangeListener {
-            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
-                viewModel.currentScrolledPosition = position
-            }
-            override fun onPageSelected(position: Int) { // For page indicator
-                readerListener?.onPageChange(position)
-            }
-            override fun onPageScrollStateChanged(state: Int) { // For page indicator
+    private fun setupPageIndicator() {
+        val currentPage = viewModel.currentImagePosition
+        listener?.onPageChange(currentPage)
+
+        viewpager.addOnPageChangeListener(object : ViewPager.SimpleOnPageChangeListener() {
+            override fun onPageScrollStateChanged(state: Int) {
                 if (state == SCROLL_STATE_DRAGGING) {
-                    readerListener?.toggleBottomSheet(View.INVISIBLE)
+                    listener?.toggleBottomSheet(View.INVISIBLE)
                 }
+            }
+
+            override fun onPageSelected(position: Int) {
+                listener?.onPageChange(position)
             }
         })
     }
 
     private fun setupBroadcastReceiver() {
         LocalBroadcastManager.getInstance(requireContext())
-            .registerReceiver(broadcastReceiver, IntentFilter(MY_KEY_DOWN_INTENT))
+            .registerReceiver(broadcastReceiver, IntentFilter(KEY_DOWN_INTENT))
     }
 
     companion object {

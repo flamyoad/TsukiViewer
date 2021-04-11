@@ -42,10 +42,10 @@ Tsuki Viewer is coded in Kotlin and makes full use of [Android Jetpack](https://
 # Libraries
  List of libraries used in this project.
 * [Android Jetpack](https://developer.android.com/jetpack) *(ViewModel, LiveData, Room Database, Paging Library)*
-* [Kotlin Coroutines](https://kotlinlang.org/docs/reference/coroutines-overview.html) & [Flow](https://kotlinlang.org/docs/flow.html)
+* [Kotlin Coroutines](https://kotlinlang.org/docs/reference/coroutines-overview.html)
 * [Retrofit](https://github.com/square/retrofit)
 * [JSoup](https://github.com/jhy/jsoup)
-* [Subsampling Scale Image View](https://github.com/davemorrissey/subsampling-scale-image-view)
+* [PhotoView](https://github.com/chrisbanes/PhotoView)
 * [Glide](https://github.com/bumptech/glide)
 * [FlexboxLayout](https://github.com/google/flexbox-layout)
 * [RecyclerView-FastScroll](https://github.com/timusus/RecyclerView-FastScroll)
@@ -53,20 +53,3 @@ Tsuki Viewer is coded in Kotlin and makes full use of [Android Jetpack](https://
 * [TedPermission](https://github.com/ParkSangGwon/TedPermission)
 * [Android-SpinKit](https://github.com/ybq/Android-SpinKit)
 * [CircleImageView](https://github.com/hdodenhof/CircleImageView)
-
-## License
-```
-Copyright 2020 Ng Zhen Hao
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-```

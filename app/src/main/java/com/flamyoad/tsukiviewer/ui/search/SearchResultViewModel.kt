@@ -71,9 +71,7 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
         }
     }
 
-    /**
-     * Used in onNewIntent. Clears out previous list for the activity since it's singleTask
-     */
+    // Used in onNewIntent. Clears out previous list for the activity since it's singleTask
     @ExperimentalCoroutinesApi
     fun clearPrevAndSubmitQuery(keyword: String, tags: String, shouldIncludeAllTags: Boolean) {
         viewModelScope.launch {
@@ -82,11 +80,10 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
         }
     }
 
-    /**
-     *  Filters the search result with keyword (again).
-     *  User can only filter the list once the system has finished loading all items.
-     *  (SearchView in the toolbar is hidden until all the items have finished loading)
-     */
+    /*  Filters the search result with keyword (again).
+        User can only filter the list once the system has finished loading all items.
+        (SearchView in the toolbar is hidden until all the items have finished loading)
+    */
     fun filterList(keyword: String) {
         // Resets search result to full list if query is blank
         if (keyword.isBlank()) {
@@ -134,7 +131,7 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
         searchResult.value = doujinList
         shouldResetSelections = false
     }
-
+//
     fun tickSelectedDoujinsAll() {
         val hasFinishedLoading = isLoading.value == false
 

@@ -3,7 +3,6 @@ package com.flamyoad.tsukiviewer.ui.doujinpage
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.view.MenuItem
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -26,10 +25,8 @@ class DoujinDetailsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_doujin_details)
 
-        val dirPath = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH) ?: ""
-        viewModel.scanForImages(dirPath)
-
-        initViewPager(savedInstanceState)
+        handleIntent()
+        initViewPager()
         initToolbar()
 
         viewModel.snackbarText.observe(this, Observer { text ->
@@ -84,27 +81,23 @@ class DoujinDetailsActivity : AppCompatActivity() {
         return false
     }
 
-    private fun initViewPager(savedInstanceState: Bundle?) {
+    private fun handleIntent() {
+        val dirPath = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH) ?: ""
+        viewModel.scanForImages(dirPath)
+    }
+
+    private fun initViewPager() {
         val adapterViewPager = DoujinPagerAdapter(supportFragmentManager)
         viewpager.adapter = adapterViewPager
         tabLayout.setupWithViewPager(viewpager)
-
-        viewModel.landingPage().observe(this, Observer {
-            // Do not trigger on screen rotation. Only trigger on first time when entering activity
-            if (savedInstanceState != null) return@Observer
-
-            when (it) {
-                LandingPageMode.DoujinDetails -> viewpager.setCurrentItem(0, false)
-                LandingPageMode.ImageGrid -> viewpager.setCurrentItem(1, false)
-                else -> viewpager.setCurrentItem(0, false)
-            }
-        })
 
         viewpager.addOnPageChangeListener(object: ViewPager.OnPageChangeListener {
             override fun onPageScrollStateChanged(state: Int) {
                 invalidateOptionsMenu()
             }
+
             override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
+
             override fun onPageSelected(position: Int) {}
         })
     }
@@ -135,8 +128,7 @@ class DoujinDetailsActivity : AppCompatActivity() {
 
         val uri: Uri
 
-//        if (nukeCode != null) {
-        if (!(nukeCode == null || nukeCode == "-1")) {
+        if (nukeCode != null) {
             val address = "https://nhentai.net/g/${nukeCode}"
             uri = Uri.parse(address)
         } else {
@@ -162,9 +154,5 @@ class DoujinDetailsActivity : AppCompatActivity() {
     private fun handleBackPress() {
         finish()
         ActivityStackUtils.popAndResumePrevActivity(this)
-    }
-
-    companion object {
-        private const val VIEWPAGER_POSITION = "viewpager_position"
     }
 }
