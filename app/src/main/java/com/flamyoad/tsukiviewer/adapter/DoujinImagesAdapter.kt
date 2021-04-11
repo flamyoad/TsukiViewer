@@ -95,14 +95,6 @@ class DoujinImagesAdapter(
         return imageList[position].hashCode().toLong()
     }
 
-    override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
-        super.onViewRecycled(holder)
-        when (itemType) {
-            ItemType.List -> (holder as DetailedImageViewHolder).recycle()
-            else -> (holder as ImageViewHolder).recycle()
-        }
-    }
-
     fun setList(list: List<File>) {
         imageList = list
         notifyDataSetChanged()
@@ -137,13 +129,8 @@ class DoujinImagesAdapter(
         fun bind(file: File) {
             Glide.with(itemView.context)
                 .load(file.toUri())
-                .skipMemoryCache(true)
                 .transition(withCrossFade())
                 .into(imageView)
-        }
-
-        fun recycle() {
-            Glide.with(itemView.context).clear(imageView)
         }
     }
 
@@ -160,10 +147,6 @@ class DoujinImagesAdapter(
 
             txtName.text = file.name
             txtDate.text = TimeUtils.getReadableDate(file.lastModified())
-        }
-
-        fun recycle() {
-            Glide.with(itemView.context).clear(imageView)
         }
     }
 

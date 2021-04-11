@@ -1,6 +1,5 @@
-package com.flamyoad.tsukiviewer.network.api
+package com.flamyoad.tsukiviewer.network
 
-import com.flamyoad.tsukiviewer.network.Metadata
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Query

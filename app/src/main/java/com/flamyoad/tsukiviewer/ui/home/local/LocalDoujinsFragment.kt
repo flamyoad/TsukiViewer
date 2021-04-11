@@ -12,6 +12,10 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.selection.SelectionPredicates
+import androidx.recyclerview.selection.SelectionTracker
+import androidx.recyclerview.selection.StableIdKeyProvider
+import androidx.recyclerview.selection.StorageStrategy
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView.Adapter.StateRestorationPolicy
 import com.flamyoad.tsukiviewer.ActionModeListener
@@ -25,6 +29,8 @@ import com.flamyoad.tsukiviewer.model.ViewMode
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
 import com.flamyoad.tsukiviewer.ui.home.collections.doujins.CollectionDoujinsActivity
 import com.flamyoad.tsukiviewer.ui.search.SearchActivity
+import com.flamyoad.tsukiviewer.utils.DoujinItemDetailsLookup
+import com.flamyoad.tsukiviewer.utils.DoujinItemKeyProvider
 import com.flamyoad.tsukiviewer.utils.ui.GridItemDecoration
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_local_doujins.*

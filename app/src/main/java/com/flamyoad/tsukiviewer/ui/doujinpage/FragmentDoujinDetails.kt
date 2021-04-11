@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.StyleSpan
-import android.util.Log
 import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -61,27 +60,6 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
         super.onActivityCreated(savedInstanceState)
         setHasOptionsMenu(true)
         initUi()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        Log.d("debugs", "onResume() called")
-        viewModel.coverImage().observe(viewLifecycleOwner, Observer { image ->
-            Glide.with(this)
-                .load(image)
-                .sizeMultiplier(0.75f)
-                .into(imgBackground)
-
-            Glide.with(this)
-                .load(image)
-                .into(imgCover)
-        })
-    }
-
-    override fun onStop() {
-        super.onStop()
-        Glide.with(this).clear(imgBackground)
-        Glide.with(this).clear(imgCover)
     }
 
     private fun initUi() {

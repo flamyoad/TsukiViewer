@@ -1,4 +1,4 @@
-package com.flamyoad.tsukiviewer.network.api
+package com.flamyoad.tsukiviewer.network
 
 import okhttp3.ResponseBody
 import retrofit2.Call

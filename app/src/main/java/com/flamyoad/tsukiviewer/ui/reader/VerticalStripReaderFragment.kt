@@ -5,23 +5,29 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import android.view.*
+import android.view.KeyEvent
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_DRAGGING
-import androidx.recyclerview.widget.WebtoonLayoutManager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.ReaderImageAdapter
-import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabViewModel
 import kotlinx.android.synthetic.main.fragment_vertical_strip_reader.*
 
 class VerticalStripReaderFragment : Fragment() {
-    private val viewModel: ReaderTabViewModel by viewModels(
-        ownerProducer = { requireParentFragment() }
-    )
+    private val viewModel: ReaderViewModel by activityViewModels()
+
+    private var listener: ReaderListener? = null
+
+    private val imageAdapter = ReaderImageAdapter()
+
+    private lateinit var linearLayoutManager: LinearLayoutManager
 
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -39,155 +45,111 @@ class VerticalStripReaderFragment : Fragment() {
         }
     }
 
-    private var readerListener: ReaderListener? = null
-
-    private var viewPagerListener: ViewPagerListener? = null
-
-    private lateinit var layoutManager: WebtoonLayoutManager
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+    }
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
+        inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.fragment_vertical_strip_reader, container, false)
     }
 
-    override fun onResume() {
-        super.onResume()
-        // Setting up broadcast manager for volume key clicks
-        if (!viewModel.shouldScrollWithVolumeButton) {
-            return
-        }
-
-        LocalBroadcastManager
-            .getInstance(requireContext())
-            .registerReceiver(broadcastReceiver, IntentFilter(MY_KEY_DOWN_INTENT))
-    }
-
-    override fun onPause() {
-        super.onPause()
-        LocalBroadcastManager.getInstance(requireContext())
-            .unregisterReceiver(broadcastReceiver)
-    }
-
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        viewPagerListener = context as ViewPagerListener
+        try {
+            listener = context as ReaderListener
+        } catch (ignored: ClassCastException) {
+        }
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-
-        try {
-            readerListener = parentFragment as ReaderListener
-        } catch (e: Exception) {
-        }
-
-        /* This used to restore reader position on screen rotation
-           onRestoreInstanceState wouldn't work since the fragment gets recreated multiple times.
-           First time it has value, but on subsequent calls the {savedInstanceState} is null
-        */
-        val readerPosition = when (viewModel.currentScrolledPosition != -1) {
-            true -> viewModel.currentScrolledPosition
-            false -> arguments?.getInt(POSITION_BEFORE_OPENING_READER, 0) ?: 0
-        }
-
-        initReader(readerPosition)
-        setupPageIndicator(readerPosition)
-
-        listImages.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
-            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
-                when (e.actionMasked) {
-                    MotionEvent.ACTION_DOWN -> {
-                        viewPagerListener?.setUserInputEnabled(false)
-                    }
-                    MotionEvent.ACTION_UP -> {
-                        viewPagerListener?.setUserInputEnabled(true)
-                    }
-                    MotionEvent.ACTION_CANCEL -> {
-                        viewPagerListener?.setUserInputEnabled(true)
-                    }
-                }
-                return false
-            }
-
-            override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
-            override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
-        })
+        initReader()
+        setupPageIndicator()
+        setupBroadcastReceiver()
 
         viewModel.bottomThumbnailSelectedItem().observe(viewLifecycleOwner, Observer {
-            if (!this::layoutManager.isInitialized) return@Observer
+            if (!this::linearLayoutManager.isInitialized) return@Observer
             if (it == -1) return@Observer
-            scrollTo(it)
+
+            linearLayoutManager.scrollToPosition(it)
+
+            viewModel.resetBottomThumbnailState()
         })
     }
 
-    private fun initReader(readerPosition: Int) {
-        val currentDir = arguments?.getString(CURRENT_DIR) ?: ""
+    override fun onDestroyView() {
+        super.onDestroyView()
+        LocalBroadcastManager.getInstance(requireContext())
+            .unregisterReceiver(broadcastReceiver)
+    }
 
-        val imageAdapter = ReaderImageAdapter()
-        layoutManager = WebtoonLayoutManager(requireActivity() as ReaderActivity)
+    private fun initReader() {
+        val currentDir = arguments?.getString(CURRENT_DIR) ?: ""
+        val positionFromImageGrid = arguments?.getInt(POSITION_BEFORE_OPENING_READER, 0) ?: 0
+
+        linearLayoutManager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
 
         listImages.adapter = imageAdapter
-        listImages.layoutManager = layoutManager
+        listImages.layoutManager = linearLayoutManager
         listImages.setHasFixedSize(true)
 
         viewModel.imageList().observe(viewLifecycleOwner, Observer {
             imageAdapter.setList(it)
 
-            scrollTo(readerPosition)
-
-            /* Dirty hack that works by scrolling infinitely small pixel to trigger onBind in RecyclerView
-               Only needed in Scrolling Vertically reading mode
-               This is to solve the issue that, the image does not reload on screen rotation on my Xiaomi Note 4x
-               but it does reload on my Zenfone (Device-speficic-bug?)
-             */
-            listImages.scrollBy(0, 1)
-            listImages.scrollBy(0, -1)
-
-            readerListener?.onPageChange(readerPosition)
+            if (viewModel.currentPath.isBlank()) {
+                linearLayoutManager.scrollToPosition(positionFromImageGrid)
+                listener?.onPageChange(positionFromImageGrid)
+            } else {
+                linearLayoutManager.scrollToPosition(viewModel.currentImagePosition)
+            }
 
             viewModel.currentPath = currentDir
         })
     }
 
-    private fun setupPageIndicator(readerPosition: Int) {
-        readerListener?.onPageChange(readerPosition)
+    private fun setupPageIndicator() {
+        val currentPage = viewModel.currentImagePosition
+        listener?.onPageChange(currentPage)
 
         listImages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
                 if (newState == SCROLL_STATE_DRAGGING) {
-                    readerListener?.toggleBottomSheet(View.INVISIBLE)
+                    listener?.toggleBottomSheet(View.INVISIBLE)
                 }
             }
 
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 val lastCompletelyVisible =
-                    layoutManager.findLastCompletelyVisibleItemPosition()
-                val firstVisible = layoutManager.findFirstVisibleItemPosition()
+                    linearLayoutManager.findLastCompletelyVisibleItemPosition()
+                val firstVisible = linearLayoutManager.findFirstVisibleItemPosition()
 
                 if (lastCompletelyVisible != RecyclerView.NO_POSITION) {
-                    readerListener?.onPageChange(lastCompletelyVisible)
+                    listener?.onPageChange(lastCompletelyVisible)
                 } else {
-                    readerListener?.onPageChange(firstVisible)
+                    listener?.onPageChange(firstVisible)
                 }
-
-                viewModel.currentScrolledPosition = firstVisible
             }
         })
     }
 
-    private fun scrollTo(position: Int) {
-        layoutManager.scrollToPositionWithOffset(position, 0)
-        viewModel.resetBottomThumbnailState()
+    private fun setupBroadcastReceiver() {
+        if (!viewModel.shouldScrollWithVolumeButton) {
+            return
+        }
+
+        LocalBroadcastManager.getInstance(requireContext())
+            .registerReceiver(broadcastReceiver, IntentFilter(KEY_DOWN_INTENT))
     }
 
     private fun handleVolumeKey(scrollDirection: VolumeButtonScrollDirection) {
         // Hides the bottom sheet when scrolling with volume button
-        readerListener?.toggleBottomSheet(View.GONE)
+        listener?.toggleBottomSheet(View.GONE)
 
         when (scrollDirection) {
             VolumeButtonScrollDirection.GoToPrevPage -> {
@@ -218,30 +180,30 @@ class VerticalStripReaderFragment : Fragment() {
     }
 
     private fun scrollToNextItem() {
-        if (this::layoutManager.isInitialized) {
-            val lastCompletelyVisible = layoutManager.findLastCompletelyVisibleItemPosition()
-            val firstVisible = layoutManager.findFirstVisibleItemPosition()
+        if (this::linearLayoutManager.isInitialized) {
+            val lastCompletelyVisible = linearLayoutManager.findLastCompletelyVisibleItemPosition()
+            val firstVisible = linearLayoutManager.findFirstVisibleItemPosition()
 
             // Offset has to be 0, if not it scrolls to the middle of the item
             if (lastCompletelyVisible != RecyclerView.NO_POSITION) {
-                layoutManager.scrollToPosition(lastCompletelyVisible + 1)
+                linearLayoutManager.scrollToPositionWithOffset(lastCompletelyVisible + 1, 0)
             } else {
-                layoutManager.scrollToPosition(firstVisible + 1)
+                linearLayoutManager.scrollToPositionWithOffset(firstVisible + 1, 0)
             }
         }
     }
 
     private fun scrollToPrevItem() {
-        if (this::layoutManager.isInitialized) {
+        if (this::linearLayoutManager.isInitialized) {
             val firstCompletelyVisible =
-                layoutManager.findFirstCompletelyVisibleItemPosition()
-            val lastVisible = layoutManager.findLastVisibleItemPosition()
+                linearLayoutManager.findFirstCompletelyVisibleItemPosition()
+            val lastVisible = linearLayoutManager.findLastVisibleItemPosition()
 
             // Offset has to be 0, if not it scrolls to the middle of the item
             if (firstCompletelyVisible != RecyclerView.NO_POSITION) {
-                layoutManager.scrollToPosition(firstCompletelyVisible - 1)
+                linearLayoutManager.scrollToPositionWithOffset(firstCompletelyVisible - 1, 0)
             } else {
-                layoutManager.scrollToPosition(lastVisible - 1)
+                linearLayoutManager.scrollToPositionWithOffset(lastVisible - 1, 0)
             }
         }
     }
@@ -249,7 +211,6 @@ class VerticalStripReaderFragment : Fragment() {
 
     companion object {
         const val CURRENT_DIR = "current_dir"
-        const val READER_POSITION = "reader_position"
         const val POSITION_BEFORE_OPENING_READER = "position_before_opening_reader"
 
         @JvmStatic
