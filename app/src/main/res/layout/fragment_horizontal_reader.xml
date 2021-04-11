@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.flamyoad.tsukiviewer.utils.ui.HackyViewPager xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/viewpager"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimary"
+    android:layout_marginBottom="?attr/actionBarSize"/>
+
+<!-- Click below link for the reason of the margin bottom -->
+<!--https://stackoverflow.com/questions/39739882/viewpagers-height-in-coordinator-layout-is-more-than-available -->

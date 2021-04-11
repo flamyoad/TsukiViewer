@@ -9,6 +9,7 @@ import com.flamyoad.tsukiviewer.BaseFragment
 
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.model.TagType
+import com.flamyoad.tsukiviewer.utils.extensions.reduceDragSensitivity
 import com.google.android.material.tabs.TabLayoutMediator
 import kotlinx.android.synthetic.main.fragment_doujin_tags.*
 
@@ -76,13 +77,12 @@ class DoujinTagsFragment : BaseFragment(), SearchView.OnQueryTextListener {
 
         viewpager.adapter = TagFragmentAdapter(requireActivity(), tagList)
 
-        TabLayoutMediator(tabLayout, viewpager, false, false) { tab, position ->
+        TabLayoutMediator(tabLayout, viewpager, false, true) { tab, position ->
             tab.text = tagList[position].toString()
-            viewpager.setCurrentItem(tab.position, false)
+            viewpager.setCurrentItem(tab.position, true)
         }.attach()
-
-        // Disables swiping of viewpager
-        viewpager.isUserInputEnabled = false
+        
+        viewpager.reduceDragSensitivity()
 
         viewModel.searchTerms().observe(viewLifecycleOwner, Observer {  })
     }

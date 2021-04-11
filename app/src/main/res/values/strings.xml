@@ -17,4 +17,7 @@
     <string name="approximate_time_per_request">Approximate: %1$d sec per item</string>
 
     <string name="source_selector_target">Directory: %1$s</string>
+    <string name="vpn_is_needed_if_block">VPN is needed if your ISP blocks the domain address\nI recommend using
+        <a href="https://play.google.com/store/apps/details?id=com.cloudflare.onedotonedotonedotone&amp;hl=en&amp;gl=US">1.1.1.1</a>
+    </string>
 </resources>

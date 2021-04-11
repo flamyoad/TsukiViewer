@@ -6,6 +6,7 @@ import androidx.preference.PreferenceManager
 import com.flamyoad.tsukiviewer.adapter.CollectionListAdapter
 import com.flamyoad.tsukiviewer.model.ViewMode
 import com.flamyoad.tsukiviewer.ui.doujinpage.GridViewStyle
+import com.flamyoad.tsukiviewer.ui.doujinpage.LandingPageMode
 import com.flamyoad.tsukiviewer.ui.reader.ReaderMode
 import com.flamyoad.tsukiviewer.ui.reader.VolumeButtonScrollDirection
 import com.flamyoad.tsukiviewer.ui.reader.VolumeButtonScrollMode
@@ -59,6 +60,15 @@ class MyAppPreference(context: Context) {
 
     fun setDefaultReaderMode(mode: ReaderMode) {
         put(MainPreferences.DEFAULT_READER_MODE, mode.toString())
+    }
+
+    fun getDefaultLandingPage(): LandingPageMode {
+        val name = prefs.getString(MainPreferences.DOUJIN_DETAILS_LANDING_SCR, "")
+        return if (name != null && name.isNotBlank()) {
+            LandingPageMode.valueOf(name)
+        } else {
+            LandingPageMode.DoujinDetails
+        }
     }
 
     fun shouldUseWindowsSort(): Boolean {
