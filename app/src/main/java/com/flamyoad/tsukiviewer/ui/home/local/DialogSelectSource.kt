@@ -1,7 +1,9 @@
 package com.flamyoad.tsukiviewer.ui.home.local
 
 import android.app.Dialog
+import android.graphics.Color
 import android.os.Bundle
+import android.text.method.LinkMovementMethod
 import android.widget.Button
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
@@ -24,6 +26,7 @@ class DialogSelectSource : DialogFragment() {
 
     private lateinit var listSources: RecyclerView
     private lateinit var btnStart: MaterialButton
+    private lateinit var txtVpnLink: MaterialTextView
 
     init {
         // All checkboxes should be ticked by default
@@ -48,6 +51,7 @@ class DialogSelectSource : DialogFragment() {
 
         listSources = view.findViewById(R.id.listSources)
         btnStart = view.findViewById(R.id.btnStart)
+        txtVpnLink = view.findViewById(R.id.txtVpnLink)
 
         val txtTarget = view.findViewById<MaterialTextView>(R.id.txtTarget)
         arguments?.let {
@@ -92,6 +96,12 @@ class DialogSelectSource : DialogFragment() {
                 entry.setValue(isChecked)
             }
             sourceAdapter.notifyDataSetChanged()
+        }
+
+        // Set up hyperlink
+        txtVpnLink.apply {
+            setMovementMethod(LinkMovementMethod.getInstance())
+            setLinkTextColor(Color.BLUE)
         }
     }
 

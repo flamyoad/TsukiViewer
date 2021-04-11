@@ -1,22 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:orientation="vertical">
 
     <com.google.android.material.textview.MaterialTextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Select your sources"
-        android:textColor="@color/blackOlive"
-        android:textSize="18sp"
-        android:textStyle="bold"
         android:paddingHorizontal="16dp"
         android:paddingTop="8dp"
         android:paddingBottom="4dp"
-        />
+        android:text="Select your sources"
+        android:textColor="@color/blackOlive"
+        android:textSize="18sp"
+        android:textStyle="bold" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -27,28 +26,38 @@
         <com.google.android.material.textview.MaterialTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Directory: "
-            android:textColor="@color/blackOlive"
-            android:textSize="16sp"
             android:ellipsize="end"
             android:paddingStart="16dp"
             android:paddingEnd="8dp"
             android:paddingBottom="4dp"
-            />
+            android:text="Directory: "
+            android:textColor="@color/blackOlive"
+            android:textSize="16sp" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/txtTarget"
             android:layout_width="0dp"
-            android:layout_weight="1"
-            android:maxLines="2"
             android:layout_height="wrap_content"
-            tools:text="@string/doujin_name_en"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:paddingEnd="8dp"
             android:textColor="@color/mainTextColor"
             android:textSize="16sp"
-            android:ellipsize="end"
-            android:paddingEnd="8dp"
-            />
+            tools:text="@string/doujin_name_en" />
     </LinearLayout>
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/txtVpnLink"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/blackOlive"
+        android:drawableStart="@drawable/ic_vpn_key_black_24dp"
+        android:drawablePadding="16dp"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:textSize="12sp"
+        android:text="VPN is needed if your ISP blocks the domain address"/>
 
     <View
         android:id="@+id/divider2"
@@ -66,19 +75,18 @@
         android:layout_weight="1"
         tools:listitem="@layout/dialog_fetch_sources_item" />
 
-        <Button
-            android:id="@+id/btnStart"
-            style="@style/source_selector_start_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:layout_margin="0dp"
-            android:insetLeft="0dp"
-            android:insetTop="0dp"
-            android:insetRight="0dp"
-            android:insetBottom="0dp"
-            android:text="Start"
-            app:cornerRadius="0dp" />
-
+    <Button
+        android:id="@+id/btnStart"
+        style="@style/source_selector_start_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_margin="0dp"
+        android:insetLeft="0dp"
+        android:insetTop="0dp"
+        android:insetRight="0dp"
+        android:insetBottom="0dp"
+        android:text="Start"
+        app:cornerRadius="0dp" />
 
 </LinearLayout>
