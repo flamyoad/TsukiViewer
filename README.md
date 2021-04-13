@@ -44,7 +44,7 @@
 
 
 # Architecture
-Tsuki Viewer is coded in Kotlin and makes full use of [Android Jetpack](https://developer.android.com/jetpack) components such as ```ViewModel``` and ```LiveData``` to implement MVVM architecture. 
+Tsuki Viewer is developed with modern Android architecture in mind and thus makes full use of [Android Jetpack](https://developer.android.com/jetpack) components such as ```ViewModel``` and ```LiveData``` to implement MVVM architecture. 
 
 # Libraries
  List of libraries used in this project.
