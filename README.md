@@ -11,10 +11,10 @@
   * Include all your doujins in one app without having them clutter your gallery app! Use the search and bookmark functions to organize your ever increasing doujins.
 
 * **Automatic tag retrieval** 
-  * ```Tsuki Viewer``` fetches english title, japanese title and tags from [NHentai](https://nhentai.net) based on the name of your directory.
+  * ```Tsuki Viewer``` fetches english title, japanese title and tags based on the name of your directory.
   
 * **Customize tags freely** 
-  * Built-in editor to let you append or remove tags fetched from [NHentai](https://nhentai.net). You can also add your own tags on non-doujin directories.
+  * Built-in editor to let you append or remove tags. You can also add your own tags on non-doujin directories.
   
 * **Supports third party image-viewers** 
   * You can either use the built-in image viewer or open another gallery such as ```QuickPic``` to read your doujins.
@@ -22,9 +22,6 @@
 * **More storage space for your phone** 
   * If you have a lot of images, most galleries build up thumbnail database which can quickly escalate to multiple GBs. If you open images from ```Tsuki Viewer```, the native gallery       app won't generate a lot of thumbnails. That means more precious storage for your phone.
 
-## Supported websites
-* [NHentai](https://nhentai.net)
-* ~~[HentaiNexus](https://hentainexus.com/)~~ (Striked by DMCA on March 2021)
 # Preview
 
 ## Screenshots
