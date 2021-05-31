@@ -39,16 +39,39 @@ class FragmentGridImages : Fragment() {
 
     private var readerPosition: Int = -1
 
-    override fun onResume() {
-        super.onResume()
-        syncGridPositionWithReader() // Called after onActivityCreated()
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.fragment_grid_images, container, false)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        syncGridPositionWithReader() // Called after onActivityCreated()
+
+        // First initialization
+        if (adapter == null) {
+            val dirPath = requireActivity()
+                .intent
+                .getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH) ?: ""
+
+            viewModel.gridViewStyle().observe(viewLifecycleOwner, Observer { style ->
+                when (style) {
+                    GridViewStyle.Grid -> setListToGrid(dirPath)
+                    GridViewStyle.Scaled -> setListToScaled(dirPath)
+                    GridViewStyle.Row -> setListToRow(dirPath)
+                    GridViewStyle.List -> setListToList(dirPath)
+                    else -> {}
+                }
+
+                if (this::gridLayoutManager.isInitialized) {
+                    // Gets the current item position before replacing the adapter
+                    val currentPosition = gridLayoutManager.findFirstVisibleItemPosition()
+                    gridLayoutManager.scrollToPosition(currentPosition)
+                }
+            })
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -70,32 +93,10 @@ class FragmentGridImages : Fragment() {
         super.onActivityCreated(savedInstanceState)
         setHasOptionsMenu(true)
 
-        val dirPath = requireActivity()
-            .intent
-            .getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH) ?: ""
-
         viewModel.directoryNoLongerExists().observe(viewLifecycleOwner, Observer { notExists ->
             if (notExists) {
                 requireActivity().finish()
             }
-        })
-
-        viewModel.gridViewStyle().observe(viewLifecycleOwner, Observer { style ->
-            when (style) {
-                GridViewStyle.Grid -> setListToGrid(dirPath)
-                GridViewStyle.Scaled -> setListToScaled(dirPath)
-                GridViewStyle.Row -> setListToRow(dirPath)
-                GridViewStyle.List -> setListToList(dirPath)
-                else -> {
-                }
-            }
-
-            if (this::gridLayoutManager.isInitialized) {
-                // Gets the current item position before replacing the adapter
-                val currentPosition = gridLayoutManager.findFirstVisibleItemPosition()
-                gridLayoutManager.scrollToPosition(currentPosition)
-            }
-
         })
     }
 

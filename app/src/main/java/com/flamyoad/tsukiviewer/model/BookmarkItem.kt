@@ -1,7 +1,9 @@
 package com.flamyoad.tsukiviewer.model
 
+import android.os.Parcelable
 import androidx.room.*
 import com.flamyoad.tsukiviewer.db.typeconverter.FolderConverter
+import kotlinx.android.parcel.Parcelize
 import java.io.File
 
 @Entity(

@@ -96,6 +96,8 @@ class DoujinTagsFragment : BaseFragment(), SearchView.OnQueryTextListener {
         return APPBAR_TITLE
     }
 
+    override fun destroyActionMode() {}
+
     companion object {
         const val APPBAR_TITLE = "Tags"
 

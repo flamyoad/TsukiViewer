@@ -168,6 +168,8 @@ class CollectionFragment : BaseFragment(), SearchView.OnQueryTextListener {
         return APPBAR_TITLE
     }
 
+    override fun destroyActionMode() {}
+
     companion object {
         const val APPBAR_TITLE = "Collections"
         const val COLLECTION_ID = "collection_id"

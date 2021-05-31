@@ -2,7 +2,6 @@ package com.flamyoad.tsukiviewer.adapter
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,19 +13,17 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.flamyoad.tsukiviewer.ActionModeListener
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.model.BookmarkItem
 import com.flamyoad.tsukiviewer.model.Doujin
-import com.flamyoad.tsukiviewer.ui.doujinpage.DoujinDetailsActivity
-import com.flamyoad.tsukiviewer.ActionModeListener
 import com.flamyoad.tsukiviewer.model.ViewMode
-import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
+import com.flamyoad.tsukiviewer.ui.doujinpage.DoujinDetailsActivity
 
-class BookmarkItemsAdapter(
-    private val actionListener: ActionModeListener<BookmarkItem>,
-    var actionModeEnabled: Boolean
+class BookmarkItemsAdapter(var actionModeEnabled: Boolean)
+    : ListAdapter<BookmarkItem, BookmarkItemsAdapter.BookmarkViewHolder>(BookmarkDiffCallback()) {
 
-) : ListAdapter<BookmarkItem, BookmarkItemsAdapter.BookmarkViewHolder>(BookmarkDiffCallback()) {
+    private var actionListener: ActionModeListener<BookmarkItem>? = null
 
     private var viewMode: ViewMode = ViewMode.NORMAL_GRID
 
@@ -34,9 +31,21 @@ class BookmarkItemsAdapter(
         val inflater = LayoutInflater.from(parent.context)
 
         val layout = when (viewType) {
-            ViewMode.NORMAL_GRID.toInt() -> inflater.inflate(R.layout.doujin_list_item_grid, parent, false)
-            ViewMode.SCALED.toInt() -> inflater.inflate(R.layout.doujin_list_item_scaled, parent, false)
-            ViewMode.MINI_GRID.toInt() -> inflater.inflate(R.layout.doujin_list_item_grid, parent, false)
+            ViewMode.NORMAL_GRID.toInt() -> inflater.inflate(
+                R.layout.doujin_list_item_grid,
+                parent,
+                false
+            )
+            ViewMode.SCALED.toInt() -> inflater.inflate(
+                R.layout.doujin_list_item_scaled,
+                parent,
+                false
+            )
+            ViewMode.MINI_GRID.toInt() -> inflater.inflate(
+                R.layout.doujin_list_item_grid,
+                parent,
+                false
+            )
             else -> throw IllegalArgumentException("Illegal view type")
         }
 
@@ -50,7 +59,7 @@ class BookmarkItemsAdapter(
 
             when (actionModeEnabled) {
                 true -> {
-                    actionListener.onMultiSelectionClick(item)
+                    actionListener?.onMultiSelectionClick(item)
                 }
 
                 false -> {
@@ -72,7 +81,7 @@ class BookmarkItemsAdapter(
 
                 coverImage.startAnimation(zoomIn)
 
-                actionListener.startActionMode()
+                actionListener?.startActionMode()
 
                 coverImage.startAnimation(zoomOut)
             }
@@ -80,7 +89,7 @@ class BookmarkItemsAdapter(
             val itemIndex = holder.adapterPosition
             val item = getItem(itemIndex)
 
-            actionListener.onMultiSelectionClick(item)
+            actionListener?.onMultiSelectionClick(item)
             return@setOnLongClickListener true
         }
 
@@ -104,6 +113,14 @@ class BookmarkItemsAdapter(
     }
 
     fun getViewMode() = viewMode
+
+    fun setListener(listener: ActionModeListener<BookmarkItem>) {
+        actionListener = listener
+    }
+
+    fun removeListener() {
+        actionListener = null
+    }
 
     inner class BookmarkViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val coverImg: ImageView = itemView.findViewById(R.id.imgCover)

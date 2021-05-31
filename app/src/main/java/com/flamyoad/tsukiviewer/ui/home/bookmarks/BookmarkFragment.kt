@@ -3,6 +3,7 @@ package com.flamyoad.tsukiviewer.ui.home.bookmarks
 import android.content.DialogInterface
 import android.content.res.Configuration
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -37,10 +38,11 @@ class BookmarkFragment : BaseFragment(),
 
     private val viewModel: BookmarkViewModel by activityViewModels()
     private val groupAdapter = BookmarkGroupAdapter(this::onGroupChange, this::showNewGroupDialog)
-    private val itemAdapter = BookmarkItemsAdapter(this, false).apply {
-        setHasStableIds(true)
-    }
+    private val itemAdapter = BookmarkItemsAdapter(false)
+        .apply { setHasStableIds(true) }
+
     private var actionMode: ActionMode? = null
+    private var actionModeCallback: ActionMode.Callback? = null
 
     private var appPreference: MyAppPreference? = null
 
@@ -50,9 +52,8 @@ class BookmarkFragment : BaseFragment(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
-
         previousSearchQuery = savedInstanceState?.getString(SEARCH_VIEW) ?: ""
+        itemAdapter.setListener(this)
     }
 
     override fun onCreateView(
@@ -62,7 +63,18 @@ class BookmarkFragment : BaseFragment(),
         return inflater.inflate(R.layout.fragment_bookmark, container, false)
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        itemAdapter.removeListener()
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
         val isInActionMode = actionMode != null
         outState.putBoolean(ACTION_MODE, isInActionMode)
         outState.putString(SEARCH_VIEW, searchView?.query.toString())
@@ -314,10 +326,19 @@ class BookmarkFragment : BaseFragment(),
         return APPBAR_TITLE
     }
 
+    override fun destroyActionMode() {
+        actionMode?.finish()
+        actionMode = null
+    }
+
     override fun startActionMode() {
         if (requireActivity() is AppCompatActivity) {
             val appCompat = requireActivity() as AppCompatActivity
-            actionMode = appCompat.startSupportActionMode(ActionModeCallback())
+//            actionMode = appCompat.startSupportActionMode(ActionModeCallback())
+
+            actionModeCallback = ActionModeCallback()
+            actionMode = appCompat.startSupportActionMode(actionModeCallback!!)
+
             itemAdapter.actionModeEnabled = true
         }
     }
@@ -376,11 +397,9 @@ class BookmarkFragment : BaseFragment(),
         // This method is not called on screen rotation
         override fun onDestroyActionMode(mode: ActionMode?) {
             actionMode = null
-            requireActivity().window.statusBarColor =
-                statusBarColor // Restores the original status bar color
-
+            actionModeCallback = null
+            requireActivity().window.statusBarColor = statusBarColor // Restores the original status bar color
             itemAdapter.actionModeEnabled = false
-
             viewModel.clearSelectedBookmarks()
         }
     }
@@ -388,7 +407,6 @@ class BookmarkFragment : BaseFragment(),
     companion object {
         const val MENU_CHANGE_NAME = "Change Name"
         const val MENU_DELETE_BOOKMARK_GROUP = "Delete Bookmark Group"
-
         const val DIALOG_NEW_GROUP = "new_group_dialog"
         const val DIALOG_CHANGE_NAME = "change_name_dialog"
         const val DIALOG_DELETE_GROUP = "delete_group_dialog"

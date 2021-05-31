@@ -11,6 +11,7 @@ import android.widget.Button
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.ActionMode
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
@@ -24,6 +25,8 @@ import com.google.android.material.navigation.NavigationView
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+
+    private var callback: ActionMode.Callback? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,59 +90,66 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
+    override fun onSupportActionModeFinished(mode: ActionMode) {
+        super.onSupportActionModeFinished(mode)
+        mode.finish()
+        val currentFragment = supportFragmentManager.findFragmentById(R.id.container) as BaseFragment?
+        currentFragment?.destroyActionMode()
+    }
+
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        val currentFragmentTag = supportFragmentManager.findFragmentById(R.id.container)?.tag ?: ""
+        val currentFragment = supportFragmentManager.findFragmentById(R.id.container) as BaseFragment?
+        val currentFragmentTag = currentFragment?.tag ?: ""
 
         when (item.itemId) {
             R.id.nav_localdoujins -> {
                 if (currentFragmentTag != LocalDoujinsFragment.APPBAR_TITLE) {
-                    clearFragmentBackStack()
+                    currentFragment?.destroyActionMode()
 
+                    clearFragmentBackStack()
                     item.isChecked = true
                     setTitle(LocalDoujinsFragment.APPBAR_TITLE)
-
                     showAppBarShadow()
                 }
             }
 
             R.id.nav_collection -> {
                 if (currentFragmentTag != CollectionFragment.APPBAR_TITLE) {
+                    currentFragment?.destroyActionMode()
                     val fragment = CollectionFragment.newInstance()
                     pushFragment(fragment, fragment.getTitle())
                     item.isChecked = true
-
                     showAppBarShadow()
                 }
             }
 
             R.id.nav_tags -> {
                 if (currentFragmentTag != DoujinTagsFragment.APPBAR_TITLE) {
+                    currentFragment?.destroyActionMode()
                     val fragment = DoujinTagsFragment.newInstance()
                     pushFragment(fragment, fragment.getTitle())
                     item.isChecked = true
-
                     removeAppBarShadow()
                 }
             }
 
             R.id.nav_bookmark -> {
                 if (currentFragmentTag != BookmarkFragment.APPBAR_TITLE) {
+                    currentFragment?.destroyActionMode()
                     val fragment = BookmarkFragment.newInstance()
                     pushFragment(fragment, fragment.getTitle())
                     item.isChecked = true
-
                     removeAppBarShadow()
                 }
             }
 
             R.id.nav_settings -> {
+                currentFragment?.destroyActionMode()
                 val intent = Intent(this, SettingsActivity::class.java)
                 startActivity(intent)
             }
         }
-
         drawerLayout.closeDrawer(GravityCompat.START)
-
         return true
     }
 

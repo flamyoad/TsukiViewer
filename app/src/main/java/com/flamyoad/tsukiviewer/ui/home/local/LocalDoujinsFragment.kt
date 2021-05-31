@@ -68,7 +68,7 @@ class LocalDoujinsFragment : BaseFragment(),
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setHasOptionsMenu(true)
+        setHasOptionsMenu(true) 
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -257,6 +257,11 @@ class LocalDoujinsFragment : BaseFragment(),
 
     override fun getTitle(): String {
         return APPBAR_TITLE
+    }
+
+    override fun destroyActionMode() {
+        actionMode?.finish()
+        actionMode = null
     }
 
     companion object {

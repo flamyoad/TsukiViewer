@@ -1,8 +1,10 @@
 package com.flamyoad.tsukiviewer.model
 
 import android.net.Uri
+import android.os.Parcelable
 import androidx.core.net.toUri
 import com.flamyoad.tsukiviewer.utils.extensions.imageExtensions
+import kotlinx.android.parcel.Parcelize
 import java.io.File
 
 data class Doujin(
@@ -40,7 +42,6 @@ data class Doujin(
     }
 
     companion object {
-        // Untested
         fun fromFile(currentDir: File, parentDir: File): Doujin? {
             val fileList = currentDir.listFiles() ?: return null
             val imageList = fileList.filter { f -> f.extension in imageExtensions }
