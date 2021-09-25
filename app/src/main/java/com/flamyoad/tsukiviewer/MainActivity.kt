@@ -5,6 +5,7 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.os.Environment
 import android.view.MenuItem
 import android.view.ViewGroup
 import android.widget.Button
@@ -70,7 +71,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     // Note to self: onOptionsItemSelected() event actually bubbles up from Activity to Fragment.
     //               So we have to return false here to allow menu processing to proceed.
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item?.itemId) {
             R.id.action_search_local -> {
                 /*  There is no need to animate the closing of DrawerLayout if we start a new activity.

@@ -239,7 +239,7 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
     override fun onFetchMetadata(sources: EnumSet<Source>) {
         if (viewModel.detailsNotExists()) {
             val dirPath =
-                requireActivity().intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
+                requireActivity().intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH) ?: return
             FetchMetadataService.startService(requireContext(), dirPath, sources)
         } else {
             viewModel.resetTags(sources)

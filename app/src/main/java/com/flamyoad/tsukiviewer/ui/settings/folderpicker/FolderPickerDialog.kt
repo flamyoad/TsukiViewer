@@ -102,7 +102,7 @@ class FolderPickerDialog : DialogFragment(),
             fetchParentDirectories(currentDir)
 
         } else {
-            val internalStorage = Environment.getExternalStorageDirectory()
+            val internalStorage = File("/storage/A9E1-1715")
             currentDir = internalStorage
             fetchFolders(internalStorage)
             fetchParentDirectories(internalStorage)
