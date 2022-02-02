@@ -17,15 +17,24 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ui.reader.recents.RecentTabsActivity"></activity>
-        <activity android:name=".ui.home.collections.doujins.CollectionDoujinsActivity" />
-        <activity android:name=".ui.home.collections.CreateCollectionActivity" />
+        <activity
+            android:name=".ui.reader.recents.RecentTabsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.home.collections.doujins.CollectionDoujinsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.home.collections.CreateCollectionActivity"
+            android:exported="false" />
         <activity
             android:name=".ui.fetcher.FetcherStatusActivity"
+            android:exported="false"
             android:launchMode="singleTask" />
         <activity android:name=".ui.editor.EditorActivity" />
 
-        <service android:name=".network.FetchMetadataService" />
+        <service
+            android:name=".network.FetchMetadataService"
+            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -41,16 +50,23 @@
         <activity android:name=".ui.search.SearchActivity" />
         <activity
             android:name=".ui.reader.ReaderActivity"
+            android:exported="false"
             android:theme="@style/AppTheme.Transparent" />
-        <activity android:name=".ui.doujinpage.DoujinDetailsActivity" />
+        <activity
+            android:name=".ui.doujinpage.DoujinDetailsActivity"
+            android:exported="false" />
         <activity
             android:name=".ui.settings.includedfolders.IncludedFolderActivity"
+            android:exported="false"
             android:parentActivityName=".ui.settings.SettingsActivity" />
         <activity
             android:name=".ui.settings.SettingsActivity"
+            android:exported="false"
             android:parentActivityName=".MainActivity"
             android:theme="@style/SettingsTheme" />
-        <activity android:name=".MainActivity">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

@@ -70,8 +70,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     // Note to self: onOptionsItemSelected() event actually bubbles up from Activity to Fragment.
     //               So we have to return false here to allow menu processing to proceed.
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        when (item?.itemId) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
             R.id.action_search_local -> {
                 /*  There is no need to animate the closing of DrawerLayout if we start a new activity.
                     This is because the animation has to be completed before the new activity can be started.

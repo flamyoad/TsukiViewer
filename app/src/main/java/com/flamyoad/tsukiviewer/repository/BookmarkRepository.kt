@@ -165,7 +165,6 @@ class BookmarkRepository(private val context: Context) {
                 return@withTransaction stringBuilder.toString()
 
             } catch (e: Exception) {
-                Log.e("db", e.message)
                 e.printStackTrace()
                 return@withTransaction "Failed to add or remove current doujin"
             }
