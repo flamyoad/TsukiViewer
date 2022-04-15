@@ -1,13 +1,11 @@
 package com.flamyoad.tsukiviewer.ui.reader
 
 import android.app.Application
-import androidx.core.net.toUri
 import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.model.RecentTab
 import com.flamyoad.tsukiviewer.utils.FileUtils
-import com.flamyoad.tsukiviewer.utils.extensions.imageExtensions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

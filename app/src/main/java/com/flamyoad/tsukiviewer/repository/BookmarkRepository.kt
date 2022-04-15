@@ -1,7 +1,6 @@
 package com.flamyoad.tsukiviewer.repository
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.room.withTransaction
 import com.flamyoad.tsukiviewer.db.AppDatabase
@@ -12,21 +11,16 @@ import com.flamyoad.tsukiviewer.model.BookmarkItem
 import com.flamyoad.tsukiviewer.model.Doujin
 import org.threeten.bp.Instant
 import java.io.File
+import javax.inject.Inject
 
-class BookmarkRepository(private val context: Context) {
+class BookmarkRepository @Inject constructor(private val db: AppDatabase) {
+
     companion object {
         const val DEFAULT_BOOKMARK_GROUP = "Default Bookmark Group"
     }
 
-    private val db: AppDatabase = AppDatabase.getInstance(context)
-
-    val groupDao: BookmarkGroupDao
-    val itemDao: BookmarkItemDao
-
-    init {
-        groupDao = db.bookmarkGroupDao()
-        itemDao = db.bookmarkItemDao()
-    }
+    val groupDao: BookmarkGroupDao = db.bookmarkGroupDao()
+    val itemDao: BookmarkItemDao = db.bookmarkItemDao()
 
     fun getAllItems(): LiveData<List<BookmarkItem>> {
         return itemDao.selectAll()

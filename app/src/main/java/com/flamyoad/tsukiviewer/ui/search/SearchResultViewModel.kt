@@ -10,17 +10,23 @@ import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.IncludedPath
 import com.flamyoad.tsukiviewer.repository.BookmarkRepository
 import com.flamyoad.tsukiviewer.repository.DoujinRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import java.util.*
+import javax.inject.Inject
 
-class SearchResultViewModel(private val app: Application) : AndroidViewModel(app) {
+@HiltViewModel
+class SearchResultViewModel @Inject constructor(
+    app: Application,
+    private val bookmarkRepo: BookmarkRepository
+) : ViewModel() {
+
     private val db: AppDatabase = AppDatabase.getInstance(app)
     private val context: Context = app.applicationContext
 
-    private val bookmarkRepo = BookmarkRepository(app)
     private val doujinRepo = DoujinRepository(app)
 
     private val selectedDoujins = mutableListOf<Doujin>()

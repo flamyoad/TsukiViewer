@@ -7,10 +7,7 @@ import android.provider.MediaStore
 import android.util.Log
 import androidx.core.content.ContentResolverCompat
 import androidx.core.net.toUri
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.DoujinDetailsDao
@@ -22,14 +19,21 @@ import com.flamyoad.tsukiviewer.repository.BookmarkRepository
 import com.flamyoad.tsukiviewer.repository.CollectionRepository
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
 import com.flamyoad.tsukiviewer.utils.extensions.toDoujin
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.*
+import javax.inject.Inject
 
-class CollectionDoujinsViewModel(private val app: Application) : AndroidViewModel(app) {
+@HiltViewModel
+class CollectionDoujinsViewModel @Inject constructor(
+    private val app: Application,
+    private val bookmarkRepo: BookmarkRepository
+) : ViewModel() {
+
     private val context: Context = app.applicationContext
     private val contentResolver: ContentResolver = app.contentResolver
 
@@ -37,7 +41,6 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
     private val doujinDetailsDao: DoujinDetailsDao
     private val pathDao: IncludedPathDao
 
-    private val bookmarkRepo = BookmarkRepository(app)
     private val collectionRepo = CollectionRepository(app)
 
     private val doujinList = mutableListOf<Doujin>()

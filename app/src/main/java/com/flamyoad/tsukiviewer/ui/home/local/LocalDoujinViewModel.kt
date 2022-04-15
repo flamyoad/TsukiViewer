@@ -1,6 +1,5 @@
 package com.flamyoad.tsukiviewer.ui.home.local
 
-import android.app.Application
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -9,22 +8,34 @@ import android.os.IBinder
 import androidx.core.net.toUri
 import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyApplication
+import com.flamyoad.tsukiviewer.core.DispatcherProvider
 import com.flamyoad.tsukiviewer.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.Source
 import com.flamyoad.tsukiviewer.network.FetchMetadataService
 import com.flamyoad.tsukiviewer.repository.BookmarkRepository
+import com.flamyoad.tsukiviewer.repository.LocalStorageScannerService
 import com.flamyoad.tsukiviewer.repository.MetadataRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.*
+import javax.inject.Inject
 
-class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app) {
-    private val metadataRepo = MetadataRepository(app)
-    private val bookmarkRepo = BookmarkRepository(app)
+@HiltViewModel
+class LocalDoujinViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val bookmarkRepository: BookmarkRepository,
+    private val localStorageScannerService: LocalStorageScannerService,
+    private val dispatcherProvider: DispatcherProvider,
+    private val savedStateHandle: SavedStateHandle
+) : ViewModel() {
+
+    private val metadataRepo = MetadataRepository(context)
 
     private val selectedDoujins = mutableListOf<Doujin>()
 
@@ -34,8 +45,10 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 
     private var doujinListBuffer = mutableListOf<Doujin>()
 
-    private var doujinList = MutableLiveData<MutableList<Doujin>>(mutableListOf())
-    fun doujinList(): LiveData<MutableList<Doujin>> = doujinList
+    //    private var doujinList = MutableLiveData<MutableList<Doujin>>(mutableListOf())
+//    fun doujinList(): LiveData<MutableList<Doujin>> = doujinList
+    fun doujinList() = localStorageScannerService.getDoujins()
+        .asLiveData(dispatcherProvider.io())
 
     private val isLoading = MutableLiveData<Boolean>(false)
     fun isLoading(): LiveData<Boolean> = isLoading
@@ -52,7 +65,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
     val newGroupName = MutableLiveData<String>()
 
     val groupNameIsUsed: LiveData<Boolean> = newGroupName.switchMap { name ->
-        return@switchMap bookmarkRepo.groupNameExists(name)
+        return@switchMap bookmarkRepository.groupNameExists(name)
     }
 
     private val imageExtensions = arrayOf("jpg", "png", "gif", "jpeg", "webp", "jpe", "bmp")
@@ -74,22 +87,22 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
     val bookmarkGroupTickStatus = hashMapOf<String, Boolean>()
 
     init {
-        initDoujinList()
+//        initDoujinList()
         viewModelScope.launch(Dispatchers.IO) {
-            bookmarkGroupList.postValue(bookmarkRepo.getAllGroupsBlocking())
+            bookmarkGroupList.postValue(bookmarkRepository.getAllGroupsBlocking())
         }
     }
 
     private fun initDoujinList() {
-        val fullList = (app as MyApplication).fullDoujinList
-
-        if (fullList != null) {
-            doujinListBuffer = fullList
-            doujinList.value = fullList
-        } else {
-            doujinListBuffer.clear()
-            loadDoujinsFromDir()
-        }
+//        val fullList = (context as MyApplication).fullDoujinList
+//
+//        if (fullList != null) {
+//            doujinListBuffer = fullList
+//            doujinList.value = fullList
+//        } else {
+//            doujinListBuffer.clear()
+//            loadDoujinsFromDir()
+//        }
     }
 
     fun reloadDoujins() {
@@ -107,39 +120,40 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
     }
 
     private fun loadDoujinsFromDir() {
-        loadingJob = viewModelScope.launch {
-            isLoading.value = true
-
-            withContext(Dispatchers.IO) {
-                includedDirectories = metadataRepo.pathDao.getAllBlocking()
-
-                // Clears doujins from directories previously included, but are now removed by the user
-                if (doujinListBuffer.isNotEmpty()) {
-                    val filteredList = doujinListBuffer
-                        .filter { x -> x.parentDir in includedDirectories }
-                        .toMutableList()
-
-                    withContext(Dispatchers.Main) {
-                        doujinListBuffer = filteredList
-                        doujinList.value = filteredList
-                    }
-                }
-
-                // Re-fetch a new list from the included directories
-                for (dir in includedDirectories) {
-                    walk(dir, dir)
-                }
-
-                withContext(Dispatchers.Main) {
-                    (app as MyApplication).fullDoujinList = doujinListBuffer
-                    isLoading.value = false
-
-                    if (shouldSendDirsToService) {
-                        enqueueDirs()
-                    }
-                }
-            }
-        }
+//        loadingJob = viewModelScope.launch {
+//            isLoading.value = true
+//
+//            withContext(Dispatchers.IO) {
+//                includedDirectories = metadataRepo.pathDao.getAllBlocking()
+//
+//                // Clears doujins from directories previously included, but are now removed by the user
+//                if (doujinListBuffer.isNotEmpty()) {
+//                    val filteredList = doujinListBuffer
+//                        .filter { x -> x.parentDir in includedDirectories }
+//                        .toMutableList()
+//
+//                    withContext(Dispatchers.Main) {
+//                        doujinListBuffer = filteredList
+//                        doujinList.value = filteredList
+//                    }
+//                }
+//
+//                // Re-fetch a new list from the included directories
+//                for (dir in includedDirectories) {
+//                    walk(dir, dir)
+//                }
+//
+//                withContext(Dispatchers.Main) {
+//                    (app as MyApplication).fullDoujinList = doujinListBuffer
+//                    val fullList = mutableListOf<Doujin>()
+//                    isLoading.value = false
+//
+//                    if (shouldSendDirsToService) {
+//                        enqueueDirs()
+//                    }
+//                }
+//            }
+//        }
     }
 
 
@@ -203,14 +217,13 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
                     }
                 }
 
-                doujinList.value = doujinListBuffer
+//                doujinList.value = doujinListBuffer
                 shouldResetSelections = false
             }
         }
     }
 
     fun fetchMetadata(sourceFlags: EnumSet<Source>) {
-        val context = app.applicationContext
         FetchMetadataService.startService(context)
 
         this.sourceFlags = sourceFlags
@@ -223,7 +236,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
     }
 
     private fun enqueueDirs() {
-        val context = app.applicationContext
+        val context = context.applicationContext
 
         viewModelScope.launch(Dispatchers.Default) {
             val dirList = doujinListBuffer.map { x -> x.path }
@@ -282,7 +295,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
                     }
                 }
 
-                doujinList.value = doujinListBuffer
+//                doujinList.value = doujinListBuffer
                 isSorting.value = false
             }
         }
@@ -327,7 +340,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
             val doujin = doujinListBuffer[index]
             doujin.isSelected = !hasBeenSelected
 
-            doujinList.value = doujinListBuffer
+//            doujinList.value = doujinListBuffer
         }
     }
 
@@ -338,7 +351,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
             for (doujin in doujinListBuffer) {
                 doujin.isSelected = false
             }
-            doujinList.value = doujinListBuffer
+//            doujinList.value = doujinListBuffer
 
         } else {
             shouldResetSelections = true
@@ -368,9 +381,12 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
             val status: String
             if (selectedDoujins.size == 1) {
                 val doujinPath = selectedDoujins.first().path
-                status = bookmarkRepo.wipeAndInsertNew(doujinPath, bookmarkGroupTickStatus)
+                status = bookmarkRepository.wipeAndInsertNew(doujinPath, bookmarkGroupTickStatus)
             } else {
-                status = bookmarkRepo.insertAllItems(selectedDoujins.toList(), bookmarkGroupsToBeAdded)
+                status = bookmarkRepository.insertAllItems(
+                    selectedDoujins.toList(),
+                    bookmarkGroupsToBeAdded
+                )
             }
 
             withContext(Dispatchers.Main) {
@@ -381,7 +397,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
 
     fun createCollection(name: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            bookmarkRepo.insertGroup(BookmarkGroup(name))
+            bookmarkRepository.insertGroup(BookmarkGroup(name))
         }
     }
 
@@ -392,7 +408,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
             val doujinPath = selectedDoujins.first().path
 
             viewModelScope.launch(Dispatchers.IO) {
-                val tickedBookmarkGroups = bookmarkRepo.getAllGroupsFrom(doujinPath)
+                val tickedBookmarkGroups = bookmarkRepository.getAllGroupsFrom(doujinPath)
                 withContext(Dispatchers.Main) {
                     for (group in tickedBookmarkGroups) {
                         if (group.isTicked) {
@@ -404,7 +420,7 @@ class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app)
             }
         } else {
             viewModelScope.launch(Dispatchers.IO) {
-                val allBookmarkGroups = bookmarkRepo.getAllGroupsBlocking()
+                val allBookmarkGroups = bookmarkRepository.getAllGroupsBlocking()
                 withContext(Dispatchers.Main) {
                     bookmarkGroupList.value = allBookmarkGroups
                 }

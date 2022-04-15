@@ -5,7 +5,6 @@ import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.model.RecentTab
-import com.flamyoad.tsukiviewer.ui.reader.ReaderMode
 import com.flamyoad.tsukiviewer.ui.reader.VolumeButtonScrollDirection
 import com.flamyoad.tsukiviewer.ui.reader.VolumeButtonScrollMode
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter

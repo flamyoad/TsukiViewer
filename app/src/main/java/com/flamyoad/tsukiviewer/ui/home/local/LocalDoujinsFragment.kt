@@ -19,11 +19,11 @@ import com.flamyoad.tsukiviewer.BaseFragment
 import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
+import com.flamyoad.tsukiviewer.databinding.FragmentLocalDoujinsBinding
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.Source
 import com.flamyoad.tsukiviewer.model.ViewMode
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
-import com.flamyoad.tsukiviewer.ui.home.collections.doujins.CollectionDoujinsActivity
 import com.flamyoad.tsukiviewer.ui.search.SearchActivity
 import com.flamyoad.tsukiviewer.utils.ui.GridItemDecoration
 import com.google.android.material.snackbar.Snackbar
@@ -43,6 +43,9 @@ class LocalDoujinsFragment : BaseFragment(),
     LocalDoujinsContextualListener,
     SelectSourceListener {
 
+    private var _binding: FragmentLocalDoujinsBinding? = null
+    private val binding get() = requireNotNull(_binding)
+
     private val viewModel: LocalDoujinViewModel by activityViewModels()
 
     private var appPreference: MyAppPreference? = null
@@ -61,9 +64,14 @@ class LocalDoujinsFragment : BaseFragment(),
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_local_doujins, container, false)
+    ): View {
+        _binding = FragmentLocalDoujinsBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
