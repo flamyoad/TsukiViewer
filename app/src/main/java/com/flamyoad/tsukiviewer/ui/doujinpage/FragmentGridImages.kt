@@ -10,13 +10,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
-import com.bumptech.glide.Glide
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter.ItemType
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
+import com.flamyoad.tsukiviewer.databinding.FragmentGridImagesBinding
 import com.flamyoad.tsukiviewer.utils.ui.GridItemDecoration
-import kotlinx.android.synthetic.main.fragment_grid_images.*
 
 const val GRID_ITEM_SPAN_PORTRAIT = 3
 const val GRID_ITEM_SPAN_LANDSCAPE = 5
@@ -31,6 +30,10 @@ const val IMAGE_POSITION_REQUEST_CODE = 100
 const val DIALOG_VIEW_STYLE = "dialog_view_style"
 
 class FragmentGridImages : Fragment() {
+
+    private var _binding: FragmentGridImagesBinding? = null
+    private val binding get() = requireNotNull(_binding)
+
     private val viewModel by activityViewModels<DoujinViewModel>()
 
     private var adapter: DoujinImagesAdapter? = null
@@ -43,7 +46,13 @@ class FragmentGridImages : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_grid_images, container, false)
+        _binding = FragmentGridImagesBinding.inflate(layoutInflater)
+        return binding.root
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
     }
 
     override fun onResume() {
@@ -152,15 +161,15 @@ class FragmentGridImages : Fragment() {
 
         gridLayoutManager = GridLayoutManager(context, spanCount)
 
-        listImages.adapter = adapter
-        listImages.layoutManager = gridLayoutManager
+        binding.listImages.adapter = adapter
+        binding.listImages.layoutManager = gridLayoutManager
         /*
            Since this method is called each time the view type is changed,
            We have to clear the item decorations added previously.
            Otherwise, the decors stack on top of other. 1dp will become 2dp, 2 dp will become 3dp and so on...
          */
-        while (listImages.itemDecorationCount > 0) {
-            listImages.removeItemDecorationAt(0)
+        while (binding.listImages.itemDecorationCount > 0) {
+            binding.listImages.removeItemDecorationAt(0)
         }
 
         val itemDecoration =
@@ -170,7 +179,7 @@ class FragmentGridImages : Fragment() {
                 includeEdge = false
             )
 
-        listImages.addItemDecoration(itemDecoration)
+        binding.listImages.addItemDecoration(itemDecoration)
 
         viewModel.imageList().observe(viewLifecycleOwner, Observer {
             adapter?.setList(it)

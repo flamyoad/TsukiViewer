@@ -47,7 +47,7 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
         doujinDetailsDao = metadataRepo.doujinDetailsDao
         tagDao = metadataRepo.tagDao
 
-        tagsByCategory = Transformations.switchMap(selectedCategory) { category ->
+        tagsByCategory = selectedCategory.switchMap { category ->
             return@switchMap tagDao.getByCategory(category)
         }
     }

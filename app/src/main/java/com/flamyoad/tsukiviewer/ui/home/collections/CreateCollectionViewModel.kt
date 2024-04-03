@@ -57,7 +57,7 @@ class CreateCollectionViewModel(application: Application) : AndroidViewModel(app
         includedPathDao = db.includedFolderDao()
         includedPaths = includedPathDao.getAll()
 
-        tagList = Transformations.switchMap(tagQuery) {
+        tagList = tagQuery.switchMap {
             return@switchMap tagRepo.getAllWithFilter(it)
         }
     }

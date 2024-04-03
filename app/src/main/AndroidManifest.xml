@@ -17,7 +17,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ui.reader.recents.RecentTabsActivity"></activity>
+        <activity android:name=".ui.reader.recents.RecentTabsActivity"/>
         <activity android:name=".ui.home.collections.doujins.CollectionDoujinsActivity" />
         <activity android:name=".ui.home.collections.CreateCollectionActivity" />
         <activity
@@ -25,7 +25,9 @@
             android:launchMode="singleTask" />
         <activity android:name=".ui.editor.EditorActivity" />
 
-        <service android:name=".network.FetchMetadataService" />
+        <service android:name=".network.FetchMetadataService"
+            android:enabled="true"
+            android:exported="false"/>
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -50,10 +52,11 @@
             android:name=".ui.settings.SettingsActivity"
             android:parentActivityName=".MainActivity"
             android:theme="@style/SettingsTheme" />
-        <activity android:name=".MainActivity">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

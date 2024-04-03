@@ -19,19 +19,17 @@ import com.flamyoad.tsukiviewer.BaseFragment
 import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
+import com.flamyoad.tsukiviewer.databinding.FragmentLocalDoujinsBinding
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.Source
 import com.flamyoad.tsukiviewer.model.ViewMode
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
-import com.flamyoad.tsukiviewer.ui.home.collections.doujins.CollectionDoujinsActivity
 import com.flamyoad.tsukiviewer.ui.search.SearchActivity
 import com.flamyoad.tsukiviewer.utils.ui.GridItemDecoration
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.fragment_local_doujins.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import java.io.File
 import java.util.*
 
 private const val ACTION_MODE = "action_mode"
@@ -42,6 +40,9 @@ class LocalDoujinsFragment : BaseFragment(),
     ActionModeListener<Doujin>,
     LocalDoujinsContextualListener,
     SelectSourceListener {
+
+    private var _binding: FragmentLocalDoujinsBinding? = null
+    private val binding get() = requireNotNull(_binding)
 
     private val viewModel: LocalDoujinViewModel by activityViewModels()
 
@@ -55,15 +56,15 @@ class LocalDoujinsFragment : BaseFragment(),
 
     private var queryJob: Job? = null
 
-    private lateinit var progressBar: ProgressBar
+    private var progressBar: ProgressBar? = null
     private lateinit var toast: Toast
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_local_doujins, container, false)
+    ): View {
+        _binding = FragmentLocalDoujinsBinding.inflate(layoutInflater)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -88,19 +89,19 @@ class LocalDoujinsFragment : BaseFragment(),
 
         val progressMenuItem = menu.findItem(R.id.progress_bar_sync)
         val progressActionView = progressMenuItem.actionView
-        progressBar = progressActionView.findViewById(R.id.progressBarSync)
-        progressBar.visibility = View.GONE
+        progressBar = progressActionView?.findViewById(R.id.progressBarSync)
+        progressBar?.visibility = View.GONE
 
         val sortMenuItem = menu.findItem(R.id.action_sort_dialog)
 
         viewModel.isLoading().observe(viewLifecycleOwner, Observer { stillLoading ->
             if (stillLoading) {
-                progressBar.visibility = View.VISIBLE
+                progressBar?.visibility = View.VISIBLE
                 sortMenuItem.isVisible = false
             } else {
-                progressBar.visibility = View.GONE
+                progressBar?.visibility = View.GONE
                 sortMenuItem.isVisible = true
-                listLocalDoujins.visibility = View.VISIBLE
+                binding.listLocalDoujins.visibility = View.VISIBLE
             }
         })
     }
@@ -177,7 +178,7 @@ class LocalDoujinsFragment : BaseFragment(),
         viewModel.snackbarText.observe(viewLifecycleOwner, Observer { text ->
             if (text.isNullOrBlank()) return@Observer
 
-            Snackbar.make(rootView, text, Snackbar.LENGTH_LONG)
+            Snackbar.make(binding.rootView, text, Snackbar.LENGTH_LONG)
                 .show()
 
             viewModel.snackbarText.value = ""
@@ -185,13 +186,13 @@ class LocalDoujinsFragment : BaseFragment(),
 
         viewModel.isSorting().observe(viewLifecycleOwner, Observer { stillSorting ->
             if (stillSorting) {
-                listLocalDoujins.alpha = 0.6f
-                fastScroller.isEnabled = false
-                sortingIndicator.visibility = View.VISIBLE
+                binding.listLocalDoujins.alpha = 0.6f
+                binding.fastScroller.isEnabled = false
+                binding.sortingIndicator.root.visibility = View.VISIBLE
             } else {
-                listLocalDoujins.alpha = 1f
-                fastScroller.isEnabled = true
-                sortingIndicator.visibility = View.GONE
+                binding.listLocalDoujins.alpha = 1f
+                binding.fastScroller.isEnabled = true
+                binding.sortingIndicator.root.visibility = View.GONE
             }
         })
     }
@@ -220,27 +221,27 @@ class LocalDoujinsFragment : BaseFragment(),
 
         val gridLayoutManager = GridLayoutManager(context, spanCount)
 
-        listLocalDoujins.swapAdapter(adapter, false)
-        listLocalDoujins.layoutManager = gridLayoutManager
+        binding.listLocalDoujins.swapAdapter(adapter, false)
+        binding.listLocalDoujins.layoutManager = gridLayoutManager
 
         // Prevent the same decor from stacking on top of each other.
-        if (listLocalDoujins.itemDecorationCount == 0) {
+        if (binding.listLocalDoujins.itemDecorationCount == 0) {
             val itemDecoration =
                 GridItemDecoration(
                     spanCount,
                     10,
                     includeEdge = true
                 )
-            listLocalDoujins.addItemDecoration(itemDecoration)
+            binding.listLocalDoujins.addItemDecoration(itemDecoration)
         }
 
-        listLocalDoujins.setHasFixedSize(true)
-        listLocalDoujins.itemAnimator = null
+        binding.listLocalDoujins.setHasFixedSize(true)
+        binding.listLocalDoujins.itemAnimator = null
 
         viewModel.doujinList().observe(viewLifecycleOwner, Observer { newList ->
             adapter.setList(newList)
             if (newList.isNotEmpty()) {
-                listLocalDoujins.visibility = View.VISIBLE
+                binding.listLocalDoujins.visibility = View.VISIBLE
             }
         })
     }

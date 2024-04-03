@@ -153,11 +153,11 @@ class CollectionViewModel(private val app: Application) : AndroidViewModel(app) 
                 params,
                 null,
                 null
-            )
+            )!! // todo: no force unwrap plss
 
             while (cursor.moveToNext()) {
                 val fullPath =
-                    cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA))
+                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATA))
 
                 val dir = File(fullPath)
 

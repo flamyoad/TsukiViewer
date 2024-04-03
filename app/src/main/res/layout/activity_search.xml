@@ -8,7 +8,9 @@
     android:orientation="vertical"
     tools:context=".ui.search.SearchActivity">
 
-    <include layout="@layout/search_bar" />
+    <include
+        android:id="@+id/searchBar"
+        layout="@layout/search_bar" />
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"

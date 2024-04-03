@@ -14,6 +14,7 @@ import com.bumptech.glide.Glide
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinTagsAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
+import com.flamyoad.tsukiviewer.databinding.FragmentDoujinDetailsBinding
 import com.flamyoad.tsukiviewer.model.DoujinDetails
 import com.flamyoad.tsukiviewer.model.DoujinDetailsWithTags
 import com.flamyoad.tsukiviewer.model.Source
@@ -26,21 +27,29 @@ import com.flamyoad.tsukiviewer.utils.TimeUtils
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxLayoutManager
-import kotlinx.android.synthetic.main.doujin_details_tags_group.*
-import kotlinx.android.synthetic.main.fragment_doujin_details.*
 import java.io.File
 import java.util.*
 
 private const val COLLECTION_DIALOG_TAG = "collection_dialog"
 
 class FragmentDoujinDetails : Fragment(), SelectSourceListener {
+
+    private var _binding: FragmentDoujinDetailsBinding? = null
+    private val binding get() = requireNotNull(_binding)
+
     private val viewModel: DoujinViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_doujin_details, container, false)
+        _binding = FragmentDoujinDetailsBinding.inflate(layoutInflater)
+        return binding.root
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -70,18 +79,18 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
             Glide.with(this)
                 .load(image)
                 .sizeMultiplier(0.75f)
-                .into(imgBackground)
+                .into(binding.imgBackground)
 
             Glide.with(this)
                 .load(image)
-                .into(imgCover)
+                .into(binding.imgCover)
         })
     }
 
     override fun onStop() {
         super.onStop()
-        Glide.with(this).clear(imgBackground)
-        Glide.with(this).clear(imgCover)
+        Glide.with(this).clear(binding.imgBackground)
+        Glide.with(this).clear(binding.imgCover)
     }
 
     private fun initUi() {
@@ -89,11 +98,11 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
             Glide.with(this)
                 .load(image)
                 .sizeMultiplier(0.75f)
-                .into(imgBackground)
+                .into(binding.imgBackground)
 
             Glide.with(this)
                 .load(image)
-                .into(imgCover)
+                .into(binding.imgCover)
         })
 
         viewModel.detailWithTags.observe(viewLifecycleOwner, Observer {
@@ -102,29 +111,29 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
 
             val dir = File(currentPath ?: "")
 
-            txtDirectory.text = dir.absolutePath
-            txtDateModified.text = TimeUtils.getReadableDate(dir.lastModified())
+            binding.txtDirectory.text = dir.absolutePath
+            binding.txtDateModified.text = TimeUtils.getReadableDate(dir.lastModified())
 
             if (it == null) {
                 // Show directory name if metadata not yet obtained from API
-                txtTitleEng.text = dir.name
+                binding.txtTitleEng.text = dir.name
 
                 // Hides the tag group in case the user deletes the title & tags
-                tagGroup.visibility = View.GONE
-                tagsNotFoundIndicator.visibility = View.VISIBLE
+                binding.tagGroup.root.visibility = View.GONE
+                binding.tagsNotFoundIndicator.root.visibility = View.VISIBLE
             } else {
                 // Shows the tag group if data is found in database
-                tagGroup.visibility = View.VISIBLE
-                tagsNotFoundIndicator.visibility = View.INVISIBLE
+                binding.tagGroup.root.visibility = View.VISIBLE
+                binding.tagsNotFoundIndicator.root.visibility = View.INVISIBLE
                 initDoujinDetails(it)
             }
         })
 
         viewModel.imageList().observe(viewLifecycleOwner, Observer {
-            txtImageCount.text = it.size.toString()
+            binding.txtImageCount.text = it.size.toString()
         })
 
-        fab.setOnClickListener {
+        binding.fab.setOnClickListener {
             viewModel.fetchBookmarkGroup()
             openCollectionDialog()
         }
@@ -133,7 +142,7 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
     private fun initDoujinDetails(item: DoujinDetailsWithTags) {
         initColoredEnglishTitle(item.doujinDetails)
 
-        txtTitleJap.text = item.doujinDetails.fullTitleJapanese
+        binding.txtTitleJap.text = item.doujinDetails.fullTitleJapanese
 
         val parodies = item.tags.filter { x -> x.type == "parody" }
         val chars = item.tags.filter { x -> x.type == "character" }
@@ -163,13 +172,13 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
             }
 
             val recyclerView = when (i) {
-                0 -> listParodies
-                1 -> listCharacters
-                2 -> listTags
-                3 -> listArtists
-                4 -> listGroups
-                5 -> listLanguages
-                6 -> listCategories
+                0 -> binding.tagGroup.listParodies
+                1 -> binding.tagGroup.listCharacters
+                2 -> binding.tagGroup.listTags
+                3 -> binding.tagGroup.listArtists
+                4 -> binding.tagGroup.listGroups
+                5 -> binding.tagGroup.listLanguages
+                6 -> binding.tagGroup.listCategories
                 else -> null
             }
 
@@ -187,7 +196,7 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
 
         // No need to prettify the title if short title does not exist
         if (shortTitleEnglish.isBlank()) {
-            txtTitleEng.text = doujinDetails.fullTitleEnglish
+            binding.txtTitleEng.text = doujinDetails.fullTitleEnglish
             return
         }
 
@@ -196,7 +205,7 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
 
         // If the short title is not found inside full title. Then we don't have to prettify it.
         if (indexOfShortTitle == -1) {
-            txtTitleEng.text = doujinDetails.fullTitleEnglish
+            binding.txtTitleEng.text = doujinDetails.fullTitleEnglish
             return
         }
 
@@ -210,7 +219,7 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
             )
         }
 
-        txtTitleEng.text = coloredTitle
+        binding.txtTitleEng.text = coloredTitle
     }
 
     private fun openCollectionDialog() {
@@ -240,6 +249,7 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
         if (viewModel.detailsNotExists()) {
             val dirPath =
                 requireActivity().intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
+                    ?: return
             FetchMetadataService.startService(requireContext(), dirPath, sources)
         } else {
             viewModel.resetTags(sources)

@@ -11,7 +11,6 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import com.flamyoad.tsukiviewer.R
-import kotlinx.android.synthetic.main.dialog_grid_view_style.*
 
 class DialogViewStyle : DialogFragment() {
     private val viewModel: DoujinViewModel by activityViewModels()

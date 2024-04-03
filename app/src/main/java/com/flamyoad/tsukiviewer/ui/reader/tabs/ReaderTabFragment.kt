@@ -17,12 +17,12 @@ import androidx.transition.Slide
 import androidx.transition.TransitionManager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.BottomThumbnailAdapter
+import com.flamyoad.tsukiviewer.databinding.FragmentReaderTabBinding
 import com.flamyoad.tsukiviewer.model.RecentTab
 import com.flamyoad.tsukiviewer.ui.reader.*
 import com.flamyoad.tsukiviewer.ui.reader.ReaderActivity.Companion.RECENT_TAB_REQUEST_CODE
 import com.flamyoad.tsukiviewer.ui.reader.recents.RecentTabsActivity
 import com.flamyoad.tsukiviewer.utils.extensions.toast
-import kotlinx.android.synthetic.main.fragment_reader_tab.*
 import java.io.File
 
 private const val SWIPE_READER = "swipe_reader"
@@ -30,6 +30,9 @@ private const val SWIPE_READER = "swipe_reader"
 class ReaderTabFragment : Fragment(),
     ReaderListener,
     BottomThumbnailAdapter.OnItemClickListener {
+
+    private var _binding: FragmentReaderTabBinding? = null
+    private val binding get() = requireNotNull(_binding)
 
     private val viewModel: ReaderTabViewModel by viewModels()
     private val parentViewModel: ReaderViewModel by activityViewModels()
@@ -50,7 +53,13 @@ class ReaderTabFragment : Fragment(),
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_reader_tab, container, false)
+        _binding = FragmentReaderTabBinding.inflate(layoutInflater)
+        return binding.root
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
     }
 
     override fun onAttach(context: Context) {
@@ -78,7 +87,7 @@ class ReaderTabFragment : Fragment(),
         initToolbar()
 
         viewModel.recentTabs.observe(viewLifecycleOwner, Observer {
-            btnTab.text = it.size.toString()
+            binding.btnTab.text = it.size.toString()
         })
 
         parentViewModel.readerMode().observe(viewLifecycleOwner, Observer {
@@ -86,19 +95,19 @@ class ReaderTabFragment : Fragment(),
             setupSideMenu(it)
         })
 
-        btnHorizontalSwipe.setOnClickListener {
+        binding.btnHorizontalSwipe.setOnClickListener {
             parentViewModel.setReaderMode(ReaderMode.HorizontalSwipe)
         }
 
-        btnVerticalSwipe.setOnClickListener {
+        binding.btnVerticalSwipe.setOnClickListener {
             parentViewModel.setReaderMode(ReaderMode.VerticalSwipe)
         }
 
-        btnVerticalStrip.setOnClickListener {
+        binding.btnVerticalStrip.setOnClickListener {
             parentViewModel.setReaderMode(ReaderMode.VerticalStrip)
         }
 
-        btnTab.setOnClickListener {
+        binding.btnTab.setOnClickListener {
             val tabId = arguments?.getLong(TAB_ID) ?: -1
             val intent = Intent(requireContext(), RecentTabsActivity::class.java)
             intent.apply {
@@ -107,7 +116,7 @@ class ReaderTabFragment : Fragment(),
             requireActivity().startActivityForResult(intent, RECENT_TAB_REQUEST_CODE)
         }
 
-        btnBack.setOnClickListener {
+        binding.btnBack.setOnClickListener {
             readerListener?.quitActivity()
         }
 
@@ -136,7 +145,7 @@ class ReaderTabFragment : Fragment(),
         }
 
         if (mode == ReaderMode.HorizontalSwipe || mode == ReaderMode.VerticalSwipe) {
-            appBarLayout.setExpanded(true)
+            binding.appBarLayout.setExpanded(true)
         }
 
         childFragmentManager.beginTransaction()
@@ -157,19 +166,19 @@ class ReaderTabFragment : Fragment(),
 
         when (mode) {
             ReaderMode.HorizontalSwipe -> {
-                btnHorizontalSwipe.background.setTint(activeBtnColor)
-                btnVerticalSwipe.background.setTint(inactiveBtnColor)
-                btnVerticalStrip.background.setTint(inactiveBtnColor)
+                binding.btnHorizontalSwipe.background.setTint(activeBtnColor)
+                binding.btnVerticalSwipe.background.setTint(inactiveBtnColor)
+                binding.btnVerticalStrip.background.setTint(inactiveBtnColor)
             }
             ReaderMode.VerticalSwipe -> {
-                btnHorizontalSwipe.background.setTint(inactiveBtnColor)
-                btnVerticalSwipe.background.setTint(activeBtnColor)
-                btnVerticalStrip.background.setTint(inactiveBtnColor)
+                binding.btnHorizontalSwipe.background.setTint(inactiveBtnColor)
+                binding.btnVerticalSwipe.background.setTint(activeBtnColor)
+                binding.btnVerticalStrip.background.setTint(inactiveBtnColor)
             }
             ReaderMode.VerticalStrip -> {
-                btnVerticalStrip.background.setTint(activeBtnColor)
-                btnVerticalSwipe.background.setTint(inactiveBtnColor)
-                btnHorizontalSwipe.background.setTint(inactiveBtnColor)
+                binding.btnVerticalStrip.background.setTint(activeBtnColor)
+                binding.btnVerticalSwipe.background.setTint(inactiveBtnColor)
+                binding.btnHorizontalSwipe.background.setTint(inactiveBtnColor)
             }
         }
     }
@@ -182,16 +191,16 @@ class ReaderTabFragment : Fragment(),
 
         val snapHelper = LinearSnapHelper()
 
-        bottomListThumbnails.adapter = adapter
-        bottomListThumbnails.layoutManager = linearLayoutManager
-        snapHelper.attachToRecyclerView(bottomListThumbnails)
+        binding.bottomListThumbnails.adapter = adapter
+        binding.bottomListThumbnails.layoutManager = linearLayoutManager
+        snapHelper.attachToRecyclerView(binding.bottomListThumbnails)
 
         viewModel.imageList().observe(viewLifecycleOwner, Observer {
             adapter.setList(it)
             linearLayoutManager.scrollToPosition(0)
         })
 
-        bottomListThumbnails.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
+        binding.bottomListThumbnails.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
             override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
                 when (e.actionMasked) {
                     MotionEvent.ACTION_DOWN -> {
@@ -213,7 +222,7 @@ class ReaderTabFragment : Fragment(),
     }
 
     private fun initPageIndicator() {
-        bottomSheetOpener.setOnClickListener {
+        binding.bottomSheetOpener.setOnClickListener {
             toggleBottomSheet(View.VISIBLE)
         }
     }
@@ -221,7 +230,7 @@ class ReaderTabFragment : Fragment(),
     private fun initToolbar() {
         val path = arguments?.getString(DIR_PATH) ?: ""
         val dir = File(path)
-        toolbarTitle.text = dir.name
+        binding.toolbarTitle.text = dir.name
     }
 
     override fun toggleBottomSheet(visibility: Int) {
@@ -233,18 +242,18 @@ class ReaderTabFragment : Fragment(),
             addTarget(R.id.readerModeDialog)
         }
 
-        TransitionManager.beginDelayedTransition(bottomSheetDialog, btmSlide)
-        TransitionManager.beginDelayedTransition(readerModeDialog, rightSlide)
+        TransitionManager.beginDelayedTransition(binding.bottomSheetDialog, btmSlide)
+        TransitionManager.beginDelayedTransition(binding.readerModeDialog, rightSlide)
 
-        bottomSheetDialog.visibility = visibility
-        readerModeDialog.visibility = visibility
+        binding.bottomSheetDialog.visibility = visibility
+        binding.readerModeDialog.visibility = visibility
     }
 
     override fun onPageChange(pageNum: Int) {
         viewModel.currentScrolledPosition = pageNum
         setPageIndicatorNumber(pageNum + 1)
 
-        val bottomLayoutManager = bottomListThumbnails.layoutManager as LinearLayoutManager?
+        val bottomLayoutManager = binding.bottomListThumbnails.layoutManager as LinearLayoutManager?
         bottomLayoutManager?.scrollToPosition(pageNum)
 
         if (shouldReturnLastReadPosition) {
@@ -255,7 +264,7 @@ class ReaderTabFragment : Fragment(),
     override fun onThumbnailClick(adapterPosition: Int) {
         viewModel.onThumbnailClick(adapterPosition)
 
-        val thumbnailLayoutManager = bottomListThumbnails.layoutManager as LinearLayoutManager?
+        val thumbnailLayoutManager = binding.bottomListThumbnails.layoutManager as LinearLayoutManager?
         thumbnailLayoutManager?.scrollToPosition(adapterPosition)
 
         hideReaderModeDialog()
@@ -265,13 +274,13 @@ class ReaderTabFragment : Fragment(),
         val rightSlide = Slide(Gravity.END).apply {
             addTarget(R.id.readerModeDialog)
         }
-        TransitionManager.beginDelayedTransition(readerModeDialog, rightSlide)
-        readerModeDialog.visibility = View.GONE
+        TransitionManager.beginDelayedTransition(binding.readerModeDialog, rightSlide)
+        binding.readerModeDialog.visibility = View.GONE
     }
 
     private fun setPageIndicatorNumber(pageNum: Int) {
         val pageNumber = "Page: ${pageNum} / ${viewModel.getTotalImagesCount()}"
-        txtCurrentPageNumber.text = pageNumber
+        binding.txtCurrentPageNumber.text = pageNumber
     }
 
     companion object {

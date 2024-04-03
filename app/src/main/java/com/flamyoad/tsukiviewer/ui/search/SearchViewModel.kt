@@ -25,7 +25,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     init {
         searchHistories = searchHistoryRepo.getAll(pageSize = 8)
 
-        tagList = Transformations.switchMap(tagQuery) {
+        tagList = tagQuery.switchMap {
             return@switchMap tagRepo.getAllWithFilter(it)
         }
     }

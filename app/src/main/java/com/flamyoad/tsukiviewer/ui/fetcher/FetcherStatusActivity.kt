@@ -12,10 +12,12 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.FetchHistoryAdapter
+import com.flamyoad.tsukiviewer.databinding.ActivityFetcherStatusBinding
 import com.flamyoad.tsukiviewer.network.FetchMetadataService
-import kotlinx.android.synthetic.main.activity_fetcher_status.*
 
 class FetcherStatusActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityFetcherStatusBinding
 
     private var fetchService: FetchMetadataService? = null
 
@@ -25,7 +27,8 @@ class FetcherStatusActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_fetcher_status)
+        binding = ActivityFetcherStatusBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         doBindService()
     }
@@ -57,9 +60,9 @@ class FetcherStatusActivity : AppCompatActivity() {
     private fun initList() {
         adapter.setHasStableIds(true)
 
-        listItems.adapter = adapter
-        listItems.layoutManager = LinearLayoutManager(this)
-        listItems.addItemDecoration(DividerItemDecoration(this, LinearLayoutManager.VERTICAL))
+        binding.listItems.adapter = adapter
+        binding.listItems.layoutManager = LinearLayoutManager(this)
+        binding.listItems.addItemDecoration(DividerItemDecoration(this, LinearLayoutManager.VERTICAL))
     }
 
     private fun observeChanges() {
@@ -68,11 +71,11 @@ class FetcherStatusActivity : AppCompatActivity() {
         if (service != null) {
             service.fetchPercentage.observe(this, Observer {
                 if (it != null) {
-                    txtProgress.text = it.getProgress()
-                    txtPercentage.text = it.getPercentString()
-                    progressBar.progress = it.getPercent()
+                    binding.txtProgress.text = it.getProgress()
+                    binding.txtPercentage.text = it.getPercentString()
+                    binding.progressBar.progress = it.getPercent()
 
-                    loadingIndicator.visibility = View.GONE
+                    binding.loadingIndicator.visibility = View.GONE
                 }
             })
 
@@ -85,11 +88,11 @@ class FetcherStatusActivity : AppCompatActivity() {
                    If the new list has same reference as the previous list, the call is silently ignored by submitList()
                 */
                 adapter.submitList(it.toList())
-                txtProcessed.text = getString(R.string.processed_item_text, it.size)
+                binding.txtProcessed.text = getString(R.string.processed_item_text, it.size)
             })
 
             service.currentItem().observe(this, Observer {
-                txtCurrentItem.text = it.absolutePath
+                binding.txtCurrentItem.text = it.absolutePath
             })
         }
     }

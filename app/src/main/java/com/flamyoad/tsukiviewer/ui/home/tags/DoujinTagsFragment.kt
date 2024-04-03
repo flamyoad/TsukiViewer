@@ -8,14 +8,18 @@ import androidx.lifecycle.Observer
 import com.flamyoad.tsukiviewer.BaseFragment
 
 import com.flamyoad.tsukiviewer.R
+import com.flamyoad.tsukiviewer.databinding.FragmentDoujinTagsBinding
 import com.flamyoad.tsukiviewer.model.TagType
 import com.flamyoad.tsukiviewer.utils.extensions.reduceDragSensitivity
 import com.google.android.material.tabs.TabLayoutMediator
-import kotlinx.android.synthetic.main.fragment_doujin_tags.*
 
 private const val SEARCH_VIEW = "search_view"
 
 class DoujinTagsFragment : BaseFragment(), SearchView.OnQueryTextListener {
+
+    private var _binding: FragmentDoujinTagsBinding? = null
+    private val binding get() = requireNotNull(_binding)
+
     private val viewModel by activityViewModels<DoujinTagsViewModel>()
 
     private var searchView: SearchView? = null
@@ -49,7 +53,13 @@ class DoujinTagsFragment : BaseFragment(), SearchView.OnQueryTextListener {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_doujin_tags, container, false)
+        _binding = FragmentDoujinTagsBinding.inflate(layoutInflater)
+        return binding.root
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -75,14 +85,14 @@ class DoujinTagsFragment : BaseFragment(), SearchView.OnQueryTextListener {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        viewpager.adapter = TagFragmentAdapter(requireActivity(), tagList)
+        binding.viewpager.adapter = TagFragmentAdapter(requireActivity(), tagList)
 
-        TabLayoutMediator(tabLayout, viewpager, false, true) { tab, position ->
+        TabLayoutMediator(binding.tabLayout, binding.viewpager, false, true) { tab, position ->
             tab.text = tagList[position].toString()
-            viewpager.setCurrentItem(tab.position, true)
+            binding.viewpager.setCurrentItem(tab.position, true)
         }.attach()
-        
-        viewpager.reduceDragSensitivity()
+
+        binding.viewpager.reduceDragSensitivity()
 
         viewModel.searchTerms().observe(viewLifecycleOwner, Observer {  })
     }

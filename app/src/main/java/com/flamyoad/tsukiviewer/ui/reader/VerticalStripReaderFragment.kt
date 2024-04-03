@@ -15,10 +15,14 @@ import androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_DRAGGING
 import androidx.recyclerview.widget.WebtoonLayoutManager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.ReaderImageAdapter
+import com.flamyoad.tsukiviewer.databinding.FragmentVerticalStripReaderBinding
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabViewModel
-import kotlinx.android.synthetic.main.fragment_vertical_strip_reader.*
 
 class VerticalStripReaderFragment : Fragment() {
+
+    private var _binding: FragmentVerticalStripReaderBinding? = null
+    private val binding get() = requireNotNull(_binding)
+
     private val viewModel: ReaderTabViewModel by viewModels(
         ownerProducer = { requireParentFragment() }
     )
@@ -49,8 +53,14 @@ class VerticalStripReaderFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_vertical_strip_reader, container, false)
+    ): View {
+        _binding = FragmentVerticalStripReaderBinding.inflate(layoutInflater)
+        return binding.root
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
     }
 
     override fun onResume() {
@@ -96,7 +106,7 @@ class VerticalStripReaderFragment : Fragment() {
         initReader(readerPosition)
         setupPageIndicator(readerPosition)
 
-        listImages.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
+        binding.listImages.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
             override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
                 when (e.actionMasked) {
                     MotionEvent.ACTION_DOWN -> {
@@ -129,9 +139,9 @@ class VerticalStripReaderFragment : Fragment() {
         val imageAdapter = ReaderImageAdapter()
         layoutManager = WebtoonLayoutManager(requireActivity() as ReaderActivity)
 
-        listImages.adapter = imageAdapter
-        listImages.layoutManager = layoutManager
-        listImages.setHasFixedSize(true)
+        binding.listImages.adapter = imageAdapter
+        binding.listImages.layoutManager = layoutManager
+        binding.listImages.setHasFixedSize(true)
 
         viewModel.imageList().observe(viewLifecycleOwner, Observer {
             imageAdapter.setList(it)
@@ -143,8 +153,8 @@ class VerticalStripReaderFragment : Fragment() {
                This is to solve the issue that, the image does not reload on screen rotation on my Xiaomi Note 4x
                but it does reload on my Zenfone (Device-speficic-bug?)
              */
-            listImages.scrollBy(0, 1)
-            listImages.scrollBy(0, -1)
+            binding.listImages.scrollBy(0, 1)
+            binding.listImages.scrollBy(0, -1)
 
             readerListener?.onPageChange(readerPosition)
 
@@ -155,7 +165,7 @@ class VerticalStripReaderFragment : Fragment() {
     private fun setupPageIndicator(readerPosition: Int) {
         readerListener?.onPageChange(readerPosition)
 
-        listImages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+        binding.listImages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
                 if (newState == SCROLL_STATE_DRAGGING) {
@@ -197,8 +207,10 @@ class VerticalStripReaderFragment : Fragment() {
                     }
 
                     VolumeButtonScrollMode.FixedDistance -> {
-                        listImages?.scrollBy(0, viewModel.scrollDistance.unaryMinus())
+                        binding.listImages.scrollBy(0, viewModel.scrollDistance.unaryMinus())
                     }
+
+                    VolumeButtonScrollMode.Nothing -> TODO()
                 }
             }
 
@@ -209,11 +221,14 @@ class VerticalStripReaderFragment : Fragment() {
                     }
 
                     VolumeButtonScrollMode.FixedDistance -> {
-                        listImages?.scrollBy(0, viewModel.scrollDistance)
+                        binding.listImages.scrollBy(0, viewModel.scrollDistance)
                     }
+
+                    VolumeButtonScrollMode.Nothing -> TODO()
                 }
             }
 
+            VolumeButtonScrollDirection.Nothing -> TODO()
         }
     }
 

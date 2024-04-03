@@ -11,12 +11,14 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.davemorrissey.labs.subscaleview.ImageSource
 import com.flamyoad.tsukiviewer.R
-import kotlinx.android.synthetic.main.reader_image_item.*
+import com.flamyoad.tsukiviewer.databinding.ReaderImageItemBinding
 import java.io.File
 
 private const val IMAGE_PATH = "imagepath"
 
 class ImageFragment : Fragment() {
+    private var _binding: ReaderImageItemBinding? = null
+    private val binding get() = requireNotNull(_binding)
 
     private var viewPagerListener: ViewPagerListener? = null
 
@@ -24,8 +26,9 @@ class ImageFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.reader_image_item, container, false)
+    ): View {
+        _binding = ReaderImageItemBinding.inflate(layoutInflater)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -41,7 +44,7 @@ class ImageFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         // Only works for Horizontal image fragment. There is a separate method for Vertical image since its a RecyclerView
-        photoView.setOnTouchListener { view, motionEvent ->
+        binding.photoView.setOnTouchListener { view, motionEvent ->
             when (motionEvent.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     viewPagerListener?.setUserInputEnabled(false)
@@ -59,20 +62,25 @@ class ImageFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        if (!photoView.isImageLoaded) {
+        if (!binding.photoView.isImageLoaded) {
             loadImage()
         }
     }
 
     override fun onStop() {
         super.onStop()
-        photoView.recycle()
+        binding.photoView.recycle()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
     }
 
     fun loadImage() {
         val imagePath = arguments?.getString(IMAGE_PATH)
         val image = File(imagePath)
-        photoView.setImage(ImageSource.uri(Uri.fromFile(image)))
+        binding.photoView.setImage(ImageSource.uri(Uri.fromFile(image)))
     }
 
     companion object {

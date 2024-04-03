@@ -12,19 +12,22 @@ import androidx.viewpager.widget.ViewPager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinPagerAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
+import com.flamyoad.tsukiviewer.databinding.ActivityDoujinDetailsBinding
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
 import com.flamyoad.tsukiviewer.utils.ActivityStackUtils
 import com.flamyoad.tsukiviewer.utils.extensions.toast
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.activity_doujin_details.*
 
 class DoujinDetailsActivity : AppCompatActivity() {
 
     private val viewModel: DoujinViewModel by viewModels()
 
+    private lateinit var binding: ActivityDoujinDetailsBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_doujin_details)
+        binding = ActivityDoujinDetailsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         val dirPath = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH) ?: ""
         viewModel.scanForImages(dirPath)
@@ -37,7 +40,7 @@ class DoujinDetailsActivity : AppCompatActivity() {
                 return@Observer
             }
 
-            Snackbar.make(rootView, text, Snackbar.LENGTH_LONG)
+            Snackbar.make(binding.rootView, text, Snackbar.LENGTH_LONG)
                 .show()
 
             viewModel.snackbarText.value = ""
@@ -56,8 +59,8 @@ class DoujinDetailsActivity : AppCompatActivity() {
         handleBackPress()
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        when (item?.itemId) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
             android.R.id.home -> {
                 handleBackPress()
             }
@@ -86,21 +89,21 @@ class DoujinDetailsActivity : AppCompatActivity() {
 
     private fun initViewPager(savedInstanceState: Bundle?) {
         val adapterViewPager = DoujinPagerAdapter(supportFragmentManager)
-        viewpager.adapter = adapterViewPager
-        tabLayout.setupWithViewPager(viewpager)
+        binding.viewpager.adapter = adapterViewPager
+        binding.tabLayout.setupWithViewPager(binding.viewpager)
 
         viewModel.landingPage().observe(this, Observer {
             // Do not trigger on screen rotation. Only trigger on first time when entering activity
             if (savedInstanceState != null) return@Observer
 
             when (it) {
-                LandingPageMode.DoujinDetails -> viewpager.setCurrentItem(0, false)
-                LandingPageMode.ImageGrid -> viewpager.setCurrentItem(1, false)
-                else -> viewpager.setCurrentItem(0, false)
+                LandingPageMode.DoujinDetails -> binding.viewpager.setCurrentItem(0, false)
+                LandingPageMode.ImageGrid -> binding.viewpager.setCurrentItem(1, false)
+                else -> binding.viewpager.setCurrentItem(0, false)
             }
         })
 
-        viewpager.addOnPageChangeListener(object: ViewPager.OnPageChangeListener {
+        binding.viewpager.addOnPageChangeListener(object: ViewPager.OnPageChangeListener {
             override fun onPageScrollStateChanged(state: Int) {
                 invalidateOptionsMenu()
             }
@@ -110,7 +113,7 @@ class DoujinDetailsActivity : AppCompatActivity() {
     }
 
     private fun initToolbar() {
-        setSupportActionBar(toolbar)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowHomeEnabled(true)
 

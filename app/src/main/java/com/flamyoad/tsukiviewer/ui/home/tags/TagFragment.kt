@@ -5,25 +5,21 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 
-import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinTagsAdapter
-import com.flamyoad.tsukiviewer.model.Doujin
+import com.flamyoad.tsukiviewer.databinding.FragmentTagBinding
 import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.model.TagType
-import com.google.android.flexbox.FlexDirection
-import com.google.android.flexbox.FlexWrap
-import com.google.android.flexbox.FlexboxItemDecoration
-import com.google.android.flexbox.FlexboxLayoutManager
-import kotlinx.android.synthetic.main.fragment_tag.*
 
 private const val TAG_NAME = "tag_name"
 
 class TagFragment : Fragment() {
+
+    private var _binding: FragmentTagBinding? = null
+    private val binding get() = requireNotNull(_binding)
 
     private val viewModel by activityViewModels<DoujinTagsViewModel>()
 
@@ -37,8 +33,14 @@ class TagFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_tag, container, false)
+    ): View {
+        _binding = FragmentTagBinding.inflate(layoutInflater)
+        return binding.root
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -56,11 +58,11 @@ class TagFragment : Fragment() {
     }
 
     private fun initList() {
-        listTags.adapter = adapter
+        binding.listTags.adapter = adapter
 
         val linearLayoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
 
-        listTags.layoutManager = linearLayoutManager
+        binding.listTags.layoutManager = linearLayoutManager
     }
 
     private fun showDeleteDialog(tag: Tag) {

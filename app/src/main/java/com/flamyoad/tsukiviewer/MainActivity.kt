@@ -16,39 +16,42 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import com.flamyoad.tsukiviewer.databinding.ActivityMainBinding
 import com.flamyoad.tsukiviewer.ui.home.bookmarks.BookmarkFragment
 import com.flamyoad.tsukiviewer.ui.home.collections.CollectionFragment
 import com.flamyoad.tsukiviewer.ui.home.local.LocalDoujinsFragment
 import com.flamyoad.tsukiviewer.ui.home.tags.DoujinTagsFragment
 import com.flamyoad.tsukiviewer.ui.settings.SettingsActivity
 import com.google.android.material.navigation.NavigationView
-import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     private var callback: ActionMode.Callback? = null
 
+    private lateinit var binding: ActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        setSupportActionBar(toolbar)
+        setSupportActionBar(binding.toolbar)
 
         val toggle = ActionBarDrawerToggle(
             this,
-            drawerLayout,
-            toolbar,
+            binding.drawerLayout,
+            binding.toolbar,
             R.string.navigation_drawer_open,
             R.string.navigation_drawer_close
         )
 
-        drawerLayout.addDrawerListener(toggle)
-        drawerLayout.drawerElevation = 0f
-        drawerLayout.setScrimColor(ContextCompat.getColor(this, R.color.navDrawerScrim))
+        binding.drawerLayout.addDrawerListener(toggle)
+        binding.drawerLayout.drawerElevation = 0f
+        binding.drawerLayout.setScrimColor(ContextCompat.getColor(this, R.color.navDrawerScrim))
 
         toggle.syncState()
 
-        nav_view.setNavigationItemSelectedListener(this)
+        binding.navView.setNavigationItemSelectedListener(this)
 
         if (savedInstanceState == null) {
             addFragment(LocalDoujinsFragment.newInstance(), LocalDoujinsFragment.APPBAR_TITLE)
@@ -70,8 +73,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     // Note to self: onOptionsItemSelected() event actually bubbles up from Activity to Fragment.
     //               So we have to return false here to allow menu processing to proceed.
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        when (item?.itemId) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
             R.id.action_search_local -> {
                 /*  There is no need to animate the closing of DrawerLayout if we start a new activity.
                     This is because the animation has to be completed before the new activity can be started.
@@ -79,12 +82,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
                     Activity starting code is in LocalDoujinFragment.kt
                  */
-                drawerLayout.closeDrawer(GravityCompat.START, false)
+                binding.drawerLayout.closeDrawer(GravityCompat.START, false)
                 return false
             }
 
             else -> {
-                drawerLayout.closeDrawer(GravityCompat.START)
+                binding.drawerLayout.closeDrawer(GravityCompat.START)
                 return false
             }
         }
@@ -149,7 +152,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 startActivity(intent)
             }
         }
-        drawerLayout.closeDrawer(GravityCompat.START)
+        binding.drawerLayout.closeDrawer(GravityCompat.START)
         return true
     }
 
@@ -177,23 +180,23 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun removeAppBarShadow() {
-        appbarLayout.stateListAnimator = AnimatorInflater.loadStateListAnimator(this, R.animator.appbar_elevation_off)
+        binding.appbarLayout.stateListAnimator = AnimatorInflater.loadStateListAnimator(this, R.animator.appbar_elevation_off)
     }
 
     private fun showAppBarShadow() {
-        appbarLayout.stateListAnimator = AnimatorInflater.loadStateListAnimator(this, R.animator.appbar_elevation_on)
+        binding.appbarLayout.stateListAnimator = AnimatorInflater.loadStateListAnimator(this, R.animator.appbar_elevation_on)
     }
 
     override fun onBackPressed() {
-        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            drawerLayout.closeDrawer(GravityCompat.START)
+        if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
             return
         }
 
         if (supportFragmentManager.backStackEntryCount > 0) {
             clearFragmentBackStack()
             setTitle(LocalDoujinsFragment.APPBAR_TITLE)
-            nav_view.setCheckedItem(R.id.nav_localdoujins)
+            binding.navView.setCheckedItem(R.id.nav_localdoujins)
 
         } else {
             if (MyAppPreference.getInstance(this).askBeforeQuit()) {

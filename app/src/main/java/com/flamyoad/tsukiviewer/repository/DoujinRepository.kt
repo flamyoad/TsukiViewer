@@ -116,15 +116,15 @@ class DoujinRepository(private val context: Context) {
                 params,
                 null,
                 null
-            )
+            ) ?: return@flow
 
             while (cursor.moveToNext()) {
                 val idSet = mutableSetOf<String>()
 
                 val fullPath =
-                    cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA))
+                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATA))
                 val parentId =
-                    cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.PARENT))
+                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.PARENT))
 
                 if (idSet.add(parentId)) {
                     val doujinDir = File(fullPath)
