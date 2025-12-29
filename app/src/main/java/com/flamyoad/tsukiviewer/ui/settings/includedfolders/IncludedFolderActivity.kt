@@ -16,8 +16,10 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.IncludedFolderAdapter
 import com.flamyoad.tsukiviewer.databinding.ActivityIncludedFolderBinding
 import com.flamyoad.tsukiviewer.model.IncludedPath
-import com.gun0912.tedpermission.PermissionListener
-import com.gun0912.tedpermission.TedPermission
+import com.gun0912.tedpermission.coroutine.TedPermission
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
 
 
@@ -49,8 +51,8 @@ class IncludedFolderActivity : AppCompatActivity(),
         return true
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        when (item?.itemId) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
             R.id.action_add_folder -> {
                 openFolderPicker()
             }
@@ -77,20 +79,15 @@ class IncludedFolderActivity : AppCompatActivity(),
     }
 
     private fun checkForPermission() {
-        val listener = object: PermissionListener {
-            override fun onPermissionGranted() {
-
-            }
-
-            override fun onPermissionDenied(deniedPermissions: MutableList<String>?) {
-                Toast.makeText(this@IncludedFolderActivity, "Permission Denied\n" + deniedPermissions.toString(), Toast.LENGTH_SHORT).show();
+        CoroutineScope(Dispatchers.Main).launch {
+            val permissionResult = TedPermission.create()
+                .setPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE)
+                .check()
+            
+            if (!permissionResult.isGranted) {
+                Toast.makeText(this@IncludedFolderActivity, "Permission Denied\n" + permissionResult.deniedPermissions.toString(), Toast.LENGTH_SHORT).show()
             }
         }
-
-        TedPermission.with(this)
-            .setPermissionListener(listener)
-            .setPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE)
-            .check()
     }
 
     private fun openFolderPicker() {

@@ -322,6 +322,9 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
             DialogTagPicker.Mode.Exclusive -> {
                 viewModel.addExcludedTag(tag)
             }
+            DialogTagPicker.Mode.None -> {
+                // Do nothing
+            }
         }
 
         // Dismisses the dialog once an item is clicked

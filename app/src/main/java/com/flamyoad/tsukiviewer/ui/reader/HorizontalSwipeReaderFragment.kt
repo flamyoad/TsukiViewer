@@ -41,6 +41,7 @@ class HorizontalSwipeReaderFragment : Fragment() {
                     when (viewModel.volumeDownAction) {
                         VolumeButtonScrollDirection.GoToNextPage -> binding.viewpager.arrowScroll(View.FOCUS_RIGHT)
                         VolumeButtonScrollDirection.GoToPrevPage -> binding.viewpager.arrowScroll(View.FOCUS_LEFT)
+                        VolumeButtonScrollDirection.Nothing -> { /* Do nothing */ }
                     }
                 }
                 KeyEvent.KEYCODE_VOLUME_UP -> {
@@ -49,6 +50,7 @@ class HorizontalSwipeReaderFragment : Fragment() {
                     when (viewModel.volumeUpAction) {
                         VolumeButtonScrollDirection.GoToNextPage -> binding.viewpager.arrowScroll(View.FOCUS_RIGHT)
                         VolumeButtonScrollDirection.GoToPrevPage -> binding.viewpager.arrowScroll(View.FOCUS_LEFT)
+                        VolumeButtonScrollDirection.Nothing -> { /* Do nothing */ }
                     }
                 }
             }
@@ -78,7 +80,7 @@ class HorizontalSwipeReaderFragment : Fragment() {
         viewModel.bottomThumbnailSelectedItem().observe(viewLifecycleOwner, Observer {
             if (it == -1) return@Observer
 
-            viewpager.setCurrentItem(it, false)
+            binding.viewpager.setCurrentItem(it, false)
             viewModel.resetBottomThumbnailState()
         })
     }

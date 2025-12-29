@@ -208,6 +208,8 @@ class VerticalStripReaderFragment : Fragment() {
                     VolumeButtonScrollMode.FixedDistance -> {
                         binding.listImages.scrollBy(0, viewModel.scrollDistance.unaryMinus())
                     }
+
+                    VolumeButtonScrollMode.Nothing -> { /* Do nothing */ }
                 }
             }
 
@@ -220,9 +222,12 @@ class VerticalStripReaderFragment : Fragment() {
                     VolumeButtonScrollMode.FixedDistance -> {
                         binding.listImages.scrollBy(0, viewModel.scrollDistance)
                     }
+
+                    VolumeButtonScrollMode.Nothing -> { /* Do nothing */ }
                 }
             }
 
+            VolumeButtonScrollDirection.Nothing -> { /* Do nothing */ }
         }
     }
 

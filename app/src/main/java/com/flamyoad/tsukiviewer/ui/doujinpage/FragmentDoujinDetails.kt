@@ -118,12 +118,12 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
                 binding.txtTitleEng.text = dir.name
 
                 // Hides the tag group in case the user deletes the title & tags
-                binding.tagGroup.tagGroup.visibility = View.GONE
-                binding.tagsNotFoundIndicator.visibility = View.VISIBLE
+                binding.tagGroup.root.visibility = View.GONE
+                binding.tagsNotFoundIndicator.root.visibility = View.VISIBLE
             } else {
                 // Shows the tag group if data is found in database
-                binding.tagGroup.tagGroup.visibility = View.VISIBLE
-                binding.tagsNotFoundIndicator.visibility = View.INVISIBLE
+                binding.tagGroup.root.visibility = View.VISIBLE
+                binding.tagsNotFoundIndicator.root.visibility = View.INVISIBLE
                 initDoujinDetails(it)
             }
         })
@@ -247,7 +247,7 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
     override fun onFetchMetadata(sources: EnumSet<Source>) {
         if (viewModel.detailsNotExists()) {
             val dirPath =
-                requireActivity().intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
+                requireActivity().intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH) ?: return
             FetchMetadataService.startService(requireContext(), dirPath, sources)
         } else {
             viewModel.resetTags(sources)

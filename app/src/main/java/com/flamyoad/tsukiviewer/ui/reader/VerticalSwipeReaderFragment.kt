@@ -44,6 +44,7 @@ class VerticalSwipeReaderFragment : Fragment() {
                     when (viewModel.volumeDownAction) {
                         VolumeButtonScrollDirection.GoToNextPage -> binding.viewpager.currentItem = binding.viewpager.currentItem + 1
                         VolumeButtonScrollDirection.GoToPrevPage -> binding.viewpager.currentItem = binding.viewpager.currentItem - 1
+                        VolumeButtonScrollDirection.Nothing -> { /* Do nothing */ }
                     }
                 }
                 KeyEvent.KEYCODE_VOLUME_UP -> {
@@ -52,6 +53,7 @@ class VerticalSwipeReaderFragment : Fragment() {
                     when (viewModel.volumeUpAction) {
                         VolumeButtonScrollDirection.GoToNextPage -> binding.viewpager.currentItem = binding.viewpager.currentItem + 1
                         VolumeButtonScrollDirection.GoToPrevPage -> binding.viewpager.currentItem = binding.viewpager.currentItem - 1
+                        VolumeButtonScrollDirection.Nothing -> { /* Do nothing */ }
                     }
                 }
             }
@@ -81,7 +83,7 @@ class VerticalSwipeReaderFragment : Fragment() {
         viewModel.bottomThumbnailSelectedItem().observe(viewLifecycleOwner, Observer {
             if (it == -1) return@Observer
 
-            viewpager.setCurrentItem(it, false)
+            binding.viewpager.setCurrentItem(it, false)
             viewModel.resetBottomThumbnailState()
         })
     }

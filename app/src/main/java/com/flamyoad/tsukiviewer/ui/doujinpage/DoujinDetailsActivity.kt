@@ -59,8 +59,8 @@ class DoujinDetailsActivity : AppCompatActivity() {
         handleBackPress()
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        when (item?.itemId) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
             android.R.id.home -> {
                 handleBackPress()
             }

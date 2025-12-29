@@ -33,7 +33,8 @@ class AboutPreference: PreferenceFragmentCompat() {
     private fun getVersionNumber(): String {
         try {
             val manager = context?.packageManager
-            val info = manager?.getPackageInfo(context?.packageName, 0)
+            val packageName = context?.packageName ?: return ""
+            val info = manager?.getPackageInfo(packageName, 0)
 
             val versionName = info?.versionName
             return versionName ?: ""

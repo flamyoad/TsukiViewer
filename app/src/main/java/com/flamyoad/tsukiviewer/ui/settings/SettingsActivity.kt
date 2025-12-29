@@ -48,14 +48,18 @@ class SettingsActivity : AppCompatActivity(),
         viewModel.isRemovingItems().observe(this, Observer { isRemoving ->
             when (isRemoving) {
                 true -> {
-                    binding.indicatorRemoveItems.visibility = View.VISIBLE
+                    binding.indicatorRemoveItems.root.visibility = View.VISIBLE
                     binding.container.alpha = 0.6f
                 }
 
                 false -> {
-                    binding.indicatorRemoveItems.visibility = View.GONE
+                    binding.indicatorRemoveItems.root.visibility = View.GONE
                     binding.container.alpha = 1f
                     toast("Done")
+                }
+
+                null -> {
+                    // Do nothing
                 }
             }
         })

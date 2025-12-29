@@ -4,7 +4,7 @@ import android.net.Uri
 import android.os.Parcelable
 import androidx.core.net.toUri
 import com.flamyoad.tsukiviewer.utils.extensions.imageExtensions
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import java.io.File
 
 data class Doujin(

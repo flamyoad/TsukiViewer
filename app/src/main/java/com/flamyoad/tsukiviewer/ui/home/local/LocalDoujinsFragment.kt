@@ -95,7 +95,7 @@ class LocalDoujinsFragment : BaseFragment(),
         super.onPrepareOptionsMenu(menu)
 
         val progressMenuItem = menu.findItem(R.id.progress_bar_sync)
-        val progressActionView = progressMenuItem.actionView
+        val progressActionView = progressMenuItem.actionView ?: return
         progressBar = progressActionView.findViewById(R.id.progressBarSync)
         progressBar.visibility = View.GONE
 
@@ -192,14 +192,14 @@ class LocalDoujinsFragment : BaseFragment(),
         })
 
         viewModel.isSorting().observe(viewLifecycleOwner, Observer { stillSorting ->
-            if (stillSorting) {
+            if (stillSorting == true) {
                 binding.listLocalDoujins.alpha = 0.6f
                 binding.fastScroller.isEnabled = false
-                binding.sortingIndicator.visibility = View.VISIBLE
+                binding.sortingIndicator.root.visibility = View.VISIBLE
             } else {
                 binding.listLocalDoujins.alpha = 1f
                 binding.fastScroller.isEnabled = true
-                binding.sortingIndicator.visibility = View.GONE
+                binding.sortingIndicator.root.visibility = View.GONE
             }
         })
     }

@@ -124,8 +124,8 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
             selectedTags.add(chip.text.toString())
         }
 
-        val title = binding.searchView.query.toString()
-        val tags = selectedTags.joinToString(",")
+        val title: String = binding.searchBarInclude.searchView.query.toString()
+        val tags: String = selectedTags.joinToString(",")
 
         if (title.isBlank() && tags.isBlank()) {
             return
@@ -150,7 +150,7 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
     }
 
     private fun initSearchView() {
-        binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+        binding.searchBarInclude.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 if (query != null && query.isNotBlank()) {
                     val intent = Intent(this@SearchActivity, SearchResultActivity::class.java)

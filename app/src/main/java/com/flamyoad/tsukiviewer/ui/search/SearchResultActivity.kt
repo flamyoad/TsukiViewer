@@ -131,13 +131,13 @@ class SearchResultActivity : AppCompatActivity(),
      */
     override fun onPrepareOptionsMenu(menu: Menu): Boolean {
         val progressBarItem = menu.findItem(R.id.progress_bar_loading)
-        val progressActionView = progressBarItem.actionView
+        val progressActionView = progressBarItem.actionView ?: return true
         val progressBar: ProgressBar = progressActionView.findViewById(R.id.progressBarSync)
 
         val searchItem: MenuItem? = menu.findItem(R.id.action_search)
         searchItem?.isVisible = false
 
-        val searchView = searchItem?.actionView as SearchView
+        val searchView = searchItem?.actionView as? SearchView ?: return true
         searchView.setOnQueryTextListener(this)
 
         viewModel.isLoading().observe(this, Observer { isLoading ->
