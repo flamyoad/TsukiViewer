@@ -209,6 +209,8 @@ class FetchMetadataService : Service() {
                     FetchStatus.SUCCESS -> postFetchHistory(result)
                     FetchStatus.ALREADY_EXISTS -> postFetchHistory(result)
                     FetchStatus.NO_MATCH -> postFetchHistory(result)
+                    FetchStatus.NETWORK_ERROR -> { /* Handle error if needed */ }
+                    FetchStatus.NONE -> { /* Do nothing */ }
                 }
 
                 if (fetchStatus != FetchStatus.ALREADY_EXISTS) {
@@ -229,6 +231,10 @@ class FetchMetadataService : Service() {
 
             when (result.status) {
                 FetchStatus.NO_MATCH -> showToast("No matching result for this directory")
+                FetchStatus.SUCCESS,
+                FetchStatus.ALREADY_EXISTS,
+                FetchStatus.NETWORK_ERROR,
+                FetchStatus.NONE -> { /* Do nothing */ }
             }
         }
 

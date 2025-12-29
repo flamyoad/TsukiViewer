@@ -8,21 +8,25 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.children
 import androidx.lifecycle.Observer
 import com.flamyoad.tsukiviewer.R
+import com.flamyoad.tsukiviewer.databinding.ActivityEditorBinding
 import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.utils.extensions.toast
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
-import kotlinx.android.synthetic.main.activity_editor.*
 
 private const val BACKMOST_POSITION = -1
 
 class EditorActivity : AppCompatActivity(), CreateTagListener {
+    
+    private lateinit var binding: ActivityEditorBinding
+    
     private val viewModel: EditorViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_editor)
+        binding = ActivityEditorBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         initToolbar()
         initTagGroups()
@@ -32,8 +36,8 @@ class EditorActivity : AppCompatActivity(), CreateTagListener {
                 toast("Data is saved")
                 finish()
             } else {
-                contentLayout.isEnabled = false
-                parentLayout.alpha = 0.5f
+                binding.contentLayout.isEnabled = false
+                binding.parentLayout.alpha = 0.5f
             }
         })
     }
@@ -43,8 +47,8 @@ class EditorActivity : AppCompatActivity(), CreateTagListener {
         return true
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        when (item?.itemId) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
             android.R.id.home -> {
                 finish()
             }
@@ -72,14 +76,14 @@ class EditorActivity : AppCompatActivity(), CreateTagListener {
     }
 
     private fun initToolbar() {
-        setSupportActionBar(toolbar)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowHomeEnabled(true)
         }
 
         val title = intent.getStringExtra(DOUJIN_NAME)
-        txtDoujinTitle.text = title
+        binding.txtDoujinTitle.text = title
     }
 
     private fun initTagGroups() {
@@ -96,31 +100,31 @@ class EditorActivity : AppCompatActivity(), CreateTagListener {
         }
 
         viewModel.parody.observe(this, Observer {
-            listParodies.setTagList("parody", it)
+            binding.listParodies.setTagList("parody", it)
         })
 
         viewModel.character.observe(this, Observer {
-            listCharacters.setTagList("character", it)
+            binding.listCharacters.setTagList("character", it)
         })
 
         viewModel.tags.observe(this, Observer {
-            listTags.setTagList("tag", it)
+            binding.listTags.setTagList("tag", it)
         })
 
         viewModel.artist.observe(this, Observer {
-            listArtists.setTagList("artist", it)
+            binding.listArtists.setTagList("artist", it)
         })
 
         viewModel.group.observe(this, Observer {
-            listGroups.setTagList("group", it)
+            binding.listGroups.setTagList("group", it)
         })
 
         viewModel.language.observe(this, Observer {
-            listLanguages.setTagList("language", it)
+            binding.listLanguages.setTagList("language", it)
         })
 
         viewModel.category.observe(this, Observer {
-            listCategories.setTagList("category", it)
+            binding.listCategories.setTagList("category", it)
         })
     }
 

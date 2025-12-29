@@ -19,10 +19,13 @@ import androidx.viewpager2.widget.ViewPager2
 
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.VerticalSwipeImageAdapter
+import com.flamyoad.tsukiviewer.databinding.FragmentVerticalSwipeReaderBinding
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabViewModel
-import kotlinx.android.synthetic.main.fragment_vertical_swipe_reader.*
 
 class VerticalSwipeReaderFragment : Fragment() {
+    private var _binding: FragmentVerticalSwipeReaderBinding? = null
+    private val binding get() = _binding!!
+
     private val viewModel: ReaderTabViewModel by viewModels(
         ownerProducer = { requireParentFragment() }
     )
@@ -39,16 +42,18 @@ class VerticalSwipeReaderFragment : Fragment() {
                     readerListener?.toggleBottomSheet(View.GONE) // Hides the bottom sheet when scrolling with volume button
 
                     when (viewModel.volumeDownAction) {
-                        VolumeButtonScrollDirection.GoToNextPage -> viewpager.currentItem = viewpager.currentItem + 1
-                        VolumeButtonScrollDirection.GoToPrevPage -> viewpager.currentItem = viewpager.currentItem - 1
+                        VolumeButtonScrollDirection.GoToNextPage -> binding.viewpager.currentItem = binding.viewpager.currentItem + 1
+                        VolumeButtonScrollDirection.GoToPrevPage -> binding.viewpager.currentItem = binding.viewpager.currentItem - 1
+                        VolumeButtonScrollDirection.Nothing -> { /* Do nothing */ }
                     }
                 }
                 KeyEvent.KEYCODE_VOLUME_UP -> {
                     readerListener?.toggleBottomSheet(View.GONE)
 
                     when (viewModel.volumeUpAction) {
-                        VolumeButtonScrollDirection.GoToNextPage -> viewpager.currentItem = viewpager.currentItem + 1
-                        VolumeButtonScrollDirection.GoToPrevPage -> viewpager.currentItem = viewpager.currentItem - 1
+                        VolumeButtonScrollDirection.GoToNextPage -> binding.viewpager.currentItem = binding.viewpager.currentItem + 1
+                        VolumeButtonScrollDirection.GoToPrevPage -> binding.viewpager.currentItem = binding.viewpager.currentItem - 1
+                        VolumeButtonScrollDirection.Nothing -> { /* Do nothing */ }
                     }
                 }
             }
@@ -60,7 +65,8 @@ class VerticalSwipeReaderFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_vertical_swipe_reader, container, false)
+        _binding = FragmentVerticalSwipeReaderBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -77,7 +83,7 @@ class VerticalSwipeReaderFragment : Fragment() {
         viewModel.bottomThumbnailSelectedItem().observe(viewLifecycleOwner, Observer {
             if (it == -1) return@Observer
 
-            viewpager.setCurrentItem(it, false)
+            binding.viewpager.setCurrentItem(it, false)
             viewModel.resetBottomThumbnailState()
         })
     }
@@ -86,10 +92,11 @@ class VerticalSwipeReaderFragment : Fragment() {
         super.onDestroyView()
         LocalBroadcastManager.getInstance(requireContext())
             .unregisterReceiver(broadcastReceiver)
+        _binding = null
     }
 
     private fun initReader() {
-        viewpager.offscreenPageLimit = 1
+        binding.viewpager.offscreenPageLimit = 1
 
         val currentDir = arguments?.getString(CURRENT_DIR) ?: ""
 
@@ -100,19 +107,19 @@ class VerticalSwipeReaderFragment : Fragment() {
 
         val imageAdapter = VerticalSwipeImageAdapter(this)
 
-        viewpager.orientation = ViewPager2.ORIENTATION_VERTICAL
-        viewpager.adapter = imageAdapter
+        binding.viewpager.orientation = ViewPager2.ORIENTATION_VERTICAL
+        binding.viewpager.adapter = imageAdapter
 
         viewModel.imageList().observe(viewLifecycleOwner, Observer {
             imageAdapter.setList(it)
 
-            viewpager.setCurrentItem(readerPosition, false)
+            binding.viewpager.setCurrentItem(readerPosition, false)
             readerListener?.onPageChange(readerPosition)
 
             viewModel.currentPath = currentDir
         })
 
-        viewpager.registerOnPageChangeCallback(object: ViewPager2.OnPageChangeCallback() {
+        binding.viewpager.registerOnPageChangeCallback(object: ViewPager2.OnPageChangeCallback() {
             override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
                 super.onPageScrolled(position, positionOffset, positionOffsetPixels)
                 viewModel.currentScrolledPosition = position

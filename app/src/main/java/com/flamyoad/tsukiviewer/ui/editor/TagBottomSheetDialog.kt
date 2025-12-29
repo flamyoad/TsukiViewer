@@ -11,12 +11,15 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.EditorNewTagAdapter
+import com.flamyoad.tsukiviewer.databinding.EditorNewTagBottomsheetBinding
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import kotlinx.android.synthetic.main.editor_new_tag_bottomsheet.*
 
 class TagBottomSheetDialog()
     : BottomSheetDialogFragment() {
+
+    private var _binding: EditorNewTagBottomsheetBinding? = null
+    private val binding get() = _binding!!
 
     private lateinit var viewmodel: EditorViewModel
 
@@ -25,7 +28,13 @@ class TagBottomSheetDialog()
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.editor_new_tag_bottomsheet, container, false)
+        _binding = EditorNewTagBottomsheetBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -34,7 +43,7 @@ class TagBottomSheetDialog()
         viewmodel = ViewModelProvider(requireActivity()).get(EditorViewModel::class.java)
 
         viewmodel.selectedCategory().observe(viewLifecycleOwner, Observer { category ->
-            lblCategory.text = category.capitalize()
+            binding.lblCategory.text = category.capitalize()
         })
         initTagList()
     }
@@ -45,14 +54,14 @@ class TagBottomSheetDialog()
         val linearLayoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
 
-        listTags.adapter = adapter
-        listTags.layoutManager = linearLayoutManager
+        binding.listTags.adapter = adapter
+        binding.listTags.layoutManager = linearLayoutManager
 
         viewmodel.tagsByCategory.observe(this, Observer {
             adapter.setList(it)
         })
 
-        inputEditText.addTextChangedListener(object : TextWatcher {
+        binding.inputEditText.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {}
 
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
@@ -62,8 +71,8 @@ class TagBottomSheetDialog()
             }
         })
 
-        btnInsertTag.setOnClickListener {
-            val tagName = inputEditText.text.toString()
+        binding.btnInsertTag.setOnClickListener {
+            val tagName = binding.inputEditText.text.toString()
             val category = viewmodel.selectedCategory().value!!
             listener.onTagCreated(tagName, category)
         }

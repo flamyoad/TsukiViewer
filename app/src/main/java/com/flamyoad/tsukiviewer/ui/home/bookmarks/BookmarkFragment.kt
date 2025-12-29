@@ -25,7 +25,7 @@ import com.flamyoad.tsukiviewer.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.model.BookmarkItem
 import com.flamyoad.tsukiviewer.model.ViewMode
 import com.flamyoad.tsukiviewer.utils.ui.GridItemDecoration
-import kotlinx.android.synthetic.main.fragment_bookmark.*
+import com.flamyoad.tsukiviewer.databinding.FragmentBookmarkBinding
 import java.util.*
 
 private const val ACTION_MODE = "action_mode"
@@ -35,6 +35,9 @@ class BookmarkFragment : BaseFragment(),
     DeleteItemsListener,
     ActionModeListener<BookmarkItem>,
     SearchView.OnQueryTextListener {
+
+    private var _binding: FragmentBookmarkBinding? = null
+    private val binding get() = _binding!!
 
     private val viewModel: BookmarkViewModel by activityViewModels()
     private val groupAdapter = BookmarkGroupAdapter(this::onGroupChange, this::showNewGroupDialog)
@@ -60,7 +63,8 @@ class BookmarkFragment : BaseFragment(),
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_bookmark, container, false)
+        _binding = FragmentBookmarkBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -71,6 +75,11 @@ class BookmarkFragment : BaseFragment(),
     override fun onDestroy() {
         super.onDestroy()
         itemAdapter.removeListener()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -159,15 +168,15 @@ class BookmarkFragment : BaseFragment(),
 
         viewModel.bookmarkGroups().observe(viewLifecycleOwner, Observer {
             groupAdapter.submitList(it)
-            btnContextMenu.visibility = View.VISIBLE
+            binding.btnContextMenu.visibility = View.VISIBLE
 
             // If all bookmarks have been removed by user
             if (it.isNullOrEmpty()) {
-                header.text = "No bookmark exists"
-                btnContextMenu.visibility = View.GONE
+                binding.header.text = "No bookmark exists"
+                binding.btnContextMenu.visibility = View.GONE
             } else {
                 if (viewModel.selectedGroupName.isNotBlank()) {
-                    header.text = viewModel.selectedGroupName
+                    binding.header.text = viewModel.selectedGroupName
                 }
             }
         })
@@ -176,7 +185,7 @@ class BookmarkFragment : BaseFragment(),
             if (it == null) return@Observer
 
             viewModel.fetchBookmarkItems(it)
-            header.text = it.name
+            binding.header.text = it.name
         })
 
         viewModel.bookmarkItems.observe(viewLifecycleOwner, Observer {
@@ -199,9 +208,9 @@ class BookmarkFragment : BaseFragment(),
 
         val linearSnapHelper = LinearSnapHelper()
 
-        listGroups.adapter = groupAdapter
-        listGroups.layoutManager = layoutManager
-        linearSnapHelper.attachToRecyclerView(listGroups)
+        binding.listGroups.adapter = groupAdapter
+        binding.listGroups.layoutManager = layoutManager
+        linearSnapHelper.attachToRecyclerView(binding.listGroups)
     }
 
     private fun initBookmarkItems(viewMode: ViewMode) {
@@ -227,20 +236,20 @@ class BookmarkFragment : BaseFragment(),
 
         val gridLayoutManager = GridLayoutManager(requireContext(), spanCount)
 
-        listItems.adapter = itemAdapter
-        listItems.layoutManager = gridLayoutManager
-        listItems.setHasFixedSize(true)
-        listItems.itemAnimator = null
+        binding.listItems.adapter = itemAdapter
+        binding.listItems.layoutManager = gridLayoutManager
+        binding.listItems.setHasFixedSize(true)
+        binding.listItems.itemAnimator = null
 
         // Prevent the same decor from stacking on top of each other.
-        if (listItems.itemDecorationCount == 0) {
+        if (binding.listItems.itemDecorationCount == 0) {
             val itemDecoration =
                 GridItemDecoration(
                     2,
                     4,
                     includeEdge = true
                 )
-            listItems.addItemDecoration(itemDecoration)
+            binding.listItems.addItemDecoration(itemDecoration)
         }
 
         viewModel.processedBookmarks().observe(viewLifecycleOwner, Observer {
@@ -249,13 +258,13 @@ class BookmarkFragment : BaseFragment(),
     }
 
     private fun initUi() {
-        registerForContextMenu(btnContextMenu)
-        btnContextMenu.setOnClickListener {
+        registerForContextMenu(binding.btnContextMenu)
+        binding.btnContextMenu.setOnClickListener {
             it.showContextMenu()
         }
 
-        fab.setOnClickListener {
-            listItems.scrollToPosition(0) // Scrolls to top
+        binding.fab.setOnClickListener {
+            binding.listItems.scrollToPosition(0) // Scrolls to top
         }
     }
 

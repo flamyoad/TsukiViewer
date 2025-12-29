@@ -20,6 +20,7 @@ import com.flamyoad.tsukiviewer.ActionModeListener
 import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
+import com.flamyoad.tsukiviewer.databinding.ActivitySearchResultBinding
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.ViewMode
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
@@ -27,7 +28,6 @@ import com.flamyoad.tsukiviewer.utils.ActivityHistory
 import com.flamyoad.tsukiviewer.utils.ActivityStackUtils
 import com.flamyoad.tsukiviewer.utils.ui.GridItemDecoration
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.activity_search_result.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -39,6 +39,8 @@ private const val SEARCH_VIEW = "search_view"
 class SearchResultActivity : AppCompatActivity(),
     ActionModeListener<Doujin>,
     SearchView.OnQueryTextListener {
+
+    private lateinit var binding: ActivitySearchResultBinding
 
     private val viewModel: SearchResultViewModel by viewModels()
 
@@ -55,14 +57,8 @@ class SearchResultActivity : AppCompatActivity(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_search_result)
-
-//        val resumePreviousActivity = intent.getBooleanExtra(ActivityStackUtils.RESUME_PREVIOUS_ACTIVITY, false)
-//        if (resumePreviousActivity) {
-//            overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
-//        } else {
-//            overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
-//        }
+        binding = ActivitySearchResultBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         initRecyclerView(appPreference.getDoujinViewMode())
         initToolbar()
@@ -71,7 +67,7 @@ class SearchResultActivity : AppCompatActivity(),
         viewModel.snackbarText.observe(this, Observer { text ->
             if (text.isBlank()) return@Observer
 
-            Snackbar.make(parentLayout, text, Snackbar.LENGTH_LONG)
+            Snackbar.make(binding.parentLayout, text, Snackbar.LENGTH_LONG)
                 .show()
 
             viewModel.snackbarText.value = ""
@@ -135,13 +131,13 @@ class SearchResultActivity : AppCompatActivity(),
      */
     override fun onPrepareOptionsMenu(menu: Menu): Boolean {
         val progressBarItem = menu.findItem(R.id.progress_bar_loading)
-        val progressActionView = progressBarItem.actionView
+        val progressActionView = progressBarItem.actionView ?: return true
         val progressBar: ProgressBar = progressActionView.findViewById(R.id.progressBarSync)
 
         val searchItem: MenuItem? = menu.findItem(R.id.action_search)
         searchItem?.isVisible = false
 
-        val searchView = searchItem?.actionView as SearchView
+        val searchView = searchItem?.actionView as? SearchView ?: return true
         searchView.setOnQueryTextListener(this)
 
         viewModel.isLoading().observe(this, Observer { isLoading ->
@@ -193,7 +189,7 @@ class SearchResultActivity : AppCompatActivity(),
     }
 
     private fun initToolbar() {
-        setSupportActionBar(toolbar)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
@@ -202,15 +198,15 @@ class SearchResultActivity : AppCompatActivity(),
             val tags = intent.getStringExtra(SearchActivity.SEARCH_TAGS)
 
             if (title.isNullOrBlank()) {
-                txtSearchTitle.text = "title: {}"
+                binding.txtSearchTitle.text = "title: {}"
             } else {
-                txtSearchTitle.text = getStringExtra(SearchActivity.SEARCH_TITLE)
+                binding.txtSearchTitle.text = getStringExtra(SearchActivity.SEARCH_TITLE)
             }
 
             if (tags.isNullOrBlank()) {
-                txtSearchTags.text = "tags: {}"
+                binding.txtSearchTags.text = "tags: {}"
             } else {
-                txtSearchTags.text = getStringExtra(SearchActivity.SEARCH_TAGS)
+                binding.txtSearchTags.text = getStringExtra(SearchActivity.SEARCH_TAGS)
             }
 
         }
@@ -240,19 +236,19 @@ class SearchResultActivity : AppCompatActivity(),
 
         val gridLayoutManager = GridLayoutManager(this, spanCount)
 
-        listSearchedDoujins.adapter = adapter
-        listSearchedDoujins.layoutManager = gridLayoutManager
-        listSearchedDoujins.setHasFixedSize(true)
-        listSearchedDoujins.itemAnimator = null
+        binding.listSearchedDoujins.adapter = adapter
+        binding.listSearchedDoujins.layoutManager = gridLayoutManager
+        binding.listSearchedDoujins.setHasFixedSize(true)
+        binding.listSearchedDoujins.itemAnimator = null
 
-        if (listSearchedDoujins.itemDecorationCount == 0) {
+        if (binding.listSearchedDoujins.itemDecorationCount == 0) {
             val itemDecoration =
                 GridItemDecoration(
                     spanCount,
                     4,
                     includeEdge = true
                 )
-            listSearchedDoujins.addItemDecoration(itemDecoration)
+            binding.listSearchedDoujins.addItemDecoration(itemDecoration)
         }
 
         viewModel.searchedResult().observe(this, Observer {

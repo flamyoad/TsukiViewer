@@ -1,11 +1,17 @@
 package com.flamyoad.tsukiviewer.ui.settings.includedfolders
 
 import android.Manifest
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.Settings
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -14,16 +20,19 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.flamyoad.tsukiviewer.ui.settings.folderpicker.FolderPickerDialog
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.IncludedFolderAdapter
+import com.flamyoad.tsukiviewer.databinding.ActivityIncludedFolderBinding
 import com.flamyoad.tsukiviewer.model.IncludedPath
-import com.gun0912.tedpermission.PermissionListener
-import com.gun0912.tedpermission.TedPermission
-import kotlinx.android.synthetic.main.activity_included_folder.*
+import com.gun0912.tedpermission.coroutine.TedPermission
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
-
 
 class IncludedFolderActivity : AppCompatActivity(),
     AddFolderListener,
     RemoveFolderListener {
+
+    private lateinit var binding: ActivityIncludedFolderBinding
 
     private val viewModel: IncludedFolderViewModel by viewModels()
 
@@ -31,8 +40,9 @@ class IncludedFolderActivity : AppCompatActivity(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_included_folder)
-        setSupportActionBar(toolbar)
+        binding = ActivityIncludedFolderBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowHomeEnabled(true)
 
@@ -46,8 +56,8 @@ class IncludedFolderActivity : AppCompatActivity(),
         return true
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        when (item?.itemId) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
             R.id.action_add_folder -> {
                 openFolderPicker()
             }
@@ -57,16 +67,16 @@ class IncludedFolderActivity : AppCompatActivity(),
 
     private fun initRecyclerview() {
         adapter = IncludedFolderAdapter(this)
-        listDirectoryChosen.adapter = adapter
+        binding.listDirectoryChosen.adapter = adapter
 
         val linearLayoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        listDirectoryChosen.layoutManager = linearLayoutManager
+        binding.listDirectoryChosen.layoutManager = linearLayoutManager
 
         val dividerItemDecoration = DividerItemDecoration(
             this,
             linearLayoutManager.orientation
         )
-        listDirectoryChosen.addItemDecoration(dividerItemDecoration)
+        binding.listDirectoryChosen.addItemDecoration(dividerItemDecoration)
 
         viewModel.pathList.observe(this, Observer {
             adapter.setList(it)
@@ -74,20 +84,36 @@ class IncludedFolderActivity : AppCompatActivity(),
     }
 
     private fun checkForPermission() {
-        val listener = object: PermissionListener {
-            override fun onPermissionGranted() {
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Android 11+ requires MANAGE_EXTERNAL_STORAGE
+            if (!Environment.isExternalStorageManager()) {
+                AlertDialog.Builder(this)
+                    .setTitle("Storage Permission Required")
+                    .setMessage("This app needs access to all files to browse your image folders. Please grant 'All files access' permission.")
+                    .setPositiveButton("Grant") { _, _ ->
+                        val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
+                            data = Uri.parse("package:$packageName")
+                        }
+                        startActivity(intent)
+                    }
+                    .setNegativeButton("Cancel") { dialog, _ ->
+                        dialog.dismiss()
+                        Toast.makeText(this, "Permission required to browse folders", Toast.LENGTH_SHORT).show()
+                    }
+                    .show()
             }
-
-            override fun onPermissionDenied(deniedPermissions: MutableList<String>?) {
-                Toast.makeText(this@IncludedFolderActivity, "Permission Denied\n" + deniedPermissions.toString(), Toast.LENGTH_SHORT).show();
+        } else {
+            // Android 10 and below - use runtime permissions
+            CoroutineScope(Dispatchers.Main).launch {
+                val permissionResult = TedPermission.create()
+                    .setPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE)
+                    .check()
+                
+                if (!permissionResult.isGranted) {
+                    Toast.makeText(this@IncludedFolderActivity, "Permission Denied\n" + permissionResult.deniedPermissions.toString(), Toast.LENGTH_SHORT).show()
+                }
             }
         }
-
-        TedPermission.with(this)
-            .setPermissionListener(listener)
-            .setPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE)
-            .check()
     }
 
     private fun openFolderPicker() {

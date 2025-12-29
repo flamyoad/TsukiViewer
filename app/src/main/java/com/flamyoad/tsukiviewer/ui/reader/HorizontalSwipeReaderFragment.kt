@@ -16,10 +16,13 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager.widget.ViewPager.SCROLL_STATE_DRAGGING
 import com.flamyoad.tsukiviewer.R
+import com.flamyoad.tsukiviewer.databinding.FragmentHorizontalReaderBinding
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabViewModel
-import kotlinx.android.synthetic.main.fragment_horizontal_reader.*
 
 class HorizontalSwipeReaderFragment : Fragment() {
+    private var _binding: FragmentHorizontalReaderBinding? = null
+    private val binding get() = _binding!!
+
     private val viewModel: ReaderTabViewModel by viewModels(
         ownerProducer = { requireParentFragment() }
     )
@@ -36,16 +39,18 @@ class HorizontalSwipeReaderFragment : Fragment() {
                     readerListener?.toggleBottomSheet(View.GONE) // Hides the bottom sheet when scrolling with volume button
 
                     when (viewModel.volumeDownAction) {
-                        VolumeButtonScrollDirection.GoToNextPage -> viewpager?.arrowScroll(View.FOCUS_RIGHT)
-                        VolumeButtonScrollDirection.GoToPrevPage -> viewpager?.arrowScroll(View.FOCUS_LEFT)
+                        VolumeButtonScrollDirection.GoToNextPage -> binding.viewpager.arrowScroll(View.FOCUS_RIGHT)
+                        VolumeButtonScrollDirection.GoToPrevPage -> binding.viewpager.arrowScroll(View.FOCUS_LEFT)
+                        VolumeButtonScrollDirection.Nothing -> { /* Do nothing */ }
                     }
                 }
                 KeyEvent.KEYCODE_VOLUME_UP -> {
                     readerListener?.toggleBottomSheet(View.GONE)
 
                     when (viewModel.volumeUpAction) {
-                        VolumeButtonScrollDirection.GoToNextPage -> viewpager?.arrowScroll(View.FOCUS_RIGHT)
-                        VolumeButtonScrollDirection.GoToPrevPage -> viewpager?.arrowScroll(View.FOCUS_LEFT)
+                        VolumeButtonScrollDirection.GoToNextPage -> binding.viewpager.arrowScroll(View.FOCUS_RIGHT)
+                        VolumeButtonScrollDirection.GoToPrevPage -> binding.viewpager.arrowScroll(View.FOCUS_LEFT)
+                        VolumeButtonScrollDirection.Nothing -> { /* Do nothing */ }
                     }
                 }
             }
@@ -57,7 +62,8 @@ class HorizontalSwipeReaderFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_horizontal_reader, container, false)
+        _binding = FragmentHorizontalReaderBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -74,7 +80,7 @@ class HorizontalSwipeReaderFragment : Fragment() {
         viewModel.bottomThumbnailSelectedItem().observe(viewLifecycleOwner, Observer {
             if (it == -1) return@Observer
 
-            viewpager.setCurrentItem(it, false)
+            binding.viewpager.setCurrentItem(it, false)
             viewModel.resetBottomThumbnailState()
         })
     }
@@ -83,10 +89,11 @@ class HorizontalSwipeReaderFragment : Fragment() {
         super.onDestroyView()
         LocalBroadcastManager.getInstance(requireContext())
             .unregisterReceiver(broadcastReceiver)
+        _binding = null
     }
 
     private fun initReader() {
-        viewpager.offscreenPageLimit = 1
+        binding.viewpager.offscreenPageLimit = 1
 
         val currentDir = arguments?.getString(CURRENT_DIR) ?: ""
 
@@ -96,18 +103,18 @@ class HorizontalSwipeReaderFragment : Fragment() {
         }
 
         val imageAdapter = ImageFragmentStateAdapter(childFragmentManager)
-        viewpager.adapter = imageAdapter
+        binding.viewpager.adapter = imageAdapter
 
         viewModel.imageList().observe(viewLifecycleOwner, Observer {
             imageAdapter.setList(it)
 
-            viewpager.setCurrentItem(readerPosition, false)
+            binding.viewpager.setCurrentItem(readerPosition, false)
             readerListener?.onPageChange(readerPosition)
 
             viewModel.currentPath = currentDir
         })
 
-        viewpager.addOnPageChangeListener(object: ViewPager.OnPageChangeListener {
+        binding.viewpager.addOnPageChangeListener(object: ViewPager.OnPageChangeListener {
             override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
                 viewModel.currentScrolledPosition = position
             }
