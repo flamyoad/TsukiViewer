@@ -74,7 +74,7 @@ dependencies {
 
     implementation "androidx.preference:preference-ktx:$preference_version"
 
-    implementation 'gun0912.ted:tedpermission:2.2.3'
+    implementation 'io.github.ParkSangGwon:tedpermission-coroutine:3.3.0'
 
     def retrofit_version = '2.9.0'
     implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
@@ -103,7 +103,7 @@ dependencies {
 
     implementation 'com.github.chrisbanes:PhotoView:2.3.0'
 
-    implementation 'com.google.android:flexbox:2.0.1'
+    implementation 'com.google.android.flexbox:flexbox:3.0.0'
 
     implementation 'com.quiph.ui:recyclerviewfastscroller:0.2.1'
 
