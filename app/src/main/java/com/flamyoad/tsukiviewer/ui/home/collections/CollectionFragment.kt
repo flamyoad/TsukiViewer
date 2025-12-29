@@ -14,11 +14,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.flamyoad.tsukiviewer.BaseFragment
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.CollectionListAdapter
+import com.flamyoad.tsukiviewer.databinding.FragmentCollectionBinding
 import com.flamyoad.tsukiviewer.model.Collection
-import kotlinx.android.synthetic.main.fragment_collection.*
 
 class CollectionFragment : BaseFragment(), SearchView.OnQueryTextListener {
     private val viewModel: CollectionViewModel by activityViewModels()
+
+    private var _binding: FragmentCollectionBinding? = null
+    private val binding get() = _binding!!
 
     private var searchView: SearchView? = null
     private var previousSearchQuery: String = ""
@@ -37,14 +40,19 @@ class CollectionFragment : BaseFragment(), SearchView.OnQueryTextListener {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_collection, container, false)
+        _binding = FragmentCollectionBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        fab.setOnClickListener {
+        binding.fab.setOnClickListener {
             val context = requireContext()
             val intent = Intent(context, CreateCollectionActivity::class.java)
             context.startActivity(intent)
@@ -104,7 +112,7 @@ class CollectionFragment : BaseFragment(), SearchView.OnQueryTextListener {
                     else -> 2
                 }
 
-                listCollections.apply {
+                binding.listCollections.apply {
                     adapter = collectionAdapter
                     layoutManager = GridLayoutManager(requireContext(), spanCount)
                     setHasFixedSize(true)
@@ -120,7 +128,7 @@ class CollectionFragment : BaseFragment(), SearchView.OnQueryTextListener {
                 )
                 collectionAdapter.setHasStableIds(true)
 
-                listCollections.apply {
+                binding.listCollections.apply {
                     layoutManager = LinearLayoutManager(requireContext())
                     adapter = collectionAdapter
                     setHasFixedSize(true)

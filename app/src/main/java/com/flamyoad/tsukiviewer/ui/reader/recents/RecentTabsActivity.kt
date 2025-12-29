@@ -11,13 +11,15 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.RecentTabsAdapter
+import com.flamyoad.tsukiviewer.databinding.ActivityRecentTabsBinding
 import com.flamyoad.tsukiviewer.model.RecentTab
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabFragment
 import com.flamyoad.tsukiviewer.utils.extensions.toast
 import jp.wasabeef.recyclerview.animators.SlideInUpAnimator
-import kotlinx.android.synthetic.main.activity_recent_tabs.*
 
 class RecentTabsActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityRecentTabsBinding
 
     private val viewModel: RecentTabsViewModel by viewModels()
 
@@ -27,7 +29,8 @@ class RecentTabsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_recent_tabs)
+        binding = ActivityRecentTabsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         initReaderHistory()
 
         window.setFlags(
@@ -35,11 +38,11 @@ class RecentTabsActivity : AppCompatActivity() {
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
 
-        btnBack.setOnClickListener {
+        binding.btnBack.setOnClickListener {
             finish()
         }
 
-        btnClearRecents.setOnClickListener {
+        binding.btnClearRecents.setOnClickListener {
             val exemptedTab = intent.getLongExtra(ReaderTabFragment.TAB_ID, -1)
             viewModel.clearRecentTabs(exemptedTab)
         }
@@ -70,18 +73,12 @@ class RecentTabsActivity : AppCompatActivity() {
 
         linearLayoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
 
-        listTabs.apply {
+        binding.listTabs.apply {
             adapter = tabAdapter
             layoutManager = linearLayoutManager
-//            itemAnimator = SlideInUpAnimator().apply {
-//                addDuration = 150
-//                removeDuration = 150
-//                moveDuration = 100
-//                changeDuration = 300
-//            }
         }
 
-        listTabs.addOnScrollListener(object: RecyclerView.OnScrollListener() {
+        binding.listTabs.addOnScrollListener(object: RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 viewModel.hasScrolledList = true
@@ -90,7 +87,7 @@ class RecentTabsActivity : AppCompatActivity() {
 
         val touchHelperCallback = RecentTabTouchHelperCallback(tabAdapter, currentTabId, viewModel::removeRecentTab)
         touchHelper = ItemTouchHelper(touchHelperCallback)
-        touchHelper?.attachToRecyclerView(listTabs)
+        touchHelper?.attachToRecyclerView(binding.listTabs)
 
         viewModel.tabList.observe(this, Observer {
             tabAdapter.submitList(it)

@@ -20,6 +20,7 @@ import com.flamyoad.tsukiviewer.ActionModeListener
 import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
+import com.flamyoad.tsukiviewer.databinding.ActivityCollectionDoujinsBinding
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.ViewMode
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
@@ -27,7 +28,6 @@ import com.flamyoad.tsukiviewer.ui.home.collections.CollectionFragment
 import com.flamyoad.tsukiviewer.ui.home.collections.DialogCollectionInfo
 import com.flamyoad.tsukiviewer.utils.ui.GridItemDecoration
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.activity_collection_doujins.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -39,6 +39,8 @@ private const val SEARCH_VIEW = "search_view"
 class CollectionDoujinsActivity : AppCompatActivity(),
     ActionModeListener<Doujin>,
     SearchView.OnQueryTextListener {
+
+    private lateinit var binding: ActivityCollectionDoujinsBinding
 
     private val viewModel: CollectionDoujinsViewModel by viewModels()
 
@@ -58,7 +60,8 @@ class CollectionDoujinsActivity : AppCompatActivity(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_collection_doujins)
+        binding = ActivityCollectionDoujinsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         initToolbar()
 
         initRecyclerView(appPreference.getDoujinViewMode())
@@ -66,7 +69,7 @@ class CollectionDoujinsActivity : AppCompatActivity(),
         viewModel.snackbarText.observe(this, Observer { text ->
             if (text.isBlank()) return@Observer
 
-            Snackbar.make(parentLayout, text, Snackbar.LENGTH_LONG).show()
+            Snackbar.make(binding.parentLayout, text, Snackbar.LENGTH_LONG).show()
             viewModel.snackbarText.value = ""
         })
 
@@ -166,15 +169,15 @@ class CollectionDoujinsActivity : AppCompatActivity(),
     }
 
     private fun initToolbar() {
-        setSupportActionBar(toolbar)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         val collectionName = intent.getStringExtra(CollectionFragment.COLLECTION_NAME)
         val criterias = intent.getStringExtra(CollectionFragment.COLLECTION_CRITERIAS)
 
-        txtCollectionName.text = collectionName
-        txtCriterias.text = criterias
+        binding.txtCollectionName.text = collectionName
+        binding.txtCriterias.text = criterias
     }
 
     private fun initRecyclerView(viewMode: ViewMode) {
@@ -200,10 +203,10 @@ class CollectionDoujinsActivity : AppCompatActivity(),
 
         val gridLayoutManager = GridLayoutManager(this, spanCount)
 
-        listDoujins.adapter = adapter
-        listDoujins.layoutManager = gridLayoutManager
-        listDoujins.setHasFixedSize(true)
-        listDoujins.itemAnimator = null
+        binding.listDoujins.adapter = adapter
+        binding.listDoujins.layoutManager = gridLayoutManager
+        binding.listDoujins.setHasFixedSize(true)
+        binding.listDoujins.itemAnimator = null
 
         val itemDecoration =
             GridItemDecoration(
@@ -212,7 +215,7 @@ class CollectionDoujinsActivity : AppCompatActivity(),
                 includeEdge = true
             )
 
-        listDoujins.addItemDecoration(itemDecoration)
+        binding.listDoujins.addItemDecoration(itemDecoration)
 
         viewModel.searchedResult().observe(this, Observer {
             adapter.setList(it)

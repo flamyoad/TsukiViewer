@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinTagsAdapter
+import com.flamyoad.tsukiviewer.databinding.FragmentTagBinding
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.model.TagType
@@ -19,13 +20,15 @@ import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxItemDecoration
 import com.google.android.flexbox.FlexboxLayoutManager
-import kotlinx.android.synthetic.main.fragment_tag.*
 
 private const val TAG_NAME = "tag_name"
 
 class TagFragment : Fragment() {
 
     private val viewModel by activityViewModels<DoujinTagsViewModel>()
+
+    private var _binding: FragmentTagBinding? = null
+    private val binding get() = _binding!!
 
     private val adapter = DoujinTagsAdapter(true)
 
@@ -38,7 +41,13 @@ class TagFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_tag, container, false)
+        _binding = FragmentTagBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -56,11 +65,11 @@ class TagFragment : Fragment() {
     }
 
     private fun initList() {
-        listTags.adapter = adapter
+        binding.listTags.adapter = adapter
 
         val linearLayoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
 
-        listTags.layoutManager = linearLayoutManager
+        binding.listTags.layoutManager = linearLayoutManager
     }
 
     private fun showDeleteDialog(tag: Tag) {

@@ -9,22 +9,25 @@ import androidx.lifecycle.Observer
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.flamyoad.tsukiviewer.R
+import com.flamyoad.tsukiviewer.databinding.ActivitySettingsBinding
 import com.flamyoad.tsukiviewer.ui.settings.preferences.MainPreferences
 import com.flamyoad.tsukiviewer.utils.extensions.toast
-import kotlinx.android.synthetic.main.activity_settings.*
 
 private const val TOOLBAR_TITLE = "settings_toolbar_title"
 
 class SettingsActivity : AppCompatActivity(),
     PreferenceFragmentCompat.OnPreferenceStartFragmentCallback{
 
+    private lateinit var binding: ActivitySettingsBinding
+
     private val viewModel: SettingsViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_settings)
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        setSupportActionBar(toolbar)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowHomeEnabled(true)
 
@@ -45,13 +48,13 @@ class SettingsActivity : AppCompatActivity(),
         viewModel.isRemovingItems().observe(this, Observer { isRemoving ->
             when (isRemoving) {
                 true -> {
-                    indicatorRemoveItems.visibility = View.VISIBLE
-                    container.alpha = 0.6f
+                    binding.indicatorRemoveItems.visibility = View.VISIBLE
+                    binding.container.alpha = 0.6f
                 }
 
                 false -> {
-                    indicatorRemoveItems.visibility = View.GONE
-                    container.alpha = 1f
+                    binding.indicatorRemoveItems.visibility = View.GONE
+                    binding.container.alpha = 1f
                     toast("Done")
                 }
             }

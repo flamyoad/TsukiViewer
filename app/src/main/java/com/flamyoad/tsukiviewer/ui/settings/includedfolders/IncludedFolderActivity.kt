@@ -14,10 +14,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.flamyoad.tsukiviewer.ui.settings.folderpicker.FolderPickerDialog
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.IncludedFolderAdapter
+import com.flamyoad.tsukiviewer.databinding.ActivityIncludedFolderBinding
 import com.flamyoad.tsukiviewer.model.IncludedPath
 import com.gun0912.tedpermission.PermissionListener
 import com.gun0912.tedpermission.TedPermission
-import kotlinx.android.synthetic.main.activity_included_folder.*
 import java.io.File
 
 
@@ -25,14 +25,17 @@ class IncludedFolderActivity : AppCompatActivity(),
     AddFolderListener,
     RemoveFolderListener {
 
+    private lateinit var binding: ActivityIncludedFolderBinding
+
     private val viewModel: IncludedFolderViewModel by viewModels()
 
     private lateinit var adapter: IncludedFolderAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_included_folder)
-        setSupportActionBar(toolbar)
+        binding = ActivityIncludedFolderBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowHomeEnabled(true)
 
@@ -57,16 +60,16 @@ class IncludedFolderActivity : AppCompatActivity(),
 
     private fun initRecyclerview() {
         adapter = IncludedFolderAdapter(this)
-        listDirectoryChosen.adapter = adapter
+        binding.listDirectoryChosen.adapter = adapter
 
         val linearLayoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        listDirectoryChosen.layoutManager = linearLayoutManager
+        binding.listDirectoryChosen.layoutManager = linearLayoutManager
 
         val dividerItemDecoration = DividerItemDecoration(
             this,
             linearLayoutManager.orientation
         )
-        listDirectoryChosen.addItemDecoration(dividerItemDecoration)
+        binding.listDirectoryChosen.addItemDecoration(dividerItemDecoration)
 
         viewModel.pathList.observe(this, Observer {
             adapter.setList(it)

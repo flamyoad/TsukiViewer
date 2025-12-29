@@ -26,21 +26,29 @@ import com.flamyoad.tsukiviewer.utils.TimeUtils
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxLayoutManager
-import kotlinx.android.synthetic.main.doujin_details_tags_group.*
-import kotlinx.android.synthetic.main.fragment_doujin_details.*
+import com.flamyoad.tsukiviewer.databinding.FragmentDoujinDetailsBinding
 import java.io.File
 import java.util.*
 
 private const val COLLECTION_DIALOG_TAG = "collection_dialog"
 
 class FragmentDoujinDetails : Fragment(), SelectSourceListener {
+    private var _binding: FragmentDoujinDetailsBinding? = null
+    private val binding get() = _binding!!
+
     private val viewModel: DoujinViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_doujin_details, container, false)
+        _binding = FragmentDoujinDetailsBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -70,18 +78,18 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
             Glide.with(this)
                 .load(image)
                 .sizeMultiplier(0.75f)
-                .into(imgBackground)
+                .into(binding.imgBackground)
 
             Glide.with(this)
                 .load(image)
-                .into(imgCover)
+                .into(binding.imgCover)
         })
     }
 
     override fun onStop() {
         super.onStop()
-        Glide.with(this).clear(imgBackground)
-        Glide.with(this).clear(imgCover)
+        Glide.with(this).clear(binding.imgBackground)
+        Glide.with(this).clear(binding.imgCover)
     }
 
     private fun initUi() {
@@ -89,11 +97,11 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
             Glide.with(this)
                 .load(image)
                 .sizeMultiplier(0.75f)
-                .into(imgBackground)
+                .into(binding.imgBackground)
 
             Glide.with(this)
                 .load(image)
-                .into(imgCover)
+                .into(binding.imgCover)
         })
 
         viewModel.detailWithTags.observe(viewLifecycleOwner, Observer {
@@ -102,29 +110,29 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
 
             val dir = File(currentPath ?: "")
 
-            txtDirectory.text = dir.absolutePath
-            txtDateModified.text = TimeUtils.getReadableDate(dir.lastModified())
+            binding.txtDirectory.text = dir.absolutePath
+            binding.txtDateModified.text = TimeUtils.getReadableDate(dir.lastModified())
 
             if (it == null) {
                 // Show directory name if metadata not yet obtained from API
-                txtTitleEng.text = dir.name
+                binding.txtTitleEng.text = dir.name
 
                 // Hides the tag group in case the user deletes the title & tags
-                tagGroup.visibility = View.GONE
-                tagsNotFoundIndicator.visibility = View.VISIBLE
+                binding.tagGroup.tagGroup.visibility = View.GONE
+                binding.tagsNotFoundIndicator.visibility = View.VISIBLE
             } else {
                 // Shows the tag group if data is found in database
-                tagGroup.visibility = View.VISIBLE
-                tagsNotFoundIndicator.visibility = View.INVISIBLE
+                binding.tagGroup.tagGroup.visibility = View.VISIBLE
+                binding.tagsNotFoundIndicator.visibility = View.INVISIBLE
                 initDoujinDetails(it)
             }
         })
 
         viewModel.imageList().observe(viewLifecycleOwner, Observer {
-            txtImageCount.text = it.size.toString()
+            binding.txtImageCount.text = it.size.toString()
         })
 
-        fab.setOnClickListener {
+        binding.fab.setOnClickListener {
             viewModel.fetchBookmarkGroup()
             openCollectionDialog()
         }
@@ -133,7 +141,7 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
     private fun initDoujinDetails(item: DoujinDetailsWithTags) {
         initColoredEnglishTitle(item.doujinDetails)
 
-        txtTitleJap.text = item.doujinDetails.fullTitleJapanese
+        binding.txtTitleJap.text = item.doujinDetails.fullTitleJapanese
 
         val parodies = item.tags.filter { x -> x.type == "parody" }
         val chars = item.tags.filter { x -> x.type == "character" }
@@ -163,13 +171,13 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
             }
 
             val recyclerView = when (i) {
-                0 -> listParodies
-                1 -> listCharacters
-                2 -> listTags
-                3 -> listArtists
-                4 -> listGroups
-                5 -> listLanguages
-                6 -> listCategories
+                0 -> binding.tagGroup.listParodies
+                1 -> binding.tagGroup.listCharacters
+                2 -> binding.tagGroup.listTags
+                3 -> binding.tagGroup.listArtists
+                4 -> binding.tagGroup.listGroups
+                5 -> binding.tagGroup.listLanguages
+                6 -> binding.tagGroup.listCategories
                 else -> null
             }
 
@@ -187,7 +195,7 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
 
         // No need to prettify the title if short title does not exist
         if (shortTitleEnglish.isBlank()) {
-            txtTitleEng.text = doujinDetails.fullTitleEnglish
+            binding.txtTitleEng.text = doujinDetails.fullTitleEnglish
             return
         }
 
@@ -196,7 +204,7 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
 
         // If the short title is not found inside full title. Then we don't have to prettify it.
         if (indexOfShortTitle == -1) {
-            txtTitleEng.text = doujinDetails.fullTitleEnglish
+            binding.txtTitleEng.text = doujinDetails.fullTitleEnglish
             return
         }
 
@@ -210,7 +218,7 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
             )
         }
 
-        txtTitleEng.text = coloredTitle
+        binding.txtTitleEng.text = coloredTitle
     }
 
     private fun openCollectionDialog() {

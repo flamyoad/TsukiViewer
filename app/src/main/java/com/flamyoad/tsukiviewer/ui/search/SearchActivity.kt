@@ -14,14 +14,16 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.SearchHistoryAdapter
+import com.flamyoad.tsukiviewer.databinding.ActivitySearchBinding
 import com.flamyoad.tsukiviewer.model.SearchHistory
 import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.utils.ActivityStackUtils
 import com.google.android.material.chip.Chip
-import kotlinx.android.synthetic.main.activity_search.*
-import kotlinx.android.synthetic.main.search_bar.*
 
 class SearchActivity : AppCompatActivity(), TagSelectedListener {
+    
+    private lateinit var binding: ActivitySearchBinding
+    
     private val viewModel: SearchViewModel by viewModels()
 
     companion object {
@@ -35,7 +37,8 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_search)
+        binding = ActivitySearchBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         savedInstanceState?.let {
             val tags = it.getStringArray(SELECTED_TAGS)
@@ -47,11 +50,11 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
         initSearchView()
         initSearchHistory()
 
-        btnSearch.setOnClickListener {
+        binding.btnSearch.setOnClickListener {
             submitSearch()
         }
 
-        chipAddItem.setOnClickListener {
+        binding.chipAddItem.setOnClickListener {
             val tagListFragment = TagPickerDialogFragment.newInstance()
             tagListFragment.show(supportFragmentManager, DIALOG_FRAGMENT_TAG)
         }
@@ -59,7 +62,7 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        val selectedTags = chipGroup.children
+        val selectedTags = binding.chipGroup.children
             .map { x -> (x as Chip).text.toString() }
             .toList()
             .toTypedArray()
@@ -74,7 +77,7 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
     }
 
     private fun addChip(tagName: String) {
-        val chips = chipGroup.children as Sequence<Chip>
+        val chips = binding.chipGroup.children as Sequence<Chip>
 
         // Check for duplicates. If yes, then return
         for (chip in chips) {
@@ -83,14 +86,14 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
             }
         }
 
-        val chip = layoutInflater.inflate(R.layout.tag_list_chip, chipGroup, false) as Chip
+        val chip = layoutInflater.inflate(R.layout.tag_list_chip, binding.chipGroup, false) as Chip
         chip.text = tagName
 
-        chipGroup.addView(chip)
+        binding.chipGroup.addView(chip)
         revalidateCheckBox()
 
         chip.setOnCloseIconClickListener {
-            chipGroup.removeView(it)
+            binding.chipGroup.removeView(it)
             revalidateCheckBox()
         }
     }
@@ -107,28 +110,28 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
 
     // Hides the checkbox if the user did not choose any tags. Otherwise, show the checkbox
     private fun revalidateCheckBox() {
-        if (chipGroup.childCount > 1)
-            checkbox.visibility = View.VISIBLE
+        if (binding.chipGroup.childCount > 1)
+            binding.checkbox.visibility = View.VISIBLE
         else
-            checkbox.visibility = View.GONE
+            binding.checkbox.visibility = View.GONE
     }
 
     private fun submitSearch() {
         // Start from 1 because the first child is the "+" button
         val selectedTags = mutableListOf<String>()
-        for (i in 1 until chipGroup.childCount) {
-            val chip = chipGroup.getChildAt(i) as Chip
+        for (i in 1 until binding.chipGroup.childCount) {
+            val chip = binding.chipGroup.getChildAt(i) as Chip
             selectedTags.add(chip.text.toString())
         }
 
-        val title = searchView.query.toString()
+        val title = binding.searchView.query.toString()
         val tags = selectedTags.joinToString(",")
 
         if (title.isBlank() && tags.isBlank()) {
             return
         }
 
-        val includeAllTags = checkbox.isChecked
+        val includeAllTags = binding.checkbox.isChecked
 
         val searchHistory = SearchHistory(
             title = title,
@@ -147,7 +150,7 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
     }
 
     private fun initSearchView() {
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+        binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 if (query != null && query.isNotBlank()) {
                     val intent = Intent(this@SearchActivity, SearchResultActivity::class.java)
@@ -198,9 +201,9 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
 
         val itemDeco = DividerItemDecoration(this, LinearLayoutManager.VERTICAL)
 
-        listSearchHistory.adapter = adapter
-        listSearchHistory.layoutManager = layoutManager
-        listSearchHistory.addItemDecoration(itemDeco)
+        binding.listSearchHistory.adapter = adapter
+        binding.listSearchHistory.layoutManager = layoutManager
+        binding.listSearchHistory.addItemDecoration(itemDeco)
 
         viewModel.searchHistories.observe(this, Observer {
             adapter.submitList(it)

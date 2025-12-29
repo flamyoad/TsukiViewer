@@ -13,17 +13,19 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.CollectionFilterDirectoryAdapter
+import com.flamyoad.tsukiviewer.databinding.ActivityCreateCollectionBinding
 import com.flamyoad.tsukiviewer.model.Collection
 import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.ui.search.TagSelectedListener
 import com.flamyoad.tsukiviewer.utils.extensions.toast
 import com.google.android.material.chip.Chip
-import kotlinx.android.synthetic.main.activity_create_collection.*
 import java.io.File
 
 private const val REQUEST_DIR_PICKER = 101
 
 class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
+
+    private lateinit var binding: ActivityCreateCollectionBinding
 
     private val viewModel: CreateCollectionViewModel by viewModels()
 
@@ -31,7 +33,8 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_create_collection)
+        binding = ActivityCreateCollectionBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         val collectionId = intent.getLongExtra(COLLECTION_ID, -1L)
         viewModel.initCollectionData(collectionId)
@@ -40,21 +43,21 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
         initUi()
 
         viewModel.titles().observe(this, Observer { values ->
-            txtTitles.removeAllViews()
+            binding.txtTitles.removeAllViews()
             for (value in values) {
                 insertTitle(value)
             }
         })
 
         viewModel.currentCollection().observe(this, Observer {
-            fieldCollectionName.setText(it.name)
+            binding.fieldCollectionName.setText(it.name)
 
             if (it.minNumPages != Int.MIN_VALUE) {
-                fieldMinNumPages.setText(it.minNumPages.toString())
+                binding.fieldMinNumPages.setText(it.minNumPages.toString())
             }
 
             if (it.maxNumPages != Int.MAX_VALUE) {
-                fieldMaxNumPages.setText(it.maxNumPages.toString())
+                binding.fieldMaxNumPages.setText(it.maxNumPages.toString())
             }
         })
 
@@ -71,11 +74,11 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
         })
 
         viewModel.mustHaveAllIncludedTags().observe(this, Observer {
-            checkboxIncludedTags.isChecked = it
+            binding.checkboxIncludedTags.isChecked = it
         })
 
         viewModel.mustHaveAllExcludedTags().observe(this, Observer {
-            checkboxExcludedTags.isChecked  = it
+            binding.checkboxExcludedTags.isChecked  = it
         })
     }
 
@@ -93,7 +96,7 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
     }
 
     private fun initToolbar(collectionId: Long) {
-        setSupportActionBar(toolbar)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowHomeEnabled(true)
@@ -107,26 +110,26 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
 
     private fun initUi() {
         dirAdapter = CollectionFilterDirectoryAdapter(this::openDirectoryPicker, viewModel::removeDir)
-        listDirs.adapter = dirAdapter
-        listDirs.layoutManager = LinearLayoutManager(this)
+        binding.listDirs.adapter = dirAdapter
+        binding.listDirs.layoutManager = LinearLayoutManager(this)
 
         // Inflates default add button in the Included Tags
-        val includedTagNewChip = layoutInflater.inflate(R.layout.tag_list_add, parentLayout, false) as Chip
+        val includedTagNewChip = layoutInflater.inflate(R.layout.tag_list_add, binding.parentLayout, false) as Chip
         includedTagNewChip.text = "+"
         includedTagNewChip.setOnClickListener {
             openTagPicker(DialogTagPicker.Mode.Inclusive)
         }
-        listIncludedTags.addView(includedTagNewChip)
+        binding.listIncludedTags.addView(includedTagNewChip)
 
         // Inflates default add button in the Excluded Tags
-        val excludedTagNewChip = layoutInflater.inflate(R.layout.tag_list_add, parentLayout, false) as Chip
+        val excludedTagNewChip = layoutInflater.inflate(R.layout.tag_list_add, binding.parentLayout, false) as Chip
         excludedTagNewChip.text = "+"
         excludedTagNewChip.setOnClickListener {
             openTagPicker(DialogTagPicker.Mode.Exclusive)
         }
-        listExcludedTags.addView(excludedTagNewChip)
+        binding.listExcludedTags.addView(excludedTagNewChip)
 
-        fieldTitle.setOnEditorActionListener { textView, actionId, keyEvent ->
+        binding.fieldTitle.setOnEditorActionListener { textView, actionId, keyEvent ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 viewModel.addTitle(textView.text.toString())
                 textView.text = ""
@@ -136,59 +139,59 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
         }
 
         // Disables the enter button of title if input is blank
-        fieldTitle.addTextChangedListener(object : TextWatcher {
+        binding.fieldTitle.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {}
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
             override fun onTextChanged(str: CharSequence?, start: Int, before: Int, count: Int) {
-                btnAddTitle.isEnabled = !str.isNullOrBlank()
+                binding.btnAddTitle.isEnabled = !str.isNullOrBlank()
             }
         })
 
-        fieldMinNumPages.addTextChangedListener(object : TextWatcher {
+        binding.fieldMinNumPages.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {}
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
             override fun onTextChanged(str: CharSequence?, start: Int, before: Int, count: Int) {
-                val minNumPages = fieldMinNumPages.text.toString().toIntOrNull() ?: Int.MIN_VALUE
-                val maxNumPages = fieldMaxNumPages.text.toString().toIntOrNull() ?: Int.MAX_VALUE
+                val minNumPages = binding.fieldMinNumPages.text.toString().toIntOrNull() ?: Int.MIN_VALUE
+                val maxNumPages = binding.fieldMaxNumPages.text.toString().toIntOrNull() ?: Int.MAX_VALUE
 
                 if (minNumPages > maxNumPages) {
-                    layoutMinNumPages.error = "Invalid Input"
+                    binding.layoutMinNumPages.error = "Invalid Input"
                 } else {
-                    layoutMinNumPages.isErrorEnabled = false
-                    layoutMaxNumPages.isErrorEnabled = false
+                    binding.layoutMinNumPages.isErrorEnabled = false
+                    binding.layoutMaxNumPages.isErrorEnabled = false
                 }
             }
         })
 
-        fieldMaxNumPages.addTextChangedListener(object : TextWatcher {
+        binding.fieldMaxNumPages.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {}
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
             override fun onTextChanged(str: CharSequence?, start: Int, before: Int, count: Int) {
-                val minNumPages = fieldMinNumPages.text.toString().toIntOrNull() ?: Int.MIN_VALUE
-                val maxNumPages = fieldMaxNumPages.text.toString().toIntOrNull() ?: Int.MAX_VALUE
+                val minNumPages = binding.fieldMinNumPages.text.toString().toIntOrNull() ?: Int.MIN_VALUE
+                val maxNumPages = binding.fieldMaxNumPages.text.toString().toIntOrNull() ?: Int.MAX_VALUE
 
                 if (minNumPages > maxNumPages) {
-                    layoutMaxNumPages.error = "Invalid Input"
+                    binding.layoutMaxNumPages.error = "Invalid Input"
                 } else {
-                    layoutMinNumPages.isErrorEnabled = false
-                    layoutMaxNumPages.isErrorEnabled = false
+                    binding.layoutMinNumPages.isErrorEnabled = false
+                    binding.layoutMaxNumPages.isErrorEnabled = false
                 }
             }
         })
 
-        btnAddTitle.setOnClickListener {
-            viewModel.addTitle(fieldTitle.text.toString())
-            fieldTitle.setText("")
+        binding.btnAddTitle.setOnClickListener {
+            viewModel.addTitle(binding.fieldTitle.text.toString())
+            binding.fieldTitle.setText("")
         }
 
-        checkboxIncludedTags.setOnCheckedChangeListener { compoundButton, bool ->
+        binding.checkboxIncludedTags.setOnCheckedChangeListener { compoundButton, bool ->
             viewModel.setMustHaveAllIncludedTags(bool)
         }
 
-        checkboxExcludedTags.setOnCheckedChangeListener { compoundButton, bool ->
+        binding.checkboxExcludedTags.setOnCheckedChangeListener { compoundButton, bool ->
             viewModel.setMustHaveAllExcludedTags(bool)
         }
     }
@@ -196,27 +199,27 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
     private fun insertTitle(title: String) {
         if (title.isBlank()) return
 
-        val chip = layoutInflater.inflate(R.layout.tag_list_chip, parentLayout, false) as Chip
+        val chip = layoutInflater.inflate(R.layout.tag_list_chip, binding.parentLayout, false) as Chip
         chip.text = title
 
         chip.setOnCloseIconClickListener {
             viewModel.removeTitle(title)
         }
 
-        txtTitles.addView(chip)
+        binding.txtTitles.addView(chip)
     }
 
     private fun refreshIncludedTags(tags: List<Tag>) {
-        listIncludedTags.removeAllViews()
+        binding.listIncludedTags.removeAllViews()
 
         // Inflates default add button in the Included Tags
         val includedTagNewChip =
-            layoutInflater.inflate(R.layout.tag_list_add, parentLayout, false) as Chip
+            layoutInflater.inflate(R.layout.tag_list_add, binding.parentLayout, false) as Chip
         includedTagNewChip.text = "+"
         includedTagNewChip.setOnClickListener {
             openTagPicker(DialogTagPicker.Mode.Inclusive)
         }
-        listIncludedTags.addView(includedTagNewChip)
+        binding.listIncludedTags.addView(includedTagNewChip)
 
         for (tag in tags) {
             val chip = layoutInflater.inflate(R.layout.tag_list_chip, null, false) as Chip
@@ -225,21 +228,21 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
                 viewModel.removeIncludedTag(tag)
             }
 
-            listIncludedTags.addView(chip)
+            binding.listIncludedTags.addView(chip)
         }
     }
 
     private fun refreshExcludedTags(tags: List<Tag>) {
-        listExcludedTags.removeAllViews()
+        binding.listExcludedTags.removeAllViews()
 
         // Inflates default add button in the Excluded Tags
         val excludedTagNewChip =
-            layoutInflater.inflate(R.layout.tag_list_add, parentLayout, false) as Chip
+            layoutInflater.inflate(R.layout.tag_list_add, binding.parentLayout, false) as Chip
         excludedTagNewChip.text = "+"
         excludedTagNewChip.setOnClickListener {
             openTagPicker(DialogTagPicker.Mode.Exclusive)
         }
-        listExcludedTags.addView(excludedTagNewChip)
+        binding.listExcludedTags.addView(excludedTagNewChip)
 
         for (tag in tags) {
             val chip = layoutInflater.inflate(R.layout.tag_list_chip, null, false) as Chip
@@ -248,26 +251,26 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
                 viewModel.removeExcludedTag(tag)
             }
 
-            listExcludedTags.addView(chip)
+            binding.listExcludedTags.addView(chip)
         }
     }
 
     private fun submitCollection() {
         val existingCollectionId = intent.getLongExtra(COLLECTION_ID, -1)
 
-        val collectionName = fieldCollectionName.text.toString()
+        val collectionName = binding.fieldCollectionName.text.toString()
         if (collectionName.isBlank()) {
             toast("You must at least give it a name!")
             return
         }
 
-        val minNumPagesInput = fieldMinNumPages.text.toString()
+        val minNumPagesInput = binding.fieldMinNumPages.text.toString()
         val minNumPages = when (minNumPagesInput.isBlank()) {
             true -> Int.MIN_VALUE
             false -> minNumPagesInput.toInt()
         }
 
-        val maxNumPagesInput = fieldMaxNumPages.text.toString()
+        val maxNumPagesInput = binding.fieldMaxNumPages.text.toString()
         val maxNumPages = when (maxNumPagesInput.isBlank()) {
             true -> Int.MAX_VALUE
             false -> maxNumPagesInput.toInt()
@@ -275,8 +278,8 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
 
         if (minNumPages > maxNumPages) {
             toast("Invalid range of page numbers")
-            scrollView.postDelayed({
-                scrollView.smoothScrollTo(0, layoutMetadata.bottom)
+            binding.scrollView.postDelayed({
+                binding.scrollView.smoothScrollTo(0, binding.layoutMetadata.bottom)
             }, 100)
             return
         }
@@ -291,8 +294,8 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
             minNumPages = minNumPages,
             maxNumPages = maxNumPages,
             mustHaveAllTitles = false, // Hardcoded to use OR logic for now
-            mustHaveAllIncludedTags = checkboxIncludedTags.isChecked,
-            mustHaveAllExcludedTags = checkboxExcludedTags.isChecked
+            mustHaveAllIncludedTags = binding.checkboxIncludedTags.isChecked,
+            mustHaveAllExcludedTags = binding.checkboxExcludedTags.isChecked
         )
 
         viewModel.submitCollection(collection)
