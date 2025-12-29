@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.model.Source
 import com.flamyoad.tsukiviewer.repository.MetadataRepository
@@ -65,7 +66,8 @@ class FetchMetadataService : Service() {
 
         fun initComponents(context: Context) {
             if (metadataRepo == null) {
-                metadataRepo = MetadataRepository(context)
+                val app = context.applicationContext as MyApplication
+                metadataRepo = app.appComponent.metadataRepository()
             }
         }
 

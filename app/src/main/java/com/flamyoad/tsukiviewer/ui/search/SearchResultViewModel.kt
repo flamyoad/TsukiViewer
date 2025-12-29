@@ -1,9 +1,7 @@
 package com.flamyoad.tsukiviewer.ui.search
 
 import android.app.Application
-import android.content.Context
 import androidx.lifecycle.*
-import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.IncludedPathDao
 import com.flamyoad.tsukiviewer.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.model.Doujin
@@ -15,19 +13,18 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import java.util.*
+import javax.inject.Inject
 
-class SearchResultViewModel(private val app: Application) : AndroidViewModel(app) {
-    private val db: AppDatabase = AppDatabase.getInstance(app)
-    private val context: Context = app.applicationContext
-
-    private val bookmarkRepo = BookmarkRepository(app)
-    private val doujinRepo = DoujinRepository(app)
+class SearchResultViewModel @Inject constructor(
+    private val application: Application,
+    private val bookmarkRepo: BookmarkRepository,
+    private val doujinRepo: DoujinRepository,
+    private val pathDao: IncludedPathDao
+) : ViewModel() {
 
     private val selectedDoujins = mutableListOf<Doujin>()
 
-    private val pathDao: IncludedPathDao
-
-    private val includedPathList: LiveData<List<IncludedPath>>
+    private val includedPathList: LiveData<List<IncludedPath>> = pathDao.getAll()
 
     private val doujinList = mutableListOf<Doujin>()
 
@@ -53,9 +50,6 @@ class SearchResultViewModel(private val app: Application) : AndroidViewModel(app
     val bookmarkGroupTickStatus = hashMapOf<String, Boolean>()
 
     init {
-        pathDao = db.includedFolderDao()
-        includedPathList = pathDao.getAll()
-
         viewModelScope.launch(Dispatchers.IO) {
             bookmarkGroupList.postValue(bookmarkRepo.getAllGroupsBlocking())
         }

@@ -1,8 +1,6 @@
 package com.flamyoad.tsukiviewer.ui.home.tags
 
-import android.app.Application
 import androidx.lifecycle.*
-import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.DoujinTagsDao
 import com.flamyoad.tsukiviewer.db.dao.TagDao
 import com.flamyoad.tsukiviewer.model.Tag
@@ -10,13 +8,12 @@ import com.flamyoad.tsukiviewer.model.TagSortingMode
 import com.flamyoad.tsukiviewer.model.TagType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class DoujinTagsViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val db: AppDatabase = AppDatabase.getInstance(application)
-
-    private val tagDao: TagDao
+class DoujinTagsViewModel @Inject constructor(
+    private val tagDao: TagDao,
     private val doujinTagDao: DoujinTagsDao
+) : ViewModel() {
 
     // First object in the Pair : Keyword of the search
     // Second object in the Pair: The sorting mode (e.g. Sort by number of items ascending)
@@ -34,9 +31,6 @@ class DoujinTagsViewModel(application: Application) : AndroidViewModel(applicati
     private val categories: LiveData<List<Tag>>
 
     init {
-        tagDao = db.tagsDao()
-        doujinTagDao = db.doujinTagDao()
-
         searchTerms.value = Pair("", TagSortingMode.NAME_ASCENDING)
 
         allTags = searchTerms.switchMap { searchTerm ->

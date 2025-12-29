@@ -1,13 +1,15 @@
 package com.flamyoad.tsukiviewer.repository
 
-import android.content.Context
 import androidx.lifecycle.LiveData
-import com.flamyoad.tsukiviewer.db.AppDatabase
+import com.flamyoad.tsukiviewer.db.dao.TagDao
 import com.flamyoad.tsukiviewer.model.Tag
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class TagRepository(private val context: Context) {
-    private val db: AppDatabase = AppDatabase.getInstance(context)
-    private val tagDao = db.tagsDao()
+@Singleton
+class TagRepository @Inject constructor(
+    private val tagDao: TagDao
+) {
 
     fun getAll(): LiveData<List<Tag>> {
         return tagDao.getAll()

@@ -1,12 +1,11 @@
 package com.flamyoad.tsukiviewer.repository
 
+import android.app.Application
 import android.content.ContentResolver
-import android.content.Context
 import android.provider.MediaStore
 import androidx.core.content.ContentResolverCompat
 import androidx.core.net.toUri
 import com.flamyoad.tsukiviewer.MyApplication
-import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.DoujinDetailsDao
 import com.flamyoad.tsukiviewer.db.dao.IncludedPathDao
 import com.flamyoad.tsukiviewer.model.Doujin
@@ -17,13 +16,18 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import java.io.File
 import java.util.*
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class DoujinRepository(private val context: Context) {
-    private val contentResolver: ContentResolver = context.contentResolver
-    private val db: AppDatabase = AppDatabase.getInstance(context)
-    private val doujinDetailsDao: DoujinDetailsDao = db.doujinDetailsDao()
-    private val pathDao: IncludedPathDao = db.includedFolderDao()
-    private val existingList = (context.applicationContext as MyApplication).fullDoujinList
+@Singleton
+class DoujinRepository @Inject constructor(
+    private val application: Application,
+    private val doujinDetailsDao: DoujinDetailsDao,
+    private val pathDao: IncludedPathDao
+) {
+    private val contentResolver: ContentResolver = application.contentResolver
+    private val existingList: MutableList<Doujin>?
+        get() = (application as MyApplication).fullDoujinList
 
     fun scanForDoujins(keyword: String, tags: String, shouldIncludeAllTags: Boolean)
             : Flow<Doujin> {
@@ -147,12 +151,10 @@ class DoujinRepository(private val context: Context) {
     }
 
     private fun searchFromExistingList(keyword: String): Flow<Doujin> = flow {
-        if (existingList == null) {
-            return@flow
-        }
+        val list = existingList ?: return@flow
 
         val newList = mutableListOf<Doujin>()
-        for (doujin in existingList) {
+        for (doujin in list) {
             if (doujin.title.toLowerCase(Locale.ROOT).contains(keyword)) {
                 newList.add(doujin)
                 emit(doujin)

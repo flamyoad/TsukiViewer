@@ -13,15 +13,18 @@ import androidx.lifecycle.Observer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter
 import com.flamyoad.tsukiviewer.databinding.ActivityReaderBinding
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.model.RecentTab
 import com.flamyoad.tsukiviewer.ui.reader.recents.RecentTabsActivity
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabFragmentAdapter
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabListener
 import com.flamyoad.tsukiviewer.utils.extensions.reduceDragSensitivitySlightly
 import com.flamyoad.tsukiviewer.utils.extensions.toast
+import javax.inject.Inject
 
 
 const val MY_KEY_DOWN_INTENT = "my_key_down_intent"
@@ -31,7 +34,10 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
 
     private lateinit var binding: ActivityReaderBinding
 
-    private val viewModel: ReaderViewModel by viewModels()
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
+    private val viewModel: ReaderViewModel by viewModels { viewModelFactory }
 
     private var positionFromImageGrid = 0
 
@@ -44,6 +50,7 @@ class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener
     private lateinit var tabFragmentAdapter: ReaderTabFragmentAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        (application as MyApplication).appComponent.inject(this)
         super.onCreate(savedInstanceState)
         binding = ActivityReaderBinding.inflate(layoutInflater)
         setContentView(binding.root)

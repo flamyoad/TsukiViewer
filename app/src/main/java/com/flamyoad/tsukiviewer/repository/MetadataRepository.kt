@@ -29,21 +29,24 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
 import java.io.IOException
 import java.util.*
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class MetadataRepository(private val context: Context) {
+@Singleton
+class MetadataRepository @Inject constructor(
+    private val context: Context,
+    private val db: AppDatabase,
+    val pathDao: IncludedPathDao,
+    val doujinDetailsDao: DoujinDetailsDao,
+    val tagDao: TagDao,
+    val doujinTagDao: DoujinTagsDao,
+    val folderDao: IncludedFolderDao
+) {
     private lateinit var nhService: NHService
     private lateinit var henNexusService: HenNexusService
     private lateinit var fakkuService: FakkuService
 
     private val henNexusParser: HenNexusParser by lazy { HenNexusParser() }
-
-    private val db: AppDatabase
-
-    val pathDao: IncludedPathDao
-    val doujinDetailsDao: DoujinDetailsDao
-    val tagDao: TagDao
-    val doujinTagDao: DoujinTagsDao
-    val folderDao: IncludedFolderDao
 
     /*
         Regex used to remove text between parentheses and brackets
@@ -58,14 +61,6 @@ class MetadataRepository(private val context: Context) {
 
     init {
         initializeNetwork()
-
-        db = AppDatabase.getInstance(context)
-
-        pathDao = db.includedFolderDao()
-        doujinDetailsDao = db.doujinDetailsDao()
-        tagDao = db.tagsDao()
-        doujinTagDao = db.doujinTagDao()
-        folderDao = db.folderDao()
     }
 
     private fun initializeNetwork() {

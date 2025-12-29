@@ -1,6 +1,7 @@
 package com.flamyoad.tsukiviewer.ui.home.local
 
 import android.app.Dialog
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Window
@@ -10,11 +11,22 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
+import javax.inject.Inject
 
 class DialogSortDoujin : DialogFragment() {
 
-    private val viewModel: LocalDoujinViewModel by activityViewModels()
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
+    private val viewModel: LocalDoujinViewModel by activityViewModels { viewModelFactory }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        (requireActivity().application as MyApplication).appComponent.inject(this)
+    }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val builder = AlertDialog.Builder(requireContext())

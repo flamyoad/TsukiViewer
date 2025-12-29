@@ -1,6 +1,7 @@
 package com.flamyoad.tsukiviewer.ui.home.collections
 
 import android.app.Dialog
+import android.content.Context
 import android.graphics.Point
 import android.os.Bundle
 import android.view.Display
@@ -13,15 +14,26 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DirectoryPickerAdapter
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import java.io.File
+import javax.inject.Inject
 
 class DialogDirectoryPicker: DialogFragment() {
 
-    private val viewModel: CreateCollectionViewModel by activityViewModels()
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
+    private val viewModel: CreateCollectionViewModel by activityViewModels { viewModelFactory }
 
     private lateinit var listDirs: RecyclerView
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        (requireActivity().application as MyApplication).appComponent.inject(this)
+    }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val builder = AlertDialog.Builder(requireContext())

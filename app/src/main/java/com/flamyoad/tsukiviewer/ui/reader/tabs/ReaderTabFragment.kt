@@ -15,15 +15,18 @@ import androidx.recyclerview.widget.LinearSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.transition.Slide
 import androidx.transition.TransitionManager
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.BottomThumbnailAdapter
 import com.flamyoad.tsukiviewer.databinding.FragmentReaderTabBinding
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.model.RecentTab
 import com.flamyoad.tsukiviewer.ui.reader.*
 import com.flamyoad.tsukiviewer.ui.reader.ReaderActivity.Companion.RECENT_TAB_REQUEST_CODE
 import com.flamyoad.tsukiviewer.ui.reader.recents.RecentTabsActivity
 import com.flamyoad.tsukiviewer.utils.extensions.toast
 import java.io.File
+import javax.inject.Inject
 
 private const val SWIPE_READER = "swipe_reader"
 
@@ -34,8 +37,11 @@ class ReaderTabFragment : Fragment(),
     private var _binding: FragmentReaderTabBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: ReaderTabViewModel by viewModels()
-    private val parentViewModel: ReaderViewModel by activityViewModels()
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
+    private val viewModel: ReaderTabViewModel by viewModels { viewModelFactory }
+    private val parentViewModel: ReaderViewModel by activityViewModels { viewModelFactory }
 
     private var viewPagerListener: ViewPagerListener? = null
     private var readerListener: ReaderTabListener? = null
@@ -43,30 +49,17 @@ class ReaderTabFragment : Fragment(),
     private var shouldReturnLastReadPosition: Boolean = false
     private var isFirstLoad: Boolean = true
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        shouldReturnLastReadPosition = arguments?.getBoolean(RETURN_LAST_READ_POSITION) ?: false
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        _binding = FragmentReaderTabBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-
     override fun onAttach(context: Context) {
         super.onAttach(context)
+        (requireActivity().application as MyApplication).appComponent.inject(this)
         viewPagerListener = context as ViewPagerListener
         readerListener = context as ReaderTabListener
         lastReadPageNumberListener = context as LastReadPageNumberListener
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        shouldReturnLastReadPosition = arguments?.getBoolean(RETURN_LAST_READ_POSITION) ?: false
     }
 
     override fun onResume() {

@@ -7,13 +7,16 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.children
 import androidx.lifecycle.Observer
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.databinding.ActivityEditorBinding
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.utils.extensions.toast
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
+import javax.inject.Inject
 
 private const val BACKMOST_POSITION = -1
 
@@ -21,9 +24,13 @@ class EditorActivity : AppCompatActivity(), CreateTagListener {
     
     private lateinit var binding: ActivityEditorBinding
     
-    private val viewModel: EditorViewModel by viewModels()
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
+    private val viewModel: EditorViewModel by viewModels { viewModelFactory }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        (application as MyApplication).appComponent.inject(this)
         super.onCreate(savedInstanceState)
         binding = ActivityEditorBinding.inflate(layoutInflater)
         setContentView(binding.root)

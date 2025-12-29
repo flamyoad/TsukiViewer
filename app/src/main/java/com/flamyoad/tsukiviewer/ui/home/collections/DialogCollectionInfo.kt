@@ -1,5 +1,6 @@
 package com.flamyoad.tsukiviewer.ui.home.collections
 
+import android.content.Context
 import android.graphics.Point
 import android.os.Bundle
 import android.view.*
@@ -9,23 +10,34 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.CollectionInfoDirectoryAdapter
 import com.flamyoad.tsukiviewer.adapter.CollectionInfoTagAdapter
+import com.flamyoad.tsukiviewer.databinding.DialogCollectionInfoBinding
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxLayoutManager
-import com.flamyoad.tsukiviewer.databinding.DialogCollectionInfoBinding
+import javax.inject.Inject
 
 class DialogCollectionInfo : DialogFragment() {
     private var _binding: DialogCollectionInfoBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: DialogCollectionInfoViewModel by activityViewModels()
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
+    private val viewModel: DialogCollectionInfoViewModel by activityViewModels { viewModelFactory }
 
     private val includedTagsAdapter = CollectionInfoTagAdapter(DialogTagPicker.Mode.Inclusive)
     private val excludedTagsAdapter = CollectionInfoTagAdapter(DialogTagPicker.Mode.Exclusive)
     private val dirAdapter = CollectionInfoDirectoryAdapter()
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        (requireActivity().application as MyApplication).appComponent.inject(this)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,

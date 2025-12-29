@@ -17,16 +17,19 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.ui.settings.folderpicker.FolderPickerDialog
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.IncludedFolderAdapter
 import com.flamyoad.tsukiviewer.databinding.ActivityIncludedFolderBinding
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.model.IncludedPath
 import com.gun0912.tedpermission.coroutine.TedPermission
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
+import javax.inject.Inject
 
 class IncludedFolderActivity : AppCompatActivity(),
     AddFolderListener,
@@ -34,11 +37,15 @@ class IncludedFolderActivity : AppCompatActivity(),
 
     private lateinit var binding: ActivityIncludedFolderBinding
 
-    private val viewModel: IncludedFolderViewModel by viewModels()
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
+    private val viewModel: IncludedFolderViewModel by viewModels { viewModelFactory }
 
     private lateinit var adapter: IncludedFolderAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        (application as MyApplication).appComponent.inject(this)
         super.onCreate(savedInstanceState)
         binding = ActivityIncludedFolderBinding.inflate(layoutInflater)
         setContentView(binding.root)

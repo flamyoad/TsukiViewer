@@ -1,6 +1,7 @@
 package com.flamyoad.tsukiviewer.ui.home.collections
 
 import android.app.Dialog
+import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
 import android.text.Editable
@@ -12,9 +13,12 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.TagPickerAdapter
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.ui.search.TagSelectedListener
+import javax.inject.Inject
 
 class DialogTagPicker: DialogFragment() {
     enum class Mode {
@@ -23,9 +27,17 @@ class DialogTagPicker: DialogFragment() {
         None
     }
 
-    private val viewModel: CreateCollectionViewModel by activityViewModels()
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
+    private val viewModel: CreateCollectionViewModel by activityViewModels { viewModelFactory }
     private lateinit var listTags: RecyclerView
     private lateinit var fieldTag: EditText
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        (requireActivity().application as MyApplication).appComponent.inject(this)
+    }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)

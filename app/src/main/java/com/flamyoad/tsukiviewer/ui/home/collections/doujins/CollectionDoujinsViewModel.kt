@@ -2,17 +2,15 @@ package com.flamyoad.tsukiviewer.ui.home.collections.doujins
 
 import android.app.Application
 import android.content.ContentResolver
-import android.content.Context
 import android.provider.MediaStore
 import android.util.Log
 import androidx.core.content.ContentResolverCompat
 import androidx.core.net.toUri
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flamyoad.tsukiviewer.MyApplication
-import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.DoujinDetailsDao
 import com.flamyoad.tsukiviewer.db.dao.IncludedPathDao
 import com.flamyoad.tsukiviewer.model.BookmarkGroup
@@ -28,17 +26,16 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.*
+import javax.inject.Inject
 
-class CollectionDoujinsViewModel(private val app: Application) : AndroidViewModel(app) {
-    private val context: Context = app.applicationContext
-    private val contentResolver: ContentResolver = app.contentResolver
-
-    private val db: AppDatabase = AppDatabase.getInstance(app)
-    private val doujinDetailsDao: DoujinDetailsDao
-    private val pathDao: IncludedPathDao
-
-    private val bookmarkRepo = BookmarkRepository(app)
-    private val collectionRepo = CollectionRepository(app)
+class CollectionDoujinsViewModel @Inject constructor(
+    private val application: Application,
+    private val doujinDetailsDao: DoujinDetailsDao,
+    private val pathDao: IncludedPathDao,
+    private val bookmarkRepo: BookmarkRepository,
+    private val collectionRepo: CollectionRepository
+) : ViewModel() {
+    private val contentResolver: ContentResolver = application.contentResolver
 
     private val doujinList = mutableListOf<Doujin>()
 
@@ -73,9 +70,6 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
     val bookmarkGroupTickStatus = hashMapOf<String, Boolean>()
 
     init {
-        pathDao = db.includedFolderDao()
-        doujinDetailsDao = db.doujinDetailsDao()
-
         viewModelScope.launch(Dispatchers.IO) {
             bookmarkGroupList.postValue(bookmarkRepo.getAllGroupsBlocking())
         }
@@ -102,7 +96,7 @@ class CollectionDoujinsViewModel(private val app: Application) : AndroidViewMode
 
                 // If tags are not specified in the query, then we have to search from file explorer too
                 if (includedTags.isEmpty() && excludedTags.isEmpty()) {
-                    val existingList = (app as MyApplication).fullDoujinList
+                    val existingList = (application as MyApplication).fullDoujinList
                     if (existingList != null) {
                         searchFromExistingList(existingList.toList())
                     } else {

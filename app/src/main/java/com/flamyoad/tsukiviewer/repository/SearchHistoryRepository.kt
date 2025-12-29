@@ -1,17 +1,19 @@
 package com.flamyoad.tsukiviewer.repository
 
-import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.paging.PagedList
 import androidx.paging.toLiveData
-import com.flamyoad.tsukiviewer.db.AppDatabase
+import com.flamyoad.tsukiviewer.db.dao.SearchHistoryDao
 import com.flamyoad.tsukiviewer.model.SearchHistory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class SearchHistoryRepository(private val context: Context) {
-    private val db: AppDatabase = AppDatabase.getInstance(context)
-    val searchHistoryDao = db.searchHistoryDao()
+@Singleton
+class SearchHistoryRepository @Inject constructor(
+    val searchHistoryDao: SearchHistoryDao
+) {
 
     fun getAll(pageSize: Int): LiveData<PagedList<SearchHistory>> {
         return searchHistoryDao.getAll()

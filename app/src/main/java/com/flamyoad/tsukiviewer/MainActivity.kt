@@ -17,20 +17,26 @@ import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import com.flamyoad.tsukiviewer.databinding.ActivityMainBinding
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.ui.home.bookmarks.BookmarkFragment
 import com.flamyoad.tsukiviewer.ui.home.collections.CollectionFragment
 import com.flamyoad.tsukiviewer.ui.home.local.LocalDoujinsFragment
 import com.flamyoad.tsukiviewer.ui.home.tags.DoujinTagsFragment
 import com.flamyoad.tsukiviewer.ui.settings.SettingsActivity
 import com.google.android.material.navigation.NavigationView
+import javax.inject.Inject
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     private lateinit var binding: ActivityMainBinding
 
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+
     private var callback: ActionMode.Callback? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        (application as MyApplication).appComponent.inject(this)
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)

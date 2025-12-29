@@ -1,5 +1,6 @@
 package com.flamyoad.tsukiviewer.ui.home.collections
 
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.Configuration
@@ -12,19 +13,31 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.flamyoad.tsukiviewer.BaseFragment
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.CollectionListAdapter
 import com.flamyoad.tsukiviewer.databinding.FragmentCollectionBinding
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.model.Collection
+import javax.inject.Inject
 
 class CollectionFragment : BaseFragment(), SearchView.OnQueryTextListener {
-    private val viewModel: CollectionViewModel by activityViewModels()
+    
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
+    private val viewModel: CollectionViewModel by activityViewModels { viewModelFactory }
 
     private var _binding: FragmentCollectionBinding? = null
     private val binding get() = _binding!!
 
     private var searchView: SearchView? = null
     private var previousSearchQuery: String = ""
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        (requireActivity().application as MyApplication).appComponent.inject(this)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -18,9 +18,11 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.ActionModeListener
 import com.flamyoad.tsukiviewer.MyAppPreference
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.databinding.ActivitySearchResultBinding
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.ViewMode
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
@@ -31,6 +33,7 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 private const val ACTION_MODE = "action_mode"
 private const val ADD_BOOKMARK_DIALOG = "add_bookmark_dialog"
@@ -42,7 +45,10 @@ class SearchResultActivity : AppCompatActivity(),
 
     private lateinit var binding: ActivitySearchResultBinding
 
-    private val viewModel: SearchResultViewModel by viewModels()
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
+    private val viewModel: SearchResultViewModel by viewModels { viewModelFactory }
 
     private val adapter = LocalDoujinsAdapter(this, this::saveActivityInfo)
         .apply { setHasStableIds(true) }
@@ -56,6 +62,7 @@ class SearchResultActivity : AppCompatActivity(),
     private var queryJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        (application as MyApplication).appComponent.inject(this)
         super.onCreate(savedInstanceState)
         binding = ActivitySearchResultBinding.inflate(layoutInflater)
         setContentView(binding.root)

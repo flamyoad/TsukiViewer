@@ -1,6 +1,5 @@
 package com.flamyoad.tsukiviewer.repository
 
-import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.room.withTransaction
 import com.flamyoad.tsukiviewer.db.AppDatabase
@@ -10,19 +9,16 @@ import com.flamyoad.tsukiviewer.db.dao.CollectionDoujinDao
 import com.flamyoad.tsukiviewer.model.*
 import com.flamyoad.tsukiviewer.model.Collection
 import java.io.File
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class CollectionRepository(context: Context) {
-    private val db: AppDatabase = AppDatabase.getInstance(context)
-
-    private val collectionDao: CollectionDao
-    private val criteriaDao: CollectionCriteriaDao
+@Singleton
+class CollectionRepository @Inject constructor(
+    private val db: AppDatabase,
+    private val collectionDao: CollectionDao,
+    private val criteriaDao: CollectionCriteriaDao,
     private val collectionDoujinDao: CollectionDoujinDao
-
-    init {
-        collectionDao = db.collectionDao()
-        criteriaDao = db.collectionCriteriaDao()
-        collectionDoujinDao = db.collectionDoujinDao()
-    }
+) {
 
     suspend fun get(id: Long): Collection {
         return collectionDao.getBlocking(id)

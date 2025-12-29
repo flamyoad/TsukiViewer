@@ -1,9 +1,8 @@
 package com.flamyoad.tsukiviewer.ui.home.collections
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flamyoad.tsukiviewer.model.Collection
 import com.flamyoad.tsukiviewer.model.Tag
@@ -11,9 +10,11 @@ import com.flamyoad.tsukiviewer.repository.CollectionRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
+import javax.inject.Inject
 
-class DialogCollectionInfoViewModel(application: Application) : AndroidViewModel(application) {
-    private val collectionRepo = CollectionRepository(application.applicationContext)
+class DialogCollectionInfoViewModel @Inject constructor(
+    private val collectionRepo: CollectionRepository
+) : ViewModel() {
 
     private val currentCollection = MutableLiveData<Collection>()
     fun currentCollection(): LiveData<Collection> = currentCollection

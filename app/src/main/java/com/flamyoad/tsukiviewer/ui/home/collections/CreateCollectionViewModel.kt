@@ -1,8 +1,6 @@
 package com.flamyoad.tsukiviewer.ui.home.collections
 
-import android.app.Application
 import androidx.lifecycle.*
-import com.flamyoad.tsukiviewer.db.AppDatabase
 import com.flamyoad.tsukiviewer.db.dao.IncludedPathDao
 import com.flamyoad.tsukiviewer.model.*
 import com.flamyoad.tsukiviewer.model.Collection
@@ -12,16 +10,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import javax.inject.Inject
 
-class CreateCollectionViewModel(application: Application) : AndroidViewModel(application) {
-    private val db: AppDatabase = AppDatabase.getInstance(application.applicationContext)
-
-    private val tagRepo = TagRepository(application.applicationContext)
-    private val collectionRepo = CollectionRepository(application.applicationContext)
-
+class CreateCollectionViewModel @Inject constructor(
+    private val tagRepo: TagRepository,
+    private val collectionRepo: CollectionRepository,
     private val includedPathDao: IncludedPathDao
+) : ViewModel() {
 
-    val includedPaths: LiveData<List<IncludedPath>>
+    val includedPaths: LiveData<List<IncludedPath>> = includedPathDao.getAll()
 
     private val tagQuery = MutableLiveData<String>("")
 
@@ -54,9 +51,6 @@ class CreateCollectionViewModel(application: Application) : AndroidViewModel(app
     var tagPickerMode = DialogTagPicker.Mode.None
 
     init {
-        includedPathDao = db.includedFolderDao()
-        includedPaths = includedPathDao.getAll()
-
         tagList = tagQuery.switchMap {
             tagRepo.getAllWithFilter(it)
         }

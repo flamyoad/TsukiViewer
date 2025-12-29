@@ -1,6 +1,7 @@
 package com.flamyoad.tsukiviewer.ui.doujinpage
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
@@ -11,12 +12,15 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import com.bumptech.glide.Glide
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter.ItemType
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.databinding.FragmentGridImagesBinding
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.utils.ui.GridItemDecoration
+import javax.inject.Inject
 
 const val GRID_ITEM_SPAN_PORTRAIT = 3
 const val GRID_ITEM_SPAN_LANDSCAPE = 5
@@ -34,13 +38,21 @@ class FragmentGridImages : Fragment() {
     private var _binding: FragmentGridImagesBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel by activityViewModels<DoujinViewModel>()
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
+    private val viewModel: DoujinViewModel by activityViewModels { viewModelFactory }
 
     private var adapter: DoujinImagesAdapter? = null
 
     private lateinit var gridLayoutManager: GridLayoutManager
 
     private var readerPosition: Int = -1
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        (requireActivity().application as MyApplication).appComponent.inject(this)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

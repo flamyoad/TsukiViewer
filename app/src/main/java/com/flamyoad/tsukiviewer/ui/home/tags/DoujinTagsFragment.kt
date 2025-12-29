@@ -1,22 +1,30 @@
 package com.flamyoad.tsukiviewer.ui.home.tags
 
+import android.content.Context
 import android.os.Bundle
 import android.view.*
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import com.flamyoad.tsukiviewer.BaseFragment
+import com.flamyoad.tsukiviewer.MyApplication
 
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.databinding.FragmentDoujinTagsBinding
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.model.TagType
 import com.flamyoad.tsukiviewer.utils.extensions.reduceDragSensitivity
 import com.google.android.material.tabs.TabLayoutMediator
+import javax.inject.Inject
 
 private const val SEARCH_VIEW = "search_view"
 
 class DoujinTagsFragment : BaseFragment(), SearchView.OnQueryTextListener {
-    private val viewModel by activityViewModels<DoujinTagsViewModel>()
+    
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
+    private val viewModel: DoujinTagsViewModel by activityViewModels { viewModelFactory }
 
     private var _binding: FragmentDoujinTagsBinding? = null
     private val binding get() = _binding!!
@@ -35,6 +43,11 @@ class DoujinTagsFragment : BaseFragment(), SearchView.OnQueryTextListener {
         TagType.Languages,
         TagType.Categories
     )
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        (requireActivity().application as MyApplication).appComponent.inject(this)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

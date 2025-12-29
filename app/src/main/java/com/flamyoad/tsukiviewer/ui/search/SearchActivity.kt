@@ -12,19 +12,25 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.SearchHistoryAdapter
 import com.flamyoad.tsukiviewer.databinding.ActivitySearchBinding
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.model.SearchHistory
 import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.utils.ActivityStackUtils
 import com.google.android.material.chip.Chip
+import javax.inject.Inject
 
 class SearchActivity : AppCompatActivity(), TagSelectedListener {
     
     private lateinit var binding: ActivitySearchBinding
     
-    private val viewModel: SearchViewModel by viewModels()
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
+    private val viewModel: SearchViewModel by viewModels { viewModelFactory }
 
     companion object {
         const val SEARCH_TITLE = "SearchActivity.SEARCH_TITLE"
@@ -36,6 +42,7 @@ class SearchActivity : AppCompatActivity(), TagSelectedListener {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        (application as MyApplication).appComponent.inject(this)
         super.onCreate(savedInstanceState)
         binding = ActivitySearchBinding.inflate(layoutInflater)
         setContentView(binding.root)

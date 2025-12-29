@@ -9,22 +9,29 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.viewpager.widget.ViewPager
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinPagerAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.databinding.ActivityDoujinDetailsBinding
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
 import com.flamyoad.tsukiviewer.utils.ActivityStackUtils
 import com.flamyoad.tsukiviewer.utils.extensions.toast
 import com.google.android.material.snackbar.Snackbar
+import javax.inject.Inject
 
 class DoujinDetailsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityDoujinDetailsBinding
 
-    private val viewModel: DoujinViewModel by viewModels()
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
+    private val viewModel: DoujinViewModel by viewModels { viewModelFactory }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        (application as MyApplication).appComponent.inject(this)
         super.onCreate(savedInstanceState)
         binding = ActivityDoujinDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)

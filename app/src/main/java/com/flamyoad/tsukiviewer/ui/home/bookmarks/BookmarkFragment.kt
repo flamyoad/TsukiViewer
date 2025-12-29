@@ -1,5 +1,6 @@
 package com.flamyoad.tsukiviewer.ui.home.bookmarks
 
+import android.content.Context
 import android.content.DialogInterface
 import android.content.res.Configuration
 import android.os.Bundle
@@ -18,15 +19,18 @@ import androidx.recyclerview.widget.LinearSnapHelper
 import com.flamyoad.tsukiviewer.ActionModeListener
 import com.flamyoad.tsukiviewer.BaseFragment
 import com.flamyoad.tsukiviewer.MyAppPreference
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.BookmarkGroupAdapter
 import com.flamyoad.tsukiviewer.adapter.BookmarkItemsAdapter
+import com.flamyoad.tsukiviewer.databinding.FragmentBookmarkBinding
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.model.BookmarkItem
 import com.flamyoad.tsukiviewer.model.ViewMode
 import com.flamyoad.tsukiviewer.utils.ui.GridItemDecoration
-import com.flamyoad.tsukiviewer.databinding.FragmentBookmarkBinding
 import java.util.*
+import javax.inject.Inject
 
 private const val ACTION_MODE = "action_mode"
 private const val SEARCH_VIEW = "search_view"
@@ -39,7 +43,10 @@ class BookmarkFragment : BaseFragment(),
     private var _binding: FragmentBookmarkBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: BookmarkViewModel by activityViewModels()
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
+    private val viewModel: BookmarkViewModel by activityViewModels { viewModelFactory }
     private val groupAdapter = BookmarkGroupAdapter(this::onGroupChange, this::showNewGroupDialog)
     private val itemAdapter = BookmarkItemsAdapter(false)
         .apply { setHasStableIds(true) }
@@ -52,6 +59,11 @@ class BookmarkFragment : BaseFragment(),
     private var searchView: SearchView? = null
     private var statusBarColor: Int = -1
     private var previousSearchQuery: String = ""
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        (requireActivity().application as MyApplication).appComponent.inject(this)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

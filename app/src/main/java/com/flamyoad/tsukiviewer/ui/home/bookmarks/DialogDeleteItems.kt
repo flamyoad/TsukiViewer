@@ -8,9 +8,21 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import com.flamyoad.tsukiviewer.MyApplication
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
+import javax.inject.Inject
 
 class DialogDeleteItems(): DialogFragment() {
-    private val viewModel: BookmarkViewModel by activityViewModels()
+    
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
+    private val viewModel: BookmarkViewModel by activityViewModels { viewModelFactory }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        (requireActivity().application as MyApplication).appComponent.inject(this)
+    }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val listener = parentFragment as DeleteItemsListener

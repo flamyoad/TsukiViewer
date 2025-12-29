@@ -4,6 +4,9 @@ import android.app.Application
 import android.os.StrictMode
 import android.os.StrictMode.VmPolicy
 import com.bumptech.glide.Glide
+import com.flamyoad.tsukiviewer.di.AppComponent
+import com.flamyoad.tsukiviewer.di.AppModule
+import com.flamyoad.tsukiviewer.di.DaggerAppComponent
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.utils.ActivityHistory
 import com.jakewharton.threetenabp.AndroidThreeTen
@@ -14,6 +17,9 @@ import kotlinx.coroutines.plus
 
 class MyApplication : Application() {
 
+    lateinit var appComponent: AppComponent
+        private set
+
     val coroutineScope = MainScope() + CoroutineName("Application Scope")
 
     val activityStack = mutableListOf<ActivityHistory>()
@@ -22,6 +28,12 @@ class MyApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        
+        // Initialize Dagger
+        appComponent = DaggerAppComponent.builder()
+            .appModule(AppModule(this))
+            .build()
+
         AndroidThreeTen.init(this)
 
         /*
@@ -42,3 +54,7 @@ class MyApplication : Application() {
         Glide.with(this).onTrimMemory(TRIM_MEMORY_MODERATE)
     }
 }
+
+// Extension function to get AppComponent from any Context
+val Application.appComponent: AppComponent
+    get() = (this as MyApplication).appComponent

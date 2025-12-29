@@ -9,25 +9,32 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.RecentTabsAdapter
 import com.flamyoad.tsukiviewer.databinding.ActivityRecentTabsBinding
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.model.RecentTab
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabFragment
 import com.flamyoad.tsukiviewer.utils.extensions.toast
 import jp.wasabeef.recyclerview.animators.SlideInUpAnimator
+import javax.inject.Inject
 
 class RecentTabsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRecentTabsBinding
 
-    private val viewModel: RecentTabsViewModel by viewModels()
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
+    private val viewModel: RecentTabsViewModel by viewModels { viewModelFactory }
 
     private var touchHelper: ItemTouchHelper? = null
 
     private var linearLayoutManager: LinearLayoutManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        (application as MyApplication).appComponent.inject(this)
         super.onCreate(savedInstanceState)
         binding = ActivityRecentTabsBinding.inflate(layoutInflater)
         setContentView(binding.root)

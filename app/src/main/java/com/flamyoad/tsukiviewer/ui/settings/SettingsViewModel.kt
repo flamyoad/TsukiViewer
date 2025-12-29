@@ -4,9 +4,9 @@ import android.app.Application
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.ResolveInfo
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
 import androidx.room.withTransaction
@@ -19,15 +19,18 @@ import com.flamyoad.tsukiviewer.ui.settings.preferences.MainPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
-class SettingsViewModel(application: Application) : AndroidViewModel(application) {
-    private val prefs: SharedPreferences
-    private val db: AppDatabase
-
-    private val doujinDetailsDao: DoujinDetailsDao
-    private val doujinTagsDao: DoujinTagsDao
-    private val tagDao: TagDao
+class SettingsViewModel @Inject constructor(
+    private val application: Application,
+    private val db: AppDatabase,
+    private val doujinDetailsDao: DoujinDetailsDao,
+    private val doujinTagsDao: DoujinTagsDao,
+    private val tagDao: TagDao,
     private val searchHistoryDao: SearchHistoryDao
+) : ViewModel() {
+    
+    private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(application.applicationContext)
 
     private val isRemovingItems = MutableLiveData<Boolean>()
     fun isRemovingItems(): LiveData<Boolean> = isRemovingItems
@@ -42,15 +45,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         val pkgAppList: List<ResolveInfo> =
             application.packageManager.queryIntentActivities(intent, 0)
         packageAppList.value = pkgAppList
-
-        prefs = PreferenceManager.getDefaultSharedPreferences(application.applicationContext)
-
-        db = AppDatabase.getInstance(application.applicationContext)
-
-        doujinDetailsDao = db.doujinDetailsDao()
-        doujinTagsDao = db.doujinTagDao()
-        tagDao = db.tagsDao()
-        searchHistoryDao = db.searchHistoryDao()
     }
 
     fun setThirdPartyGallery(packageName: String) {

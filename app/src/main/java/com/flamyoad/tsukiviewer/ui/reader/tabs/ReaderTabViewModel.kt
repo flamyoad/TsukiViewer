@@ -3,7 +3,7 @@ package com.flamyoad.tsukiviewer.ui.reader.tabs
 import android.app.Application
 import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyAppPreference
-import com.flamyoad.tsukiviewer.db.AppDatabase
+import com.flamyoad.tsukiviewer.db.dao.RecentTabDao
 import com.flamyoad.tsukiviewer.model.RecentTab
 import com.flamyoad.tsukiviewer.ui.reader.ReaderMode
 import com.flamyoad.tsukiviewer.ui.reader.VolumeButtonScrollDirection
@@ -15,12 +15,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.*
+import javax.inject.Inject
 
-class ReaderTabViewModel(application: Application) : AndroidViewModel(application) {
+class ReaderTabViewModel @Inject constructor(
+    private val application: Application,
+    private val recentTabDao: RecentTabDao
+) : ViewModel() {
 
     private val appPreference = MyAppPreference.getInstance(application.applicationContext)
-
-    private val db = AppDatabase.getInstance(application)
 
     private val imageList = MutableLiveData<List<File>>()
     fun imageList(): LiveData<List<File>> = imageList
@@ -53,7 +55,7 @@ class ReaderTabViewModel(application: Application) : AndroidViewModel(applicatio
         private set
 
     init {
-        recentTabs = db.recentTabDao().getAll()
+        recentTabs = recentTabDao.getAll()
 
         shouldScrollWithVolumeButton = appPreference.shouldScrollWithVolumeButton()
 

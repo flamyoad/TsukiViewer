@@ -17,11 +17,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.*
+import javax.inject.Inject
 
-class DoujinViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val metadataRepo = MetadataRepository(application)
-    private val bookmarkRepo = BookmarkRepository(application)
+class DoujinViewModel @Inject constructor(
+    private val application: Application,
+    private val metadataRepo: MetadataRepository,
+    private val bookmarkRepo: BookmarkRepository
+) : ViewModel() {
 
     private val myAppPreference = MyAppPreference.getInstance(application.applicationContext)
 

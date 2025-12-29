@@ -21,10 +21,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.*
+import javax.inject.Inject
 
-class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app) {
-    private val metadataRepo = MetadataRepository(app)
-    private val bookmarkRepo = BookmarkRepository(app)
+class LocalDoujinViewModel @Inject constructor(
+    private val app: Application,
+    private val metadataRepo: MetadataRepository,
+    private val bookmarkRepo: BookmarkRepository
+) : ViewModel() {
 
     private val selectedDoujins = mutableListOf<Doujin>()
 

@@ -1,5 +1,6 @@
 package com.flamyoad.tsukiviewer.ui.doujinpage
 
+import android.content.Context
 import android.graphics.Typeface
 import android.os.Bundle
 import android.text.Spannable
@@ -11,9 +12,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import com.bumptech.glide.Glide
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinTagsAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
+import com.flamyoad.tsukiviewer.databinding.FragmentDoujinDetailsBinding
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.model.DoujinDetails
 import com.flamyoad.tsukiviewer.model.DoujinDetailsWithTags
 import com.flamyoad.tsukiviewer.model.Source
@@ -26,9 +30,9 @@ import com.flamyoad.tsukiviewer.utils.TimeUtils
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxLayoutManager
-import com.flamyoad.tsukiviewer.databinding.FragmentDoujinDetailsBinding
 import java.io.File
 import java.util.*
+import javax.inject.Inject
 
 private const val COLLECTION_DIALOG_TAG = "collection_dialog"
 
@@ -36,7 +40,15 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
     private var _binding: FragmentDoujinDetailsBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: DoujinViewModel by activityViewModels()
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
+    private val viewModel: DoujinViewModel by activityViewModels { viewModelFactory }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        (requireActivity().application as MyApplication).appComponent.inject(this)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

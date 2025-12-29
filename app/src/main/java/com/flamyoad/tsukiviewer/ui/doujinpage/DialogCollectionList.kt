@@ -1,6 +1,7 @@
 package com.flamyoad.tsukiviewer.ui.doujinpage
 
 import android.app.Dialog
+import android.content.Context
 import android.graphics.Point
 import android.os.Bundle
 import android.view.Display
@@ -13,12 +14,19 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.CollectionPickerAdapter
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.model.BookmarkGroup
+import javax.inject.Inject
 
 class DialogCollectionList: DialogFragment(), BookmarkGroupDialogListener {
-    private val viewModel: DoujinViewModel by activityViewModels()
+    
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
+    private val viewModel: DoujinViewModel by activityViewModels { viewModelFactory }
 
     companion object {
         const val DEFAULT_COLLECTION_NAME = "Default Collection"
@@ -30,6 +38,11 @@ class DialogCollectionList: DialogFragment(), BookmarkGroupDialogListener {
     private lateinit var btnSave: Button
     private lateinit var btnCancel: Button
     private lateinit var listCollections: RecyclerView
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        (requireActivity().application as MyApplication).appComponent.inject(this)
+    }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialogBuilder = AlertDialog.Builder(requireContext())

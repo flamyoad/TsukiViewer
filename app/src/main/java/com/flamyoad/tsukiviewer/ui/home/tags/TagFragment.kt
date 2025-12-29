@@ -1,5 +1,6 @@
 package com.flamyoad.tsukiviewer.ui.home.tags
 
+import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -10,9 +11,11 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinTagsAdapter
 import com.flamyoad.tsukiviewer.databinding.FragmentTagBinding
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.model.Doujin
 import com.flamyoad.tsukiviewer.model.Tag
 import com.flamyoad.tsukiviewer.model.TagType
@@ -20,17 +23,26 @@ import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxItemDecoration
 import com.google.android.flexbox.FlexboxLayoutManager
+import javax.inject.Inject
 
 private const val TAG_NAME = "tag_name"
 
 class TagFragment : Fragment() {
 
-    private val viewModel by activityViewModels<DoujinTagsViewModel>()
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
+    private val viewModel: DoujinTagsViewModel by activityViewModels { viewModelFactory }
 
     private var _binding: FragmentTagBinding? = null
     private val binding get() = _binding!!
 
     private val adapter = DoujinTagsAdapter(true)
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        (requireActivity().application as MyApplication).appComponent.inject(this)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
