@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.SourceSelectorAdapter
-import com.flamyoad.tsukiviewer.model.Source
+import com.flamyoad.tsukiviewer.core.model.Source
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textview.MaterialTextView
 import java.util.*

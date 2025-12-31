@@ -7,7 +7,7 @@ import com.bumptech.glide.Glide
 import com.flamyoad.tsukiviewer.di.AppComponent
 import com.flamyoad.tsukiviewer.di.AppModule
 import com.flamyoad.tsukiviewer.di.DaggerAppComponent
-import com.flamyoad.tsukiviewer.model.Doujin
+import com.flamyoad.tsukiviewer.core.model.Doujin
 import com.flamyoad.tsukiviewer.utils.ActivityHistory
 import com.jakewharton.threetenabp.AndroidThreeTen
 import kotlinx.coroutines.CoroutineName

@@ -3,8 +3,7 @@ package com.flamyoad.tsukiviewer.di
 import android.app.Application
 import com.flamyoad.tsukiviewer.MainActivity
 import com.flamyoad.tsukiviewer.MyApplication
-import com.flamyoad.tsukiviewer.network.FetchMetadataService
-import com.flamyoad.tsukiviewer.repository.MetadataRepository
+import com.flamyoad.tsukiviewer.core.repository.MetadataRepository
 import com.flamyoad.tsukiviewer.ui.doujinpage.DialogCollectionList
 import com.flamyoad.tsukiviewer.ui.doujinpage.DialogRemoveMetadata
 import com.flamyoad.tsukiviewer.ui.doujinpage.DialogViewStyle

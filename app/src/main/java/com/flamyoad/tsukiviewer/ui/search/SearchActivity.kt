@@ -17,8 +17,8 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.SearchHistoryAdapter
 import com.flamyoad.tsukiviewer.databinding.ActivitySearchBinding
 import com.flamyoad.tsukiviewer.di.ViewModelFactory
-import com.flamyoad.tsukiviewer.model.SearchHistory
-import com.flamyoad.tsukiviewer.model.Tag
+import com.flamyoad.tsukiviewer.core.model.SearchHistory
+import com.flamyoad.tsukiviewer.core.model.Tag
 import com.flamyoad.tsukiviewer.utils.ActivityStackUtils
 import com.google.android.material.chip.Chip
 import javax.inject.Inject

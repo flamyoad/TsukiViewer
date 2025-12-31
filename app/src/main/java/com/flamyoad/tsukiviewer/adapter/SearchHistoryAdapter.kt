@@ -10,7 +10,7 @@ import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
-import com.flamyoad.tsukiviewer.model.SearchHistory
+import com.flamyoad.tsukiviewer.core.model.SearchHistory
 import com.flamyoad.tsukiviewer.utils.ui.EmptyViewHolder
 
 private const val TITLE_ONLY = 1

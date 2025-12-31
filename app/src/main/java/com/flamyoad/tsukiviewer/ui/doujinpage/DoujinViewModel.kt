@@ -5,11 +5,11 @@ import android.net.Uri
 import androidx.core.net.toUri
 import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyAppPreference
-import com.flamyoad.tsukiviewer.model.BookmarkGroup
-import com.flamyoad.tsukiviewer.model.DoujinDetailsWithTags
-import com.flamyoad.tsukiviewer.model.Source
-import com.flamyoad.tsukiviewer.repository.BookmarkRepository
-import com.flamyoad.tsukiviewer.repository.MetadataRepository
+import com.flamyoad.tsukiviewer.core.model.BookmarkGroup
+import com.flamyoad.tsukiviewer.core.model.DoujinDetailsWithTags
+import com.flamyoad.tsukiviewer.core.model.Source
+import com.flamyoad.tsukiviewer.core.repository.BookmarkRepository
+import com.flamyoad.tsukiviewer.core.repository.MetadataRepository
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
 import com.flamyoad.tsukiviewer.utils.WindowsExplorerComparator
 import kotlinx.coroutines.Dispatchers

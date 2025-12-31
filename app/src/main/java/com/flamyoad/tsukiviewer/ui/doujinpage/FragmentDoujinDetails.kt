@@ -18,10 +18,10 @@ import com.flamyoad.tsukiviewer.adapter.DoujinTagsAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.databinding.FragmentDoujinDetailsBinding
 import com.flamyoad.tsukiviewer.di.ViewModelFactory
-import com.flamyoad.tsukiviewer.model.DoujinDetails
-import com.flamyoad.tsukiviewer.model.DoujinDetailsWithTags
-import com.flamyoad.tsukiviewer.model.Source
-import com.flamyoad.tsukiviewer.network.FetchMetadataService
+import com.flamyoad.tsukiviewer.core.model.DoujinDetails
+import com.flamyoad.tsukiviewer.core.model.DoujinDetailsWithTags
+import com.flamyoad.tsukiviewer.core.model.Source
+import com.flamyoad.tsukiviewer.service.FetchMetadataService
 import com.flamyoad.tsukiviewer.ui.home.local.DialogSelectSource
 import com.flamyoad.tsukiviewer.ui.home.local.SelectSourceListener
 import com.flamyoad.tsukiviewer.utils.ActivityHistory

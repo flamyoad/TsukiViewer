@@ -6,7 +6,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
-import com.flamyoad.tsukiviewer.model.Tag
+import com.flamyoad.tsukiviewer.core.model.Tag
 
 class DialogDeleteTag: DialogFragment() {
 

@@ -5,7 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
-import com.flamyoad.tsukiviewer.model.Tag
+import com.flamyoad.tsukiviewer.core.model.Tag
 import com.flamyoad.tsukiviewer.ui.home.collections.DialogTagPicker
 import com.google.android.material.chip.Chip
 

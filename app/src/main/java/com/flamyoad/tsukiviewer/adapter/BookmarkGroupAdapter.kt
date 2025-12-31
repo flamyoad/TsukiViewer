@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.flamyoad.tsukiviewer.R
-import com.flamyoad.tsukiviewer.model.BookmarkGroup
+import com.flamyoad.tsukiviewer.core.model.BookmarkGroup
 import de.hdodenhof.circleimageview.CircleImageView
 
 private const val BTN_ADD_NEW_GROUP = 0

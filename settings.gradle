@@ -1,2 +1,3 @@
 rootProject.name='TsukiViewer'
 include ':app'
+include ':core'

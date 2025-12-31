@@ -14,9 +14,9 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.flamyoad.tsukiviewer.R
-import com.flamyoad.tsukiviewer.model.Collection
-import com.flamyoad.tsukiviewer.model.CollectionCriteria
-import com.flamyoad.tsukiviewer.model.CollectionWithCriterias
+import com.flamyoad.tsukiviewer.core.model.Collection
+import com.flamyoad.tsukiviewer.core.model.CollectionCriteria
+import com.flamyoad.tsukiviewer.core.model.CollectionWithCriterias
 import com.flamyoad.tsukiviewer.ui.home.collections.CollectionFragment
 import com.flamyoad.tsukiviewer.ui.home.collections.DialogTagPicker.Mode
 import com.flamyoad.tsukiviewer.ui.home.collections.doujins.CollectionDoujinsActivity

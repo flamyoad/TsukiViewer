@@ -9,10 +9,10 @@ import androidx.core.net.toFile
 import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.MyApplication
-import com.flamyoad.tsukiviewer.db.dao.IncludedPathDao
-import com.flamyoad.tsukiviewer.model.*
-import com.flamyoad.tsukiviewer.model.Collection
-import com.flamyoad.tsukiviewer.repository.CollectionRepository
+import com.flamyoad.tsukiviewer.core.db.dao.IncludedPathDao
+import com.flamyoad.tsukiviewer.core.model.*
+import com.flamyoad.tsukiviewer.core.model.Collection
+import com.flamyoad.tsukiviewer.core.repository.CollectionRepository
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
 import com.flamyoad.tsukiviewer.utils.extensions.toDoujin
 import kotlinx.coroutines.Dispatchers

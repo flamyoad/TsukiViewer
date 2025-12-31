@@ -14,7 +14,7 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.RecentTabsAdapter
 import com.flamyoad.tsukiviewer.databinding.ActivityRecentTabsBinding
 import com.flamyoad.tsukiviewer.di.ViewModelFactory
-import com.flamyoad.tsukiviewer.model.RecentTab
+import com.flamyoad.tsukiviewer.core.model.RecentTab
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabFragment
 import com.flamyoad.tsukiviewer.utils.extensions.toast
 import jp.wasabeef.recyclerview.animators.SlideInUpAnimator

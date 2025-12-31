@@ -18,7 +18,7 @@ import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.CollectionPickerAdapter
 import com.flamyoad.tsukiviewer.di.ViewModelFactory
-import com.flamyoad.tsukiviewer.model.BookmarkGroup
+import com.flamyoad.tsukiviewer.core.model.BookmarkGroup
 import javax.inject.Inject
 
 class DialogCollectionList: DialogFragment(), BookmarkGroupDialogListener {

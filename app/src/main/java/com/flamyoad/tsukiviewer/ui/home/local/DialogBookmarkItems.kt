@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.CollectionPickerAdapter
-import com.flamyoad.tsukiviewer.model.BookmarkGroup
+import com.flamyoad.tsukiviewer.core.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.ui.doujinpage.BookmarkGroupDialogListener
 
 

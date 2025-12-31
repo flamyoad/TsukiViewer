@@ -16,8 +16,8 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.CollectionFilterDirectoryAdapter
 import com.flamyoad.tsukiviewer.databinding.ActivityCreateCollectionBinding
 import com.flamyoad.tsukiviewer.di.ViewModelFactory
-import com.flamyoad.tsukiviewer.model.Collection
-import com.flamyoad.tsukiviewer.model.Tag
+import com.flamyoad.tsukiviewer.core.model.Collection
+import com.flamyoad.tsukiviewer.core.model.Tag
 import com.flamyoad.tsukiviewer.ui.search.TagSelectedListener
 import com.flamyoad.tsukiviewer.utils.extensions.toast
 import com.google.android.material.chip.Chip

@@ -18,7 +18,7 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.CollectionListAdapter
 import com.flamyoad.tsukiviewer.databinding.FragmentCollectionBinding
 import com.flamyoad.tsukiviewer.di.ViewModelFactory
-import com.flamyoad.tsukiviewer.model.Collection
+import com.flamyoad.tsukiviewer.core.model.Collection
 import javax.inject.Inject
 
 class CollectionFragment : BaseFragment(), SearchView.OnQueryTextListener {

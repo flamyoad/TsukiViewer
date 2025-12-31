@@ -16,9 +16,9 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinTagsAdapter
 import com.flamyoad.tsukiviewer.databinding.FragmentTagBinding
 import com.flamyoad.tsukiviewer.di.ViewModelFactory
-import com.flamyoad.tsukiviewer.model.Doujin
-import com.flamyoad.tsukiviewer.model.Tag
-import com.flamyoad.tsukiviewer.model.TagType
+import com.flamyoad.tsukiviewer.core.model.Doujin
+import com.flamyoad.tsukiviewer.core.model.Tag
+import com.flamyoad.tsukiviewer.core.model.TagType
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxItemDecoration

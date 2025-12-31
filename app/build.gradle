@@ -55,6 +55,9 @@ android {
 }
 
 dependencies {
+    // Core module
+    implementation project(':core')
+
     def preference_version = "1.1.1"
     def dagger_version = "2.48"
 

@@ -3,7 +3,7 @@ package com.flamyoad.tsukiviewer.ui.reader.tabs
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.flamyoad.tsukiviewer.model.RecentTab
+import com.flamyoad.tsukiviewer.core.model.RecentTab
 
 class ReaderTabFragmentAdapter(activity: FragmentActivity): FragmentStateAdapter(activity) {
 

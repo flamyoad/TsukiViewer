@@ -1,6 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-parcelize'
 
 android {
     namespace 'com.flamyoad.tsukiviewer.core'
@@ -74,11 +75,12 @@ dependencies {
     // Jsoup for HTML parsing (used in metadata fetching)
     api 'org.jsoup:jsoup:1.13.1'
 
-    // Retrofit
+    // Retrofit & OkHttp
     def retrofit_version = '2.9.0'
     api "com.squareup.retrofit2:retrofit:$retrofit_version"
     api "com.squareup.retrofit2:converter-gson:$retrofit_version"
     api 'com.google.code.gson:gson:2.8.6'
+    api 'com.squareup.okhttp3:logging-interceptor:4.9.0'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'

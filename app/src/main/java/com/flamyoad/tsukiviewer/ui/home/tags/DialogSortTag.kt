@@ -5,7 +5,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
-import com.flamyoad.tsukiviewer.model.TagSortingMode
+import com.flamyoad.tsukiviewer.core.model.TagSortingMode
 
 private const val CHOSEN_MODE_STRING = "CHOSEN_MODE_STRING"
 

@@ -10,11 +10,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
 import androidx.room.withTransaction
-import com.flamyoad.tsukiviewer.db.AppDatabase
-import com.flamyoad.tsukiviewer.db.dao.DoujinDetailsDao
-import com.flamyoad.tsukiviewer.db.dao.DoujinTagsDao
-import com.flamyoad.tsukiviewer.db.dao.SearchHistoryDao
-import com.flamyoad.tsukiviewer.db.dao.TagDao
+import com.flamyoad.tsukiviewer.core.db.AppDatabase
+import com.flamyoad.tsukiviewer.core.db.dao.DoujinDetailsDao
+import com.flamyoad.tsukiviewer.core.db.dao.DoujinTagsDao
+import com.flamyoad.tsukiviewer.core.db.dao.SearchHistoryDao
+import com.flamyoad.tsukiviewer.core.db.dao.TagDao
 import com.flamyoad.tsukiviewer.ui.settings.preferences.MainPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

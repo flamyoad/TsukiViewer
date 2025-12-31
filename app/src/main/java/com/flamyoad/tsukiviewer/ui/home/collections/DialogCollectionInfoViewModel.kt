@@ -4,9 +4,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.flamyoad.tsukiviewer.model.Collection
-import com.flamyoad.tsukiviewer.model.Tag
-import com.flamyoad.tsukiviewer.repository.CollectionRepository
+import com.flamyoad.tsukiviewer.core.model.Collection
+import com.flamyoad.tsukiviewer.core.model.Tag
+import com.flamyoad.tsukiviewer.core.repository.CollectionRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File

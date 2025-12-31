@@ -11,8 +11,8 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.flamyoad.tsukiviewer.R
-import com.flamyoad.tsukiviewer.network.FetchHistory
-import com.flamyoad.tsukiviewer.network.FetchStatus
+import com.flamyoad.tsukiviewer.core.network.FetchHistory
+import com.flamyoad.tsukiviewer.core.network.FetchStatus
 
 
 class FetchHistoryAdapter :

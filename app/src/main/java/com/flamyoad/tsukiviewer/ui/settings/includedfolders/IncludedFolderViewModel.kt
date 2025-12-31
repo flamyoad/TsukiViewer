@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.flamyoad.tsukiviewer.db.dao.IncludedPathDao
-import com.flamyoad.tsukiviewer.model.IncludedPath
+import com.flamyoad.tsukiviewer.core.db.dao.IncludedPathDao
+import com.flamyoad.tsukiviewer.core.model.IncludedPath
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject

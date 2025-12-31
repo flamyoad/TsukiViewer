@@ -1,11 +1,11 @@
 package com.flamyoad.tsukiviewer.ui.home.tags
 
 import androidx.lifecycle.*
-import com.flamyoad.tsukiviewer.db.dao.DoujinTagsDao
-import com.flamyoad.tsukiviewer.db.dao.TagDao
-import com.flamyoad.tsukiviewer.model.Tag
-import com.flamyoad.tsukiviewer.model.TagSortingMode
-import com.flamyoad.tsukiviewer.model.TagType
+import com.flamyoad.tsukiviewer.core.db.dao.DoujinTagsDao
+import com.flamyoad.tsukiviewer.core.db.dao.TagDao
+import com.flamyoad.tsukiviewer.core.model.Tag
+import com.flamyoad.tsukiviewer.core.model.TagSortingMode
+import com.flamyoad.tsukiviewer.core.model.TagType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject

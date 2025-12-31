@@ -23,8 +23,8 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.databinding.ActivitySearchResultBinding
 import com.flamyoad.tsukiviewer.di.ViewModelFactory
-import com.flamyoad.tsukiviewer.model.Doujin
-import com.flamyoad.tsukiviewer.model.ViewMode
+import com.flamyoad.tsukiviewer.core.model.Doujin
+import com.flamyoad.tsukiviewer.core.model.ViewMode
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
 import com.flamyoad.tsukiviewer.utils.ActivityHistory
 import com.flamyoad.tsukiviewer.utils.ActivityStackUtils

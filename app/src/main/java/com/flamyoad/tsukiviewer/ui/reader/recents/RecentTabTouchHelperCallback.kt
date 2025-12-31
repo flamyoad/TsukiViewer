@@ -6,7 +6,7 @@ import android.view.MotionEvent
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.adapter.RecentTabsAdapter
-import com.flamyoad.tsukiviewer.model.RecentTab
+import com.flamyoad.tsukiviewer.core.model.RecentTab
 
 class RecentTabTouchHelperCallback(
     private val adapter: RecentTabsAdapter,

@@ -1,4 +1,4 @@
-package com.flamyoad.tsukiviewer.network
+package com.flamyoad.tsukiviewer.service
 
 import android.app.*
 import android.content.Context
@@ -13,8 +13,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
 import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
-import com.flamyoad.tsukiviewer.model.Source
-import com.flamyoad.tsukiviewer.repository.MetadataRepository
+import com.flamyoad.tsukiviewer.core.model.Source
+import com.flamyoad.tsukiviewer.core.network.FetchHistory
+import com.flamyoad.tsukiviewer.core.network.FetchPercentage
+import com.flamyoad.tsukiviewer.core.network.FetchStatus
+import com.flamyoad.tsukiviewer.core.repository.MetadataRepository
 import com.flamyoad.tsukiviewer.ui.fetcher.FetcherStatusActivity
 import kotlinx.coroutines.*
 import java.io.File

@@ -20,7 +20,7 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.BottomThumbnailAdapter
 import com.flamyoad.tsukiviewer.databinding.FragmentReaderTabBinding
 import com.flamyoad.tsukiviewer.di.ViewModelFactory
-import com.flamyoad.tsukiviewer.model.RecentTab
+import com.flamyoad.tsukiviewer.core.model.RecentTab
 import com.flamyoad.tsukiviewer.ui.reader.*
 import com.flamyoad.tsukiviewer.ui.reader.ReaderActivity.Companion.RECENT_TAB_REQUEST_CODE
 import com.flamyoad.tsukiviewer.ui.reader.recents.RecentTabsActivity

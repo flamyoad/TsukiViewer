@@ -25,9 +25,9 @@ import com.flamyoad.tsukiviewer.adapter.BookmarkGroupAdapter
 import com.flamyoad.tsukiviewer.adapter.BookmarkItemsAdapter
 import com.flamyoad.tsukiviewer.databinding.FragmentBookmarkBinding
 import com.flamyoad.tsukiviewer.di.ViewModelFactory
-import com.flamyoad.tsukiviewer.model.BookmarkGroup
-import com.flamyoad.tsukiviewer.model.BookmarkItem
-import com.flamyoad.tsukiviewer.model.ViewMode
+import com.flamyoad.tsukiviewer.core.model.BookmarkGroup
+import com.flamyoad.tsukiviewer.core.model.BookmarkItem
+import com.flamyoad.tsukiviewer.core.model.ViewMode
 import com.flamyoad.tsukiviewer.utils.ui.GridItemDecoration
 import java.util.*
 import javax.inject.Inject

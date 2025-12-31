@@ -2,12 +2,12 @@ package com.flamyoad.tsukiviewer.ui.search
 
 import android.app.Application
 import androidx.lifecycle.*
-import com.flamyoad.tsukiviewer.db.dao.IncludedPathDao
-import com.flamyoad.tsukiviewer.model.BookmarkGroup
-import com.flamyoad.tsukiviewer.model.Doujin
-import com.flamyoad.tsukiviewer.model.IncludedPath
-import com.flamyoad.tsukiviewer.repository.BookmarkRepository
-import com.flamyoad.tsukiviewer.repository.DoujinRepository
+import com.flamyoad.tsukiviewer.core.db.dao.IncludedPathDao
+import com.flamyoad.tsukiviewer.core.model.BookmarkGroup
+import com.flamyoad.tsukiviewer.core.model.Doujin
+import com.flamyoad.tsukiviewer.core.model.IncludedPath
+import com.flamyoad.tsukiviewer.core.repository.BookmarkRepository
+import com.flamyoad.tsukiviewer.core.repository.DoujinRepository
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onCompletion

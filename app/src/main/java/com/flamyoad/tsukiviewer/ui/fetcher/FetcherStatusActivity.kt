@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.FetchHistoryAdapter
 import com.flamyoad.tsukiviewer.databinding.ActivityFetcherStatusBinding
-import com.flamyoad.tsukiviewer.network.FetchMetadataService
+import com.flamyoad.tsukiviewer.service.FetchMetadataService
 
 class FetcherStatusActivity : AppCompatActivity() {
 

@@ -18,7 +18,7 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter
 import com.flamyoad.tsukiviewer.databinding.ActivityReaderBinding
 import com.flamyoad.tsukiviewer.di.ViewModelFactory
-import com.flamyoad.tsukiviewer.model.RecentTab
+import com.flamyoad.tsukiviewer.core.model.RecentTab
 import com.flamyoad.tsukiviewer.ui.reader.recents.RecentTabsActivity
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabFragmentAdapter
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabListener

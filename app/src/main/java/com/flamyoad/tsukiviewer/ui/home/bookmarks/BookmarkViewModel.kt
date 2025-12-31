@@ -5,10 +5,10 @@ import android.net.Uri
 import androidx.core.net.toUri
 import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyApplication
-import com.flamyoad.tsukiviewer.model.BookmarkGroup
-import com.flamyoad.tsukiviewer.model.BookmarkItem
-import com.flamyoad.tsukiviewer.model.Doujin
-import com.flamyoad.tsukiviewer.repository.BookmarkRepository
+import com.flamyoad.tsukiviewer.core.model.BookmarkGroup
+import com.flamyoad.tsukiviewer.core.model.BookmarkItem
+import com.flamyoad.tsukiviewer.core.model.Doujin
+import com.flamyoad.tsukiviewer.core.repository.BookmarkRepository
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

@@ -23,7 +23,7 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.IncludedFolderAdapter
 import com.flamyoad.tsukiviewer.databinding.ActivityIncludedFolderBinding
 import com.flamyoad.tsukiviewer.di.ViewModelFactory
-import com.flamyoad.tsukiviewer.model.IncludedPath
+import com.flamyoad.tsukiviewer.core.model.IncludedPath
 import com.gun0912.tedpermission.coroutine.TedPermission
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

@@ -11,7 +11,7 @@ import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.databinding.ActivityEditorBinding
 import com.flamyoad.tsukiviewer.di.ViewModelFactory
-import com.flamyoad.tsukiviewer.model.Tag
+import com.flamyoad.tsukiviewer.core.model.Tag
 import com.flamyoad.tsukiviewer.utils.extensions.toast
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.chip.Chip

@@ -3,8 +3,8 @@ package com.flamyoad.tsukiviewer.ui.reader.recents
 import android.app.Application
 import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyApplication
-import com.flamyoad.tsukiviewer.db.dao.RecentTabDao
-import com.flamyoad.tsukiviewer.model.RecentTab
+import com.flamyoad.tsukiviewer.core.db.dao.RecentTabDao
+import com.flamyoad.tsukiviewer.core.model.RecentTab
 import kotlinx.coroutines.*
 import javax.inject.Inject
 

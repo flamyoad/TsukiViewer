@@ -12,7 +12,7 @@ import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.databinding.FragmentDoujinTagsBinding
 import com.flamyoad.tsukiviewer.di.ViewModelFactory
-import com.flamyoad.tsukiviewer.model.TagType
+import com.flamyoad.tsukiviewer.core.model.TagType
 import com.flamyoad.tsukiviewer.utils.extensions.reduceDragSensitivity
 import com.google.android.material.tabs.TabLayoutMediator
 import javax.inject.Inject

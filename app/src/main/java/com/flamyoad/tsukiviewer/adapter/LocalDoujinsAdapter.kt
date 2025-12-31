@@ -13,8 +13,8 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.flamyoad.tsukiviewer.ActionModeListener
 import com.flamyoad.tsukiviewer.R
-import com.flamyoad.tsukiviewer.model.Doujin
-import com.flamyoad.tsukiviewer.model.ViewMode
+import com.flamyoad.tsukiviewer.core.model.Doujin
+import com.flamyoad.tsukiviewer.core.model.ViewMode
 import com.flamyoad.tsukiviewer.ui.doujinpage.DoujinDetailsActivity
 import com.flamyoad.tsukiviewer.utils.ActivityStackUtils
 import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller

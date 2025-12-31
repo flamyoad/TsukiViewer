@@ -1,8 +1,8 @@
 package com.flamyoad.tsukiviewer.di
 
 import android.content.Context
-import com.flamyoad.tsukiviewer.db.AppDatabase
-import com.flamyoad.tsukiviewer.db.dao.*
+import com.flamyoad.tsukiviewer.core.db.AppDatabase
+import com.flamyoad.tsukiviewer.core.db.dao.*
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
