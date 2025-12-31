@@ -1,20 +1,18 @@
 package com.flamyoad.tsukiviewer.ui.search
 
-import android.app.Application
 import androidx.lifecycle.*
 import androidx.paging.PagedList
-import com.flamyoad.tsukiviewer.db.AppDatabase
-import com.flamyoad.tsukiviewer.model.SearchHistory
-import com.flamyoad.tsukiviewer.model.Tag
-import com.flamyoad.tsukiviewer.repository.SearchHistoryRepository
-import com.flamyoad.tsukiviewer.repository.TagRepository
+import com.flamyoad.tsukiviewer.core.model.SearchHistory
+import com.flamyoad.tsukiviewer.core.model.Tag
+import com.flamyoad.tsukiviewer.core.repository.SearchHistoryRepository
+import com.flamyoad.tsukiviewer.core.repository.TagRepository
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class SearchViewModel(application: Application) : AndroidViewModel(application) {
-    private val db: AppDatabase = AppDatabase.getInstance(application)
-
-    private val searchHistoryRepo = SearchHistoryRepository(application.applicationContext)
-    private val tagRepo = TagRepository(application.applicationContext)
+class SearchViewModel @Inject constructor(
+    private val searchHistoryRepo: SearchHistoryRepository,
+    private val tagRepo: TagRepository
+) : ViewModel() {
 
     private val tagQuery = MutableLiveData<String>("")
 

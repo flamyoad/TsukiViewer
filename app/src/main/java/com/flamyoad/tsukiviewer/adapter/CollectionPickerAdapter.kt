@@ -8,7 +8,7 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
-import com.flamyoad.tsukiviewer.model.BookmarkGroup
+import com.flamyoad.tsukiviewer.core.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.ui.doujinpage.BookmarkGroupDialogListener
 
 class CollectionPickerAdapter(private val listener: BookmarkGroupDialogListener) :

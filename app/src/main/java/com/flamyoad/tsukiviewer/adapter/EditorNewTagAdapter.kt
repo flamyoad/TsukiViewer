@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
-import com.flamyoad.tsukiviewer.model.Tag
+import com.flamyoad.tsukiviewer.core.model.Tag
 import com.flamyoad.tsukiviewer.ui.editor.CreateTagListener
 import com.flamyoad.tsukiviewer.ui.search.TagSelectedListener
 import java.util.*

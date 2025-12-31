@@ -5,11 +5,11 @@ import android.net.Uri
 import androidx.core.net.toUri
 import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyAppPreference
-import com.flamyoad.tsukiviewer.model.BookmarkGroup
-import com.flamyoad.tsukiviewer.model.DoujinDetailsWithTags
-import com.flamyoad.tsukiviewer.model.Source
-import com.flamyoad.tsukiviewer.repository.BookmarkRepository
-import com.flamyoad.tsukiviewer.repository.MetadataRepository
+import com.flamyoad.tsukiviewer.core.model.BookmarkGroup
+import com.flamyoad.tsukiviewer.core.model.DoujinDetailsWithTags
+import com.flamyoad.tsukiviewer.core.model.Source
+import com.flamyoad.tsukiviewer.core.repository.BookmarkRepository
+import com.flamyoad.tsukiviewer.core.repository.MetadataRepository
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
 import com.flamyoad.tsukiviewer.utils.WindowsExplorerComparator
 import kotlinx.coroutines.Dispatchers
@@ -17,11 +17,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.*
+import javax.inject.Inject
 
-class DoujinViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val metadataRepo = MetadataRepository(application)
-    private val bookmarkRepo = BookmarkRepository(application)
+class DoujinViewModel @Inject constructor(
+    private val application: Application,
+    private val metadataRepo: MetadataRepository,
+    private val bookmarkRepo: BookmarkRepository
+) : ViewModel() {
 
     private val myAppPreference = MyAppPreference.getInstance(application.applicationContext)
 

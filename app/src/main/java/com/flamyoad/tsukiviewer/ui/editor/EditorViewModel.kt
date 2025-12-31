@@ -1,25 +1,24 @@
 package com.flamyoad.tsukiviewer.ui.editor
 
-import android.app.Application
 import androidx.lifecycle.*
-import com.flamyoad.tsukiviewer.db.dao.DoujinDetailsDao
-import com.flamyoad.tsukiviewer.db.dao.TagDao
-import com.flamyoad.tsukiviewer.model.DoujinDetails
-import com.flamyoad.tsukiviewer.model.EditorHistoryItem
-import com.flamyoad.tsukiviewer.model.Mode
-import com.flamyoad.tsukiviewer.model.Tag
-import com.flamyoad.tsukiviewer.repository.MetadataRepository
+import com.flamyoad.tsukiviewer.core.db.dao.DoujinDetailsDao
+import com.flamyoad.tsukiviewer.core.db.dao.TagDao
+import com.flamyoad.tsukiviewer.core.model.DoujinDetails
+import com.flamyoad.tsukiviewer.core.model.EditorHistoryItem
+import com.flamyoad.tsukiviewer.core.model.Mode
+import com.flamyoad.tsukiviewer.core.model.Tag
+import com.flamyoad.tsukiviewer.core.repository.MetadataRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import javax.inject.Inject
 
-class EditorViewModel(application: Application) : AndroidViewModel(application) {
-    private val metadataRepo = MetadataRepository(application)
-
-    private val doujinDetailsDao: DoujinDetailsDao
-
+class EditorViewModel @Inject constructor(
+    private val metadataRepo: MetadataRepository,
+    private val doujinDetailsDao: DoujinDetailsDao,
     private val tagDao: TagDao
+) : ViewModel() {
 
     private val undoStack = mutableListOf<EditorHistoryItem>()
 
@@ -44,9 +43,6 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
     private var currentPath: String = ""
 
     init {
-        doujinDetailsDao = metadataRepo.doujinDetailsDao
-        tagDao = metadataRepo.tagDao
-
         tagsByCategory = selectedCategory.switchMap { category ->
             tagDao.getByCategory(category)
         }

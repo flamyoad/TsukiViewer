@@ -1,7 +1,7 @@
 package com.flamyoad.tsukiviewer.utils.extensions
 
 import androidx.core.net.toUri
-import com.flamyoad.tsukiviewer.model.Doujin
+import com.flamyoad.tsukiviewer.core.model.Doujin
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
 import java.io.File
 

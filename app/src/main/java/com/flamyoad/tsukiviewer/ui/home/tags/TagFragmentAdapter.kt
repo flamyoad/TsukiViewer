@@ -3,7 +3,7 @@ package com.flamyoad.tsukiviewer.ui.home.tags
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.flamyoad.tsukiviewer.model.TagType
+import com.flamyoad.tsukiviewer.core.model.TagType
 
 class TagFragmentAdapter(activity: FragmentActivity, private val tagList: List<TagType>) :
     FragmentStateAdapter(activity) {

@@ -4,24 +4,25 @@ import android.app.Application
 import androidx.core.net.toUri
 import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyAppPreference
-import com.flamyoad.tsukiviewer.db.AppDatabase
-import com.flamyoad.tsukiviewer.model.RecentTab
+import com.flamyoad.tsukiviewer.core.db.dao.RecentTabDao
+import com.flamyoad.tsukiviewer.core.model.RecentTab
 import com.flamyoad.tsukiviewer.utils.FileUtils
 import com.flamyoad.tsukiviewer.utils.extensions.imageExtensions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import javax.inject.Inject
 
 
-class ReaderViewModel(application: Application) : AndroidViewModel(application) {
+class ReaderViewModel @Inject constructor(
+    private val application: Application,
+    private val recentTabDao: RecentTabDao
+) : ViewModel() {
     private val appPreference = MyAppPreference.getInstance(application.applicationContext)
 
     private val directoryNoLongerExists = MutableLiveData<Boolean>(false)
     fun directoryNoLongerExists(): LiveData<Boolean> = directoryNoLongerExists
-
-    private val db = AppDatabase.getInstance(application)
-    private val recentTabDao = db.recentTabDao()
 
     var lastReadImagePosition: Int = 0
 
@@ -34,7 +35,7 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
     val recentTabs: LiveData<List<RecentTab>>
 
     init {
-        recentTabs = db.recentTabDao().getAll()
+        recentTabs = recentTabDao.getAll()
         val defaultReaderMode = appPreference.getDefaultReaderMode()
         readerMode.value = defaultReaderMode
     }

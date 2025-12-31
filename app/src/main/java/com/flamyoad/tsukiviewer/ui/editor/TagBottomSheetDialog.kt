@@ -1,19 +1,24 @@
 package com.flamyoad.tsukiviewer.ui.editor
 
+import android.content.Context
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.EditorNewTagAdapter
 import com.flamyoad.tsukiviewer.databinding.EditorNewTagBottomsheetBinding
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import javax.inject.Inject
 
 class TagBottomSheetDialog()
     : BottomSheetDialogFragment() {
@@ -21,7 +26,15 @@ class TagBottomSheetDialog()
     private var _binding: EditorNewTagBottomsheetBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var viewmodel: EditorViewModel
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
+    private val viewmodel: EditorViewModel by activityViewModels { viewModelFactory }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        (requireActivity().application as MyApplication).appComponent.inject(this)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -39,8 +52,6 @@ class TagBottomSheetDialog()
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-
-        viewmodel = ViewModelProvider(requireActivity()).get(EditorViewModel::class.java)
 
         viewmodel.selectedCategory().observe(viewLifecycleOwner, Observer { category ->
             binding.lblCategory.text = category.capitalize()

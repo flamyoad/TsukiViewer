@@ -9,11 +9,10 @@ import androidx.core.net.toFile
 import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.MyApplication
-import com.flamyoad.tsukiviewer.db.AppDatabase
-import com.flamyoad.tsukiviewer.db.dao.IncludedPathDao
-import com.flamyoad.tsukiviewer.model.*
-import com.flamyoad.tsukiviewer.model.Collection
-import com.flamyoad.tsukiviewer.repository.CollectionRepository
+import com.flamyoad.tsukiviewer.core.db.dao.IncludedPathDao
+import com.flamyoad.tsukiviewer.core.model.*
+import com.flamyoad.tsukiviewer.core.model.Collection
+import com.flamyoad.tsukiviewer.core.repository.CollectionRepository
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
 import com.flamyoad.tsukiviewer.utils.extensions.toDoujin
 import kotlinx.coroutines.Dispatchers
@@ -21,14 +20,15 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.*
+import javax.inject.Inject
 
-class CollectionViewModel(private val app: Application) : AndroidViewModel(app) {
-    private val db: AppDatabase
-    private val pathDao: IncludedPathDao
-    private val contentResolver: ContentResolver = app.contentResolver
-    private val myAppPreference = MyAppPreference.getInstance(app.applicationContext)
-
+class CollectionViewModel @Inject constructor(
+    private val application: Application,
+    private val pathDao: IncludedPathDao,
     private val collectionRepo: CollectionRepository
+) : ViewModel() {
+    private val contentResolver: ContentResolver = application.contentResolver
+    private val myAppPreference = MyAppPreference.getInstance(application.applicationContext)
 
     private var initThumbnailJob: Job? = null
 
@@ -40,12 +40,7 @@ class CollectionViewModel(private val app: Application) : AndroidViewModel(app) 
     val collectionWithCriterias: LiveData<List<CollectionWithCriterias>>
 
     init {
-        db = AppDatabase.getInstance(app.applicationContext)
-        pathDao = db.includedFolderDao()
-
         collectionViewStyle.value = myAppPreference.getCollectionViewStyle()
-
-        collectionRepo = CollectionRepository(app.applicationContext)
 
         collectionWithCriterias = searchQuery.switchMap { query ->
             collectionRepo.getAllWithCriterias(query)
@@ -111,7 +106,7 @@ class CollectionViewModel(private val app: Application) : AndroidViewModel(app) 
 
         // If tags are not specified in the query, then we have to search from file explorer too
         if (includedTags.isEmpty() && excludedTags.isEmpty()) {
-            val existingList = (app as MyApplication).fullDoujinList
+            val existingList = (application as MyApplication).fullDoujinList
             if (existingList != null) {
                 thumbnail =
                     getThumbnailFromExistingList(existingList.toList(), collectionSearchInput)

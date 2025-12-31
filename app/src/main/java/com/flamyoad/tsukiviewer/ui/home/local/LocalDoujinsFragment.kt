@@ -1,5 +1,6 @@
 package com.flamyoad.tsukiviewer.ui.home.local
 
+import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
@@ -17,12 +18,14 @@ import androidx.recyclerview.widget.RecyclerView.Adapter.StateRestorationPolicy
 import com.flamyoad.tsukiviewer.ActionModeListener
 import com.flamyoad.tsukiviewer.BaseFragment
 import com.flamyoad.tsukiviewer.MyAppPreference
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.databinding.FragmentLocalDoujinsBinding
-import com.flamyoad.tsukiviewer.model.Doujin
-import com.flamyoad.tsukiviewer.model.Source
-import com.flamyoad.tsukiviewer.model.ViewMode
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
+import com.flamyoad.tsukiviewer.core.model.Doujin
+import com.flamyoad.tsukiviewer.core.model.Source
+import com.flamyoad.tsukiviewer.core.model.ViewMode
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
 import com.flamyoad.tsukiviewer.ui.home.collections.doujins.CollectionDoujinsActivity
 import com.flamyoad.tsukiviewer.ui.search.SearchActivity
@@ -33,6 +36,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.*
+import javax.inject.Inject
 
 private const val ACTION_MODE = "action_mode"
 private const val ADD_BOOKMARK_DIALOG = "add_bookmark_dialog"
@@ -43,7 +47,10 @@ class LocalDoujinsFragment : BaseFragment(),
     LocalDoujinsContextualListener,
     SelectSourceListener {
 
-    private val viewModel: LocalDoujinViewModel by activityViewModels()
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
+    private val viewModel: LocalDoujinViewModel by activityViewModels { viewModelFactory }
 
     private var _binding: FragmentLocalDoujinsBinding? = null
     private val binding get() = _binding!!
@@ -60,6 +67,11 @@ class LocalDoujinsFragment : BaseFragment(),
 
     private lateinit var progressBar: ProgressBar
     private lateinit var toast: Toast
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        (requireActivity().application as MyApplication).appComponent.inject(this)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

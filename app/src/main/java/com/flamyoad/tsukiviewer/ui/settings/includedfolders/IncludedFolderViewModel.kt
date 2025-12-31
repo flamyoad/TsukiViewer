@@ -1,29 +1,20 @@
 package com.flamyoad.tsukiviewer.ui.settings.includedfolders
 
-import android.app.Application
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.flamyoad.tsukiviewer.db.AppDatabase
-import com.flamyoad.tsukiviewer.db.dao.IncludedPathDao
-import com.flamyoad.tsukiviewer.model.IncludedPath
+import com.flamyoad.tsukiviewer.core.db.dao.IncludedPathDao
+import com.flamyoad.tsukiviewer.core.model.IncludedPath
 import kotlinx.coroutines.launch
 import java.io.File
+import javax.inject.Inject
 
-class IncludedFolderViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val db: AppDatabase
-
+class IncludedFolderViewModel @Inject constructor(
     private val pathDao: IncludedPathDao
+) : ViewModel() {
 
-    val pathList: LiveData<List<IncludedPath>>
-
-    init {
-        db = AppDatabase.getInstance(application)
-        pathDao = db.includedFolderDao()
-        pathList = pathDao.getAll()
-    }
+    val pathList: LiveData<List<IncludedPath>> = pathDao.getAll()
 
     fun insert(dir: File) {
         Log.d("files", dir.canonicalFile.toString())

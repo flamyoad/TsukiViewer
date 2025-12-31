@@ -1,6 +1,7 @@
 package com.flamyoad.tsukiviewer.ui.search
 
 import android.app.Dialog
+import android.content.Context
 import android.graphics.Point
 import android.os.Bundle
 import android.view.Display
@@ -13,25 +14,36 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.CollectionPickerAdapter
-import com.flamyoad.tsukiviewer.model.BookmarkGroup
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
+import com.flamyoad.tsukiviewer.core.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.ui.doujinpage.BookmarkGroupDialogListener
 import com.flamyoad.tsukiviewer.ui.doujinpage.DialogCollectionList
 import com.flamyoad.tsukiviewer.ui.doujinpage.DialogNewCollection
+import javax.inject.Inject
 
 class BookmarkGroupDialog : DialogFragment(), BookmarkGroupDialogListener {
     companion object {
         fun newInstance() = BookmarkGroupDialog()
     }
 
-    private val viewModel: SearchResultViewModel by activityViewModels()
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
+    private val viewModel: SearchResultViewModel by activityViewModels { viewModelFactory }
 
     private val collectionAdapter: CollectionPickerAdapter = CollectionPickerAdapter(this)
 
     private lateinit var btnSave: Button
     private lateinit var btnCancel: Button
     private lateinit var listCollections: RecyclerView
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        (requireActivity().application as MyApplication).appComponent.inject(this)
+    }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialogBuilder = AlertDialog.Builder(requireContext())

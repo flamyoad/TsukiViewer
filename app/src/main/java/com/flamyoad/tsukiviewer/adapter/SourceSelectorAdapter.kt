@@ -10,7 +10,8 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.flamyoad.tsukiviewer.R
-import com.flamyoad.tsukiviewer.model.Source
+import com.flamyoad.tsukiviewer.core.model.Source
+import com.flamyoad.tsukiviewer.utils.extensions.drawableId
 
 class SourceSelectorAdapter(val checkBoxStates: HashMap<Source, Boolean>,
                             val onCheckBoxClick: (Source, Boolean) -> Unit)

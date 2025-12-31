@@ -9,22 +9,25 @@ import android.os.IBinder
 import androidx.core.net.toUri
 import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyApplication
-import com.flamyoad.tsukiviewer.model.BookmarkGroup
-import com.flamyoad.tsukiviewer.model.Doujin
-import com.flamyoad.tsukiviewer.model.Source
-import com.flamyoad.tsukiviewer.network.FetchMetadataService
-import com.flamyoad.tsukiviewer.repository.BookmarkRepository
-import com.flamyoad.tsukiviewer.repository.MetadataRepository
+import com.flamyoad.tsukiviewer.core.model.BookmarkGroup
+import com.flamyoad.tsukiviewer.core.model.Doujin
+import com.flamyoad.tsukiviewer.core.model.Source
+import com.flamyoad.tsukiviewer.service.FetchMetadataService
+import com.flamyoad.tsukiviewer.core.repository.BookmarkRepository
+import com.flamyoad.tsukiviewer.core.repository.MetadataRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.*
+import javax.inject.Inject
 
-class LocalDoujinViewModel(private val app: Application) : AndroidViewModel(app) {
-    private val metadataRepo = MetadataRepository(app)
-    private val bookmarkRepo = BookmarkRepository(app)
+class LocalDoujinViewModel @Inject constructor(
+    private val app: Application,
+    private val metadataRepo: MetadataRepository,
+    private val bookmarkRepo: BookmarkRepository
+) : ViewModel() {
 
     private val selectedDoujins = mutableListOf<Doujin>()
 

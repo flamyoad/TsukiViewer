@@ -11,15 +11,18 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.CollectionFilterDirectoryAdapter
 import com.flamyoad.tsukiviewer.databinding.ActivityCreateCollectionBinding
-import com.flamyoad.tsukiviewer.model.Collection
-import com.flamyoad.tsukiviewer.model.Tag
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
+import com.flamyoad.tsukiviewer.core.model.Collection
+import com.flamyoad.tsukiviewer.core.model.Tag
 import com.flamyoad.tsukiviewer.ui.search.TagSelectedListener
 import com.flamyoad.tsukiviewer.utils.extensions.toast
 import com.google.android.material.chip.Chip
 import java.io.File
+import javax.inject.Inject
 
 private const val REQUEST_DIR_PICKER = 101
 
@@ -27,11 +30,15 @@ class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
 
     private lateinit var binding: ActivityCreateCollectionBinding
 
-    private val viewModel: CreateCollectionViewModel by viewModels()
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
+    private val viewModel: CreateCollectionViewModel by viewModels { viewModelFactory }
 
     private lateinit var dirAdapter: CollectionFilterDirectoryAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        (application as MyApplication).appComponent.inject(this)
         super.onCreate(savedInstanceState)
         binding = ActivityCreateCollectionBinding.inflate(layoutInflater)
         setContentView(binding.root)

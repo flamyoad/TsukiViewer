@@ -1,6 +1,6 @@
 package com.flamyoad.tsukiviewer.ui.doujinpage
 
-import com.flamyoad.tsukiviewer.model.BookmarkGroup
+import com.flamyoad.tsukiviewer.core.model.BookmarkGroup
 
 interface BookmarkGroupDialogListener {
     fun onBookmarkGroupTicked(collection: BookmarkGroup)

@@ -7,7 +7,7 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.R
-import com.flamyoad.tsukiviewer.model.IncludedPath
+import com.flamyoad.tsukiviewer.core.model.IncludedPath
 import com.flamyoad.tsukiviewer.ui.settings.includedfolders.RemoveFolderListener
 import com.flamyoad.tsukiviewer.utils.ui.EmptyViewHolder
 import java.lang.IllegalArgumentException

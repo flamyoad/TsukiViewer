@@ -8,10 +8,13 @@ import androidx.activity.viewModels
 import androidx.lifecycle.Observer
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.databinding.ActivitySettingsBinding
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.ui.settings.preferences.MainPreferences
 import com.flamyoad.tsukiviewer.utils.extensions.toast
+import javax.inject.Inject
 
 private const val TOOLBAR_TITLE = "settings_toolbar_title"
 
@@ -20,9 +23,13 @@ class SettingsActivity : AppCompatActivity(),
 
     private lateinit var binding: ActivitySettingsBinding
 
-    private val viewModel: SettingsViewModel by viewModels()
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
+    private val viewModel: SettingsViewModel by viewModels { viewModelFactory }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        (application as MyApplication).appComponent.inject(this)
         super.onCreate(savedInstanceState)
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)

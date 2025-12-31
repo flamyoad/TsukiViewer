@@ -29,7 +29,7 @@
             android:launchMode="singleTask" />
         <activity android:name=".ui.editor.EditorActivity" />
 
-        <service android:name=".network.FetchMetadataService" />
+        <service android:name=".service.FetchMetadataService" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

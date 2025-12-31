@@ -15,9 +15,9 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.flamyoad.tsukiviewer.ActionModeListener
 import com.flamyoad.tsukiviewer.R
-import com.flamyoad.tsukiviewer.model.BookmarkItem
-import com.flamyoad.tsukiviewer.model.Doujin
-import com.flamyoad.tsukiviewer.model.ViewMode
+import com.flamyoad.tsukiviewer.core.model.BookmarkItem
+import com.flamyoad.tsukiviewer.core.model.Doujin
+import com.flamyoad.tsukiviewer.core.model.ViewMode
 import com.flamyoad.tsukiviewer.ui.doujinpage.DoujinDetailsActivity
 
 class BookmarkItemsAdapter(var actionModeEnabled: Boolean)

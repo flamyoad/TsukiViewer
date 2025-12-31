@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
 import com.flamyoad.tsukiviewer.adapter.CollectionListAdapter
-import com.flamyoad.tsukiviewer.model.ViewMode
+import com.flamyoad.tsukiviewer.core.model.ViewMode
 import com.flamyoad.tsukiviewer.ui.doujinpage.GridViewStyle
 import com.flamyoad.tsukiviewer.ui.doujinpage.LandingPageMode
 import com.flamyoad.tsukiviewer.ui.reader.ReaderMode
