@@ -7,11 +7,8 @@ import com.flamyoad.tsukiviewer.core.db.dao.SearchHistoryDao
 import com.flamyoad.tsukiviewer.core.model.SearchHistory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class SearchHistoryRepository @Inject constructor(
+class SearchHistoryRepository(
     val searchHistoryDao: SearchHistoryDao
 ) {
 

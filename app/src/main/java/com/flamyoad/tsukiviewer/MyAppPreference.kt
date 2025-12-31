@@ -2,21 +2,25 @@ package com.flamyoad.tsukiviewer
 
 import android.content.Context
 import android.content.SharedPreferences
-import androidx.preference.PreferenceManager
 import com.flamyoad.tsukiviewer.adapter.CollectionListAdapter
 import com.flamyoad.tsukiviewer.core.model.ViewMode
+import com.flamyoad.tsukiviewer.core.prefs.MyAppPreference as CoreMyAppPreference
+import com.flamyoad.tsukiviewer.core.prefs.PreferenceKeys
 import com.flamyoad.tsukiviewer.ui.doujinpage.GridViewStyle
 import com.flamyoad.tsukiviewer.ui.doujinpage.LandingPageMode
 import com.flamyoad.tsukiviewer.ui.reader.ReaderMode
 import com.flamyoad.tsukiviewer.ui.reader.VolumeButtonScrollDirection
 import com.flamyoad.tsukiviewer.ui.reader.VolumeButtonScrollMode
-import com.flamyoad.tsukiviewer.ui.settings.preferences.FetchSourcePreference
-import com.flamyoad.tsukiviewer.ui.settings.preferences.MainPreferences
-import com.flamyoad.tsukiviewer.ui.settings.preferences.VolumeButtonPreferences
 
-// Note: Preference.xml won't be created until the Settings Activity is opened for first time
-class MyAppPreference(context: Context) {
-    val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+/**
+ * App-specific preference manager that wraps the core MyAppPreference.
+ * This class provides type-safe access to preferences using app-specific enums.
+ * 
+ * For basic preference access, use [CoreMyAppPreference] from the core module.
+ */
+class MyAppPreference private constructor(context: Context) {
+    private val corePreference = CoreMyAppPreference.getInstance(context)
+    val prefs: SharedPreferences get() = corePreference.prefs
 
     companion object {
         @Volatile
@@ -25,130 +29,125 @@ class MyAppPreference(context: Context) {
         fun getInstance(context: Context): MyAppPreference {
             return INSTANCE ?: synchronized(this) {
                 val instance = MyAppPreference(context)
-
                 INSTANCE = instance
-                instance // return instance
+                instance
             }
         }
     }
 
     fun getDefaultViewStyle(): GridViewStyle {
-        val styleName = prefs.getString(
-            MainPreferences.DEFAULT_GRID_VIEW_STYLE,
-            GridViewStyle.Scaled.toString()
-        )
-
-        if (styleName != null) {
-            return GridViewStyle.valueOf(styleName)
-        } else {
-            return GridViewStyle.Scaled
+        val styleName = corePreference.getDefaultGridViewStyle()
+        return try {
+            GridViewStyle.valueOf(styleName)
+        } catch (e: IllegalArgumentException) {
+            GridViewStyle.Scaled
         }
     }
 
     fun setDefaultViewStyle(style: GridViewStyle) {
-        put(MainPreferences.DEFAULT_GRID_VIEW_STYLE, style.toString())
+        corePreference.setDefaultGridViewStyle(style.toString())
     }
 
     fun getDefaultReaderMode(): ReaderMode {
-        val name = prefs.getString(MainPreferences.DEFAULT_READER_MODE, ReaderMode.VerticalStrip.toString())
-        if (name != null) {
-            return ReaderMode.valueOf(name)
-        } else {
-            return ReaderMode.VerticalStrip
+        val name = corePreference.getDefaultReaderMode()
+        return try {
+            ReaderMode.valueOf(name)
+        } catch (e: IllegalArgumentException) {
+            ReaderMode.VerticalStrip
         }
     }
 
     fun setDefaultReaderMode(mode: ReaderMode) {
-        put(MainPreferences.DEFAULT_READER_MODE, mode.toString())
+        corePreference.setDefaultReaderMode(mode.toString())
     }
 
     fun getDefaultLandingPage(): LandingPageMode {
-        val name = prefs.getString(MainPreferences.DOUJIN_DETAILS_LANDING_SCR, "")
-        return if (name != null && name.isNotBlank()) {
-            LandingPageMode.valueOf(name)
+        val name = corePreference.getDefaultLandingPage()
+        return if (name.isNotBlank()) {
+            try {
+                LandingPageMode.valueOf(name)
+            } catch (e: IllegalArgumentException) {
+                LandingPageMode.DoujinDetails
+            }
         } else {
             LandingPageMode.DoujinDetails
         }
     }
 
-    fun shouldUseWindowsSort(): Boolean {
-        return prefs.getBoolean(MainPreferences.USE_WINDOWS_EXPLORER_SORT, true)
-    }
+    fun shouldUseWindowsSort(): Boolean = corePreference.shouldUseWindowsSort()
 
-    fun askBeforeQuit(): Boolean {
-        return prefs.getBoolean(MainPreferences.CONFIRM_BEFORE_QUIT, true)
-    }
+    fun askBeforeQuit(): Boolean = corePreference.askBeforeQuit()
 
-    fun shouldScrollWithVolumeButton(): Boolean {
-        return prefs.getBoolean(MainPreferences.SCROLL_BY_VOLUME_BUTTONS, true)
-    }
+    fun shouldScrollWithVolumeButton(): Boolean = corePreference.shouldScrollWithVolumeButton()
 
     fun getVolumeButtonScrollMode(): VolumeButtonScrollMode {
-        val name = prefs.getString(VolumeButtonPreferences.SCROLL_MODE, "")
-        return if (name != null && name.isNotBlank()) {
-            VolumeButtonScrollMode.valueOf(name)
+        val name = corePreference.getVolumeButtonScrollMode()
+        return if (name.isNotBlank()) {
+            try {
+                VolumeButtonScrollMode.valueOf(name)
+            } catch (e: IllegalArgumentException) {
+                VolumeButtonScrollMode.PageByPage
+            }
         } else {
             VolumeButtonScrollMode.PageByPage
         }
     }
 
     fun getVolumeUpAction(): VolumeButtonScrollDirection {
-        val name = prefs.getString(VolumeButtonPreferences.VOLUME_UP_ACTION, "")
-        return if (name != null && name.isNotBlank()) {
-            VolumeButtonScrollDirection.valueOf(name)
+        val name = corePreference.getVolumeUpAction()
+        return if (name.isNotBlank()) {
+            try {
+                VolumeButtonScrollDirection.valueOf(name)
+            } catch (e: IllegalArgumentException) {
+                VolumeButtonScrollDirection.GoToPrevPage
+            }
         } else {
             VolumeButtonScrollDirection.GoToPrevPage
         }
     }
 
     fun getVolumeDownAction(): VolumeButtonScrollDirection {
-        val name = prefs.getString(VolumeButtonPreferences.VOLUME_DOWN_ACTION, "")
-        return if (name != null && name.isNotBlank()) {
-            VolumeButtonScrollDirection.valueOf(name)
+        val name = corePreference.getVolumeDownAction()
+        return if (name.isNotBlank()) {
+            try {
+                VolumeButtonScrollDirection.valueOf(name)
+            } catch (e: IllegalArgumentException) {
+                VolumeButtonScrollDirection.GoToNextPage
+            }
         } else {
             VolumeButtonScrollDirection.GoToNextPage
         }
     }
 
-    fun getVolumeButtonScrollDistance(): Int {
-        val value = prefs.getString(VolumeButtonPreferences.SCROLLING_DISTANCE, "0")
-        return value?.toInt() ?: 0
-    }
+    fun getVolumeButtonScrollDistance(): Int = corePreference.getVolumeButtonScrollDistance()
 
-    fun shouldFetchFromHNexus(): Boolean {
-        return prefs.getBoolean(FetchSourcePreference.FETCH_FROM_HENTAINEXUS, false)
-    }
+    fun shouldFetchFromHNexus(): Boolean = corePreference.shouldFetchFromHNexus()
 
     fun getCollectionViewStyle(): Int {
-        return prefs.getInt(MainPreferences.COLLECTION_VIEW_STYLE, CollectionListAdapter.LIST)
+        val style = corePreference.getCollectionViewStyle()
+        return if (style == 0) CollectionListAdapter.LIST else style
     }
 
     fun setCollectionViewStyle(style: Int) {
-        put(MainPreferences.COLLECTION_VIEW_STYLE, style)
+        corePreference.setCollectionViewStyle(style)
     }
 
     fun getDoujinViewMode(): ViewMode {
-        val name = prefs.getString(MainPreferences.DOUJIN_VIEW_MODE, ViewMode.SCALED.toString())
-        if (name != null) {
-            return ViewMode.valueOf(name)
-        } else {
-            return ViewMode.SCALED
+        val name = corePreference.getDoujinViewMode()
+        return try {
+            ViewMode.valueOf(name)
+        } catch (e: IllegalArgumentException) {
+            ViewMode.SCALED
         }
     }
 
     fun setDoujinViewMode(viewMode: ViewMode) {
-        put(MainPreferences.DOUJIN_VIEW_MODE, viewMode.toString())
+        corePreference.setDoujinViewMode(viewMode.toString())
     }
 
-    fun put(key: String, value: String) {
-        prefs.edit().putString(key, value).apply()
-    }
+    fun put(key: String, value: String) = corePreference.put(key, value)
 
-    fun put(key: String, value: Int) {
-        prefs.edit().putInt(key, value).apply()
-    }
+    fun put(key: String, value: Int) = corePreference.put(key, value)
 
-    fun put(key: String, value: Boolean) {
-        prefs.edit().putBoolean(key, value).apply()
-    }
+    fun put(key: String, value: Boolean) = corePreference.put(key, value)
 }

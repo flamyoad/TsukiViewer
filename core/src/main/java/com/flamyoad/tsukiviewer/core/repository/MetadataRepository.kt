@@ -29,11 +29,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
 import java.io.IOException
 import java.util.*
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class MetadataRepository @Inject constructor(
+class MetadataRepository(
     private val context: Context,
     private val db: AppDatabase,
     val pathDao: IncludedPathDao,

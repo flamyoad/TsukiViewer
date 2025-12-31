@@ -36,6 +36,8 @@ import com.flamyoad.tsukiviewer.ui.search.SearchActivity
 import com.flamyoad.tsukiviewer.ui.search.SearchResultActivity
 import com.flamyoad.tsukiviewer.ui.settings.SettingsActivity
 import com.flamyoad.tsukiviewer.ui.settings.includedfolders.IncludedFolderActivity
+import com.flamyoad.tsukiviewer.core.di.DatabaseModule
+import com.flamyoad.tsukiviewer.core.di.RepositoryModule
 import dagger.Component
 import javax.inject.Singleton
 

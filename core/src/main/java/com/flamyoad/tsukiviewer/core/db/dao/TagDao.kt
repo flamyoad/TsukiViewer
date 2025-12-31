@@ -25,6 +25,9 @@ interface TagDao {
     @Query("SELECT * FROM tags ORDER BY name")
     fun getAll(): LiveData<List<Tag>>
 
+    @Query("SELECT * FROM tags ORDER BY name")
+    suspend fun getAllBlocking(): List<Tag>
+
     @Query("""
         SELECT * FROM tags 
         WHERE name LIKE '%' || :keyword || '%'

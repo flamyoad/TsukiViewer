@@ -9,11 +9,8 @@ import com.flamyoad.tsukiviewer.core.db.dao.CollectionDoujinDao
 import com.flamyoad.tsukiviewer.core.model.*
 import com.flamyoad.tsukiviewer.core.model.Collection
 import java.io.File
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class CollectionRepository @Inject constructor(
+class CollectionRepository(
     private val db: AppDatabase,
     private val collectionDao: CollectionDao,
     private val criteriaDao: CollectionCriteriaDao,

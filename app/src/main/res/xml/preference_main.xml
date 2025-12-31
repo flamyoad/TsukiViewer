@@ -45,6 +45,12 @@
             app:key="pref_confirm_before_quit"
             app:title="Show confirmation dialog before quitting" />
 
+        <androidx.preference.SwitchPreference
+            app:defaultValue="true"
+            app:key="pref_use_compose_ui"
+            app:summary="Switch between modern Compose UI and classic XML views. App will restart when changed."
+            app:title="Use new Compose UI" />
+
     </PreferenceCategory>
 
     <PreferenceCategory
