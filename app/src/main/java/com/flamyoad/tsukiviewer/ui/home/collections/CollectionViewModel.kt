@@ -150,7 +150,7 @@ class CollectionViewModel @Inject constructor(
                 null
             )
 
-            while (cursor.moveToNext()) {
+            while (cursor?.moveToNext() == true) {
                 val fullPath =
                     cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA))
 

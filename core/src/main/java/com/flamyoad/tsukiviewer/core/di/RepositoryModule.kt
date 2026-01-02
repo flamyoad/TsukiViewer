@@ -1,11 +1,10 @@
 package com.flamyoad.tsukiviewer.core.di
 
-import com.flamyoad.tsukiviewer.core.repository.BookmarkRepository
-import com.flamyoad.tsukiviewer.core.repository.CollectionRepository
-import com.flamyoad.tsukiviewer.core.repository.DoujinRepository
-import com.flamyoad.tsukiviewer.core.repository.MetadataRepository
-import com.flamyoad.tsukiviewer.core.repository.SearchHistoryRepository
-import com.flamyoad.tsukiviewer.core.repository.TagRepository
+import android.app.Application
+import android.content.Context
+import com.flamyoad.tsukiviewer.core.db.AppDatabase
+import com.flamyoad.tsukiviewer.core.db.dao.*
+import com.flamyoad.tsukiviewer.core.repository.*
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
@@ -15,25 +14,62 @@ class RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideBookmarkRepository(impl: BookmarkRepository): BookmarkRepository = impl
+    fun provideBookmarkRepository(
+        db: AppDatabase,
+        groupDao: BookmarkGroupDao,
+        itemDao: BookmarkItemDao
+    ): BookmarkRepository {
+        return BookmarkRepository(db, groupDao, itemDao)
+    }
 
     @Provides
     @Singleton
-    fun provideCollectionRepository(impl: CollectionRepository): CollectionRepository = impl
+    fun provideCollectionRepository(
+        db: AppDatabase,
+        collectionDao: CollectionDao,
+        criteriaDao: CollectionCriteriaDao,
+        collectionDoujinDao: CollectionDoujinDao
+    ): CollectionRepository {
+        return CollectionRepository(db, collectionDao, criteriaDao, collectionDoujinDao)
+    }
 
     @Provides
     @Singleton
-    fun provideDoujinRepository(impl: DoujinRepository): DoujinRepository = impl
+    fun provideDoujinRepository(
+        application: Application,
+        doujinDetailsDao: DoujinDetailsDao,
+        pathDao: IncludedPathDao
+    ): DoujinRepository {
+        return DoujinRepository(application, doujinDetailsDao, pathDao)
+    }
 
     @Provides
     @Singleton
-    fun provideMetadataRepository(impl: MetadataRepository): MetadataRepository = impl
+    fun provideMetadataRepository(
+        context: Context,
+        db: AppDatabase,
+        pathDao: IncludedPathDao,
+        doujinDetailsDao: DoujinDetailsDao,
+        tagDao: TagDao,
+        doujinTagDao: DoujinTagsDao,
+        folderDao: IncludedFolderDao
+    ): MetadataRepository {
+        return MetadataRepository(context, db, pathDao, doujinDetailsDao, tagDao, doujinTagDao, folderDao)
+    }
 
     @Provides
     @Singleton
-    fun provideSearchHistoryRepository(impl: SearchHistoryRepository): SearchHistoryRepository = impl
+    fun provideSearchHistoryRepository(
+        searchHistoryDao: SearchHistoryDao
+    ): SearchHistoryRepository {
+        return SearchHistoryRepository(searchHistoryDao)
+    }
 
     @Provides
     @Singleton
-    fun provideTagRepository(impl: TagRepository): TagRepository = impl
+    fun provideTagRepository(
+        tagDao: TagDao
+    ): TagRepository {
+        return TagRepository(tagDao)
+    }
 }

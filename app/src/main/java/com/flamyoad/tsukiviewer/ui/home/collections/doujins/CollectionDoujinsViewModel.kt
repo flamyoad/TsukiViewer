@@ -149,7 +149,7 @@ class CollectionDoujinsViewModel @Inject constructor(
                 null
             )
 
-            while (cursor.moveToNext()) {
+            while (cursor?.moveToNext() == true) {
                 val idSet = mutableSetOf<String>()
 
                 val fullPath =

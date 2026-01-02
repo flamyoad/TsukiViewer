@@ -15,11 +15,8 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import java.io.File
 import java.util.*
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class DoujinRepository @Inject constructor(
+class DoujinRepository(
     private val application: Application,
     private val doujinDetailsDao: DoujinDetailsDao,
     private val pathDao: IncludedPathDao
@@ -122,13 +119,13 @@ class DoujinRepository @Inject constructor(
                 null
             )
 
-            while (cursor.moveToNext()) {
+            while (cursor?.moveToNext() == true) {
                 val idSet = mutableSetOf<String>()
 
                 val fullPath =
-                    cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA))
+                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATA))
                 val parentId =
-                    cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.PARENT))
+                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.PARENT))
 
                 if (idSet.add(parentId)) {
                     val doujinDir = File(fullPath)

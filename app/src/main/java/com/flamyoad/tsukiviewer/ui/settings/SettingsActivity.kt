@@ -84,19 +84,18 @@ class SettingsActivity : AppCompatActivity(),
         return super.onNavigateUp()
     }
 
-    override fun onPreferenceStartFragment(caller: PreferenceFragmentCompat?, pref: Preference?): Boolean {
-        if (pref == null)
-            return false
-
+    override fun onPreferenceStartFragment(caller: PreferenceFragmentCompat, pref: Preference): Boolean {
         // Instantiate the new Fragment
         val args = pref.extras
+        val fragmentClassName = pref.fragment ?: return false
 
         val fragment = supportFragmentManager.fragmentFactory.instantiate(
             classLoader,
-            pref.fragment)
+            fragmentClassName)
 
         fragment.apply {
             arguments = args
+            @Suppress("DEPRECATION")
             setTargetFragment(caller, 0)
         }
 

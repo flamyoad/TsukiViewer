@@ -75,6 +75,9 @@ dependencies {
     // Jsoup for HTML parsing (used in metadata fetching)
     api 'org.jsoup:jsoup:1.13.1'
 
+    // Preferences
+    api 'androidx.preference:preference-ktx:1.2.1'
+
     // Retrofit & OkHttp
     def retrofit_version = '2.9.0'
     api "com.squareup.retrofit2:retrofit:$retrofit_version"

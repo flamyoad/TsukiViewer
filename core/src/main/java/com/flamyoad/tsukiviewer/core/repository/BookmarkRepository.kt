@@ -11,11 +11,8 @@ import com.flamyoad.tsukiviewer.core.model.BookmarkItem
 import com.flamyoad.tsukiviewer.core.model.Doujin
 import org.threeten.bp.Instant
 import java.io.File
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class BookmarkRepository @Inject constructor(
+class BookmarkRepository(
     private val db: AppDatabase,
     val groupDao: BookmarkGroupDao,
     val itemDao: BookmarkItemDao
