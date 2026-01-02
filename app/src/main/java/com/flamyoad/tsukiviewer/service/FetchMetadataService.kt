@@ -161,13 +161,14 @@ class FetchMetadataService : Service() {
             notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
             val startActivityIntent = Intent(this, FetcherStatusActivity::class.java)
 
-            val pendingIntent = PendingIntent.getActivity(this, 0, startActivityIntent, 0)
+            val pendingIntent = PendingIntent.getActivity(this, 0, startActivityIntent, PendingIntent.FLAG_IMMUTABLE)
 
             val stopIntent = Intent(this, FetchMetadataService::class.java)
             stopIntent.action = ACTION_CLOSE
 
             val stopPendingIntent =
-                PendingIntent.getService(this, 0, stopIntent, PendingIntent.FLAG_CANCEL_CURRENT)
+                PendingIntent.getService(this, 0, stopIntent,
+                    PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
             notificationBuilder!!
                 .setContentTitle("Scanning for directories")
