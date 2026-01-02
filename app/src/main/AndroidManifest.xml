@@ -11,6 +11,7 @@
     <!-- For Android 11+ (API 30+) - Full file access -->
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <application
         android:name=".MyApplication"
@@ -29,7 +30,9 @@
             android:launchMode="singleTask" />
         <activity android:name=".ui.editor.EditorActivity" />
 
-        <service android:name=".service.FetchMetadataService" />
+        <service 
+            android:name=".service.FetchMetadataService"
+            android:foregroundServiceType="dataSync" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

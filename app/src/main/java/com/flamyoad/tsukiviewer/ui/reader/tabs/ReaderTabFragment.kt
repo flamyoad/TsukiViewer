@@ -35,7 +35,7 @@ class ReaderTabFragment : Fragment(),
     BottomThumbnailAdapter.OnItemClickListener {
 
     private var _binding: FragmentReaderTabBinding? = null
-    private val binding get() = _binding!!
+    private val binding get() = requireNotNull(_binding)
 
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
@@ -47,7 +47,6 @@ class ReaderTabFragment : Fragment(),
     private var readerListener: ReaderTabListener? = null
     private var lastReadPageNumberListener: LastReadPageNumberListener? = null
     private var shouldReturnLastReadPosition: Boolean = false
-    private var isFirstLoad: Boolean = true
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -62,16 +61,21 @@ class ReaderTabFragment : Fragment(),
         shouldReturnLastReadPosition = arguments?.getBoolean(RETURN_LAST_READ_POSITION) ?: false
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (!isFirstLoad) {
-            return
-        }
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentReaderTabBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        
         viewModel.directoryNoLongerExists().observe(viewLifecycleOwner, Observer { notExists ->
             if (notExists) {
                 toast("Directory not found. Renamed or deleted?")
-//                finish()
             }
         })
 
@@ -112,8 +116,11 @@ class ReaderTabFragment : Fragment(),
         binding.btnBack.setOnClickListener {
             readerListener?.quitActivity()
         }
+    }
 
-        isFirstLoad = false
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     private fun setupReader(mode: ReaderMode) {
