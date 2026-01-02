@@ -3,10 +3,12 @@ package com.flamyoad.tsukiviewer.service
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.os.*
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -137,7 +139,18 @@ class FetchMetadataService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel()
             createNotification("")
-            startForeground(NOTIFICATION_ID, notification)
+            notification?.let { notif ->
+                ServiceCompat.startForeground(
+                    this,
+                    NOTIFICATION_ID,
+                    notif,
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                        ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+                    } else {
+                        0
+                    }
+                )
+            }
         }
     }
 
