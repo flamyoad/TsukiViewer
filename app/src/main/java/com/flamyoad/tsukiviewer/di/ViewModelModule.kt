@@ -14,6 +14,11 @@ import com.flamyoad.tsukiviewer.ui.home.tags.DoujinTagsViewModel
 import com.flamyoad.tsukiviewer.ui.reader.ReaderViewModel
 import com.flamyoad.tsukiviewer.ui.reader.recents.RecentTabsViewModel
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabViewModel
+import com.flamyoad.tsukiviewer.ui.screens.bookmarks.BookmarksViewModel
+import com.flamyoad.tsukiviewer.ui.screens.collections.CollectionsViewModel
+import com.flamyoad.tsukiviewer.ui.screens.doujin.DoujinDetailsViewModel
+import com.flamyoad.tsukiviewer.ui.screens.home.HomeViewModel
+import com.flamyoad.tsukiviewer.ui.screens.tags.TagsViewModel
 import com.flamyoad.tsukiviewer.ui.search.SearchResultViewModel
 import com.flamyoad.tsukiviewer.ui.search.SearchViewModel
 import com.flamyoad.tsukiviewer.ui.settings.SettingsViewModel
@@ -107,4 +112,29 @@ abstract class ViewModelModule {
     @IntoMap
     @ViewModelKey(IncludedFolderViewModel::class)
     abstract fun bindIncludedFolderViewModel(viewModel: IncludedFolderViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(DoujinDetailsViewModel::class)
+    abstract fun bindDoujinDetailsViewModel(viewModel: DoujinDetailsViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(HomeViewModel::class)
+    abstract fun bindHomeViewModel(viewModel: HomeViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(CollectionsViewModel::class)
+    abstract fun bindCollectionsViewModel(viewModel: CollectionsViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(TagsViewModel::class)
+    abstract fun bindTagsViewModel(viewModel: TagsViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(BookmarksViewModel::class)
+    abstract fun bindBookmarksViewModel(viewModel: BookmarksViewModel): ViewModel
 }

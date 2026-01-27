@@ -42,10 +42,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.flamyoad.tsukiviewer.ui.di.LocalViewModelFactory
 import com.flamyoad.tsukiviewer.ui.screens.tags.components.SortTagDialog
 import com.flamyoad.tsukiviewer.ui.screens.tags.components.TagListItem
 import com.flamyoad.tsukiviewer.ui.theme.ColorPrimaryLight
@@ -60,7 +60,7 @@ fun TagsScreen(
     onTagClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: TagsViewModel = viewModel(
-        factory = TagsViewModelFactory(LocalContext.current.applicationContext as android.app.Application)
+        factory = LocalViewModelFactory.current
     )
 ) {
     val uiState by viewModel.uiState.collectAsState()

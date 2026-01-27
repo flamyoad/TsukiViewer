@@ -1,24 +1,22 @@
 package com.flamyoad.tsukiviewer.ui.screens.collections
 
-import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.flamyoad.tsukiviewer.core.db.AppDatabase
 import com.flamyoad.tsukiviewer.core.repository.CollectionRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
+import javax.inject.Inject
 
 /**
  * ViewModel for the Collections screen.
  */
-class CollectionsViewModel(
-    private val application: Application,
+class CollectionsViewModel @Inject constructor(
     private val collectionRepository: CollectionRepository
 ) : ViewModel() {
     
@@ -32,7 +30,7 @@ class CollectionsViewModel(
     }
     
     fun loadCollections() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isLoading = true) }
             
             try {
@@ -116,7 +114,7 @@ class CollectionsViewModel(
     }
     
     fun deleteCollection(collectionId: Long) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 collectionRepository.delete(collectionId)
                 allCollections = allCollections.filter { it.id != collectionId }
@@ -137,24 +135,4 @@ class CollectionsViewModel(
     }
 }
 
-/**
- * Factory for creating CollectionsViewModel instances.
- */
-class CollectionsViewModelFactory(
-    private val application: Application
-) : ViewModelProvider.Factory {
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(CollectionsViewModel::class.java)) {
-            val db = AppDatabase.getInstance(application)
-            val collectionRepository = CollectionRepository(
-                db = db,
-                collectionDao = db.collectionDao(),
-                criteriaDao = db.collectionCriteriaDao(),
-                collectionDoujinDao = db.collectionDoujinDao()
-            )
-            return CollectionsViewModel(application, collectionRepository) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
-    }
-}
+

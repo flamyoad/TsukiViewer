@@ -1,6 +1,5 @@
 package com.flamyoad.tsukiviewer.ui.screens.doujin
 
-import android.app.Application
 import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -71,7 +70,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -79,9 +77,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import com.flamyoad.tsukiviewer.core.db.AppDatabase
-import com.flamyoad.tsukiviewer.core.repository.BookmarkRepository
-import com.flamyoad.tsukiviewer.core.repository.MetadataRepository
+import com.flamyoad.tsukiviewer.ui.di.LocalViewModelFactory
 import com.flamyoad.tsukiviewer.ui.screens.doujin.components.BookmarkDialog
 import com.flamyoad.tsukiviewer.ui.screens.doujin.components.TagGroup
 import com.flamyoad.tsukiviewer.ui.theme.ColorPrimaryLight
@@ -106,33 +102,8 @@ fun DoujinDetailsScreen(
     onTagClick: (TagUiModel) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
-    val application = context.applicationContext as Application
-    
-    // Create repositories and ViewModel
-    val db = remember { AppDatabase.getInstance(context) }
-    val metadataRepo = remember {
-        MetadataRepository(
-            context = context,
-            db = db,
-            pathDao = db.includedFolderDao(),
-            doujinDetailsDao = db.doujinDetailsDao(),
-            tagDao = db.tagsDao(),
-            doujinTagDao = db.doujinTagDao(),
-            folderDao = db.folderDao()
-        )
-    }
-    val bookmarkRepo = remember {
-        BookmarkRepository(
-            db = db,
-            groupDao = db.bookmarkGroupDao(),
-            itemDao = db.bookmarkItemDao()
-        )
-    }
-    
-    val viewModel: DoujinDetailsViewModel = viewModel(
-        factory = DoujinDetailsViewModelFactory(application, metadataRepo, bookmarkRepo)
-    )
+    val viewModelFactory = LocalViewModelFactory.current
+    val viewModel: DoujinDetailsViewModel = viewModel(factory = viewModelFactory)
     
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -302,24 +273,21 @@ private fun DoujinDetailsContent(
             .fillMaxSize()
             .verticalScroll(scrollState)
     ) {
-        // Cover image with background blur
+        // Cover image with background
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(300.dp)
         ) {
             // Blurred background
-            uiState.coverImage?.let { uri ->
-                AsyncImage(
-                    model = uri,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .blur(20.dp)
-                )
-            }
-            
+            AsyncImage(
+                model = uiState.coverImage,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .blur(20.dp)
+            )
             // Gradient overlay
             Box(
                 modifier = Modifier

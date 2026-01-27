@@ -44,10 +44,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.flamyoad.tsukiviewer.ui.di.LocalViewModelFactory
 import com.flamyoad.tsukiviewer.ui.screens.bookmarks.components.BookmarkGroupChip
 import com.flamyoad.tsukiviewer.ui.screens.bookmarks.components.BookmarkItemCard
 import com.flamyoad.tsukiviewer.ui.theme.TsukiViewerTheme
@@ -58,7 +58,7 @@ fun BookmarksScreen(
     onDoujinClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: BookmarksViewModel = viewModel(
-        factory = BookmarksViewModelFactory(LocalContext.current.applicationContext as android.app.Application)
+        factory = LocalViewModelFactory.current
     )
 ) {
     val uiState by viewModel.uiState.collectAsState()

@@ -5,7 +5,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.ui.TsukiViewerApp
+import javax.inject.Inject
 
 /**
  * Main entry point Activity for the Compose-based UI.
@@ -29,11 +31,16 @@ import com.flamyoad.tsukiviewer.ui.TsukiViewerApp
  */
 class ComposeMainActivity : ComponentActivity() {
     
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    
     override fun onCreate(savedInstanceState: Bundle?) {
+        (application as MyApplication).appComponent.inject(this)
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             TsukiViewerApp(
+                viewModelFactory = viewModelFactory,
                 onRestartApp = { restartApp() }
             )
         }

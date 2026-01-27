@@ -45,10 +45,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.flamyoad.tsukiviewer.ui.di.LocalViewModelFactory
 import com.flamyoad.tsukiviewer.ui.screens.home.components.DoujinGridItem
 import com.flamyoad.tsukiviewer.ui.screens.home.components.SortDoujinDialog
 import com.flamyoad.tsukiviewer.ui.screens.home.components.ViewModeMenu
@@ -62,7 +62,7 @@ fun HomeScreen(
     onNavigateToSettings: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel(
-        factory = HomeViewModelFactory(LocalContext.current.applicationContext as android.app.Application)
+        factory = LocalViewModelFactory.current
     )
 ) {
     val uiState by viewModel.uiState.collectAsState()

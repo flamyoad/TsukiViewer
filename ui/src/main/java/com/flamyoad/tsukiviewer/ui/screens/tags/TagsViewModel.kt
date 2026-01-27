@@ -1,22 +1,20 @@
 package com.flamyoad.tsukiviewer.ui.screens.tags
 
-import android.app.Application
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.flamyoad.tsukiviewer.core.db.AppDatabase
 import com.flamyoad.tsukiviewer.core.db.dao.TagDao
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * ViewModel for the Tags screen.
  */
-class TagsViewModel(
-    private val application: Application,
+class TagsViewModel @Inject constructor(
     private val tagDao: TagDao
 ) : ViewModel() {
     
@@ -28,7 +26,7 @@ class TagsViewModel(
     }
     
     fun loadTags() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isLoading = true) }
             
             try {
@@ -121,18 +119,4 @@ class TagsViewModel(
     }
 }
 
-/**
- * Factory for creating TagsViewModel instances.
- */
-class TagsViewModelFactory(
-    private val application: Application
-) : ViewModelProvider.Factory {
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(TagsViewModel::class.java)) {
-            val db = AppDatabase.getInstance(application)
-            return TagsViewModel(application, db.tagsDao()) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
-    }
-}
+

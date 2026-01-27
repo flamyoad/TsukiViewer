@@ -4,10 +4,7 @@ import android.app.Application
 import android.net.Uri
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.flamyoad.tsukiviewer.core.db.AppDatabase
-import com.flamyoad.tsukiviewer.core.model.Doujin
 import com.flamyoad.tsukiviewer.core.repository.MetadataRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -20,12 +17,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import javax.inject.Inject
 
 /**
  * ViewModel for the Home screen.
  * Loads doujins from included directories and displays them in a grid.
  */
-class HomeViewModel(
+class HomeViewModel @Inject constructor(
     private val application: Application,
     private val metadataRepo: MetadataRepository
 ) : ViewModel() {
@@ -257,27 +255,4 @@ sealed interface HomeEvent {
     data class ShowToast(val message: String) : HomeEvent
 }
 
-/**
- * Factory for creating HomeViewModel instances.
- */
-class HomeViewModelFactory(
-    private val application: Application
-) : ViewModelProvider.Factory {
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
-            val db = AppDatabase.getInstance(application)
-            val metadataRepo = MetadataRepository(
-                context = application,
-                db = db,
-                pathDao = db.includedFolderDao(),
-                doujinDetailsDao = db.doujinDetailsDao(),
-                tagDao = db.tagsDao(),
-                doujinTagDao = db.doujinTagDao(),
-                folderDao = db.folderDao()
-            )
-            return HomeViewModel(application, metadataRepo) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
-    }
-}
+

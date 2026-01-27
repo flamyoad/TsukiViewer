@@ -1,25 +1,23 @@
 package com.flamyoad.tsukiviewer.ui.screens.bookmarks
 
-import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.flamyoad.tsukiviewer.core.db.AppDatabase
 import com.flamyoad.tsukiviewer.core.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.core.repository.BookmarkRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
+import javax.inject.Inject
 
 /**
  * ViewModel for the Bookmarks screen.
  */
-class BookmarksViewModel(
-    private val application: Application,
+class BookmarksViewModel @Inject constructor(
     private val bookmarkRepository: BookmarkRepository
 ) : ViewModel() {
     
@@ -34,7 +32,7 @@ class BookmarksViewModel(
     }
     
     fun loadBookmarks() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isLoading = true) }
             
             try {
@@ -72,7 +70,7 @@ class BookmarksViewModel(
     }
     
     private fun loadItemsForGroup(groupName: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val items = bookmarkRepository.getAllItemsFrom(groupName)
                 allItems = items.mapNotNull { item ->
@@ -184,7 +182,7 @@ class BookmarksViewModel(
     }
     
     fun deleteSelectedItems() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val selectedIds = selectedItems.map { it.id }.toSet()
                 val currentGroup = _uiState.value.selectedGroupName ?: return@launch
@@ -217,7 +215,7 @@ class BookmarksViewModel(
     }
     
     fun createNewGroup(name: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val newGroup = BookmarkGroup(name = name)
                 bookmarkRepository.insertGroup(newGroup)
@@ -241,23 +239,4 @@ class BookmarksViewModel(
     }
 }
 
-/**
- * Factory for creating BookmarksViewModel instances.
- */
-class BookmarksViewModelFactory(
-    private val application: Application
-) : ViewModelProvider.Factory {
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(BookmarksViewModel::class.java)) {
-            val db = AppDatabase.getInstance(application)
-            val bookmarkRepository = BookmarkRepository(
-                db = db,
-                groupDao = db.bookmarkGroupDao(),
-                itemDao = db.bookmarkItemDao()
-            )
-            return BookmarksViewModel(application, bookmarkRepository) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
-    }
-}
+

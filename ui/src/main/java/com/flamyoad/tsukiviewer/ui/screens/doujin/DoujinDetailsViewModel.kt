@@ -4,9 +4,7 @@ import android.app.Application
 import android.net.Uri
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.flamyoad.tsukiviewer.core.db.AppDatabase
 import com.flamyoad.tsukiviewer.core.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.core.model.DoujinDetailsWithTags
 import com.flamyoad.tsukiviewer.core.repository.BookmarkRepository
@@ -20,14 +18,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.SimpleDateFormat
-import java.util.Arrays
 import java.util.Date
 import java.util.Locale
+import javax.inject.Inject
 
 /**
  * ViewModel for the Doujin Details screen.
  */
-class DoujinDetailsViewModel(
+class DoujinDetailsViewModel @Inject constructor(
     private val application: Application,
     private val metadataRepo: MetadataRepository,
     private val bookmarkRepo: BookmarkRepository
@@ -50,7 +48,7 @@ class DoujinDetailsViewModel(
 
         _uiState.update { it.copy(isLoading = true, directoryPath = dirPath) }
 
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val dir = File(dirPath)
 
             // Check if directory exists
@@ -65,66 +63,57 @@ class DoujinDetailsViewModel(
                 return@launch
             }
 
-            // Load images and cover
-            withContext(Dispatchers.IO) {
-                val images = dir.listFiles { file ->
-                    file.isFile && file.extension.lowercase() in imageExtensions
-                }
-
-                if (images == null || images.isEmpty()) {
-                    withContext(Dispatchers.Main) {
-                        _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                directoryNotFound = true,
-                                snackbarMessage = "No images found in directory"
-                            )
-                        }
-                    }
-                    return@withContext
-                }
-
-                // Sort images naturally
-                val sortedImages = images.sortedWith(compareBy<File> { it.name.length }.then(naturalOrder()))
-                val coverImage = sortedImages.first().toUri()
-                val imageList = sortedImages.map { it.toUri() }
-                val imageCount = sortedImages.size
-                val lastModified = dateFormat.format(Date(dir.lastModified()))
-
-                withContext(Dispatchers.Main) {
-                    _uiState.update {
-                        it.copy(
-                            coverImage = coverImage,
-                            imageList = imageList,
-                            imageCount = imageCount,
-                            dateModified = lastModified,
-                            fullTitleEnglish = dir.name
-                        )
-                    }
-                }
+            // Load images - this is the heavy operation
+            val images = dir.listFiles { file ->
+                file.isFile && file.extension.lowercase() in imageExtensions
             }
 
-            // Load metadata from database
-            loadMetadata(dir)
+            if (images == null || images.isEmpty()) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        directoryNotFound = true,
+                        snackbarMessage = "No images found in directory"
+                    )
+                }
+                return@launch
+            }
+
+            // Sort images naturally (do this on IO thread)
+            val sortedImages = images.sortedWith(compareBy<File> { it.name.length }.then(naturalOrder()))
+            val coverImage = sortedImages.first().toUri()
+            val imageCount = sortedImages.size
+            val lastModified = dateFormat.format(Date(dir.lastModified()))
+
+            // Update UI with cover first (fast path for initial render)
+            _uiState.update {
+                it.copy(
+                    coverImage = coverImage,
+                    imageCount = imageCount,
+                    dateModified = lastModified,
+                    fullTitleEnglish = dir.name,
+                    isLoading = false
+                )
+            }
+
+            // Load metadata in parallel
+            loadMetadataAsync(dir)
+
+            // Load full image list after UI is shown (lazy load for Images tab)
+            val imageList = sortedImages.map { it.toUri() }
+            _uiState.update { it.copy(imageList = imageList) }
         }
     }
 
-    private fun loadMetadata(dir: File) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                val detailWithTags = metadataRepo.doujinDetailsDao.getLongDetailsByPathBlocking(dir.absolutePath)
+    private fun loadMetadataAsync(dir: File) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val detailWithTags = metadataRepo.doujinDetailsDao.getLongDetailsByPathBlocking(dir.absolutePath)
 
-                withContext(Dispatchers.Main) {
-                    if (detailWithTags != null) {
-                        updateFromMetadata(detailWithTags)
-                    } else {
-                        _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                hasMetadata = false
-                            )
-                        }
-                    }
+            if (detailWithTags != null) {
+                updateFromMetadata(detailWithTags)
+            } else {
+                _uiState.update {
+                    it.copy(hasMetadata = false)
                 }
             }
         }
@@ -149,7 +138,6 @@ class DoujinDetailsViewModel(
 
         _uiState.update {
             it.copy(
-                isLoading = false,
                 hasMetadata = true,
                 fullTitleEnglish = details.doujinDetails.fullTitleEnglish,
                 shortTitleEnglish = details.doujinDetails.shortTitleEnglish,
@@ -282,21 +270,4 @@ class DoujinDetailsViewModel(
     }
 
     fun getNukeCode(): String? = _uiState.value.nukeCode
-}
-
-/**
- * Factory for creating DoujinDetailsViewModel instances.
- */
-class DoujinDetailsViewModelFactory(
-    private val application: Application,
-    private val metadataRepo: MetadataRepository,
-    private val bookmarkRepo: BookmarkRepository
-) : ViewModelProvider.Factory {
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(DoujinDetailsViewModel::class.java)) {
-            return DoujinDetailsViewModel(application, metadataRepo, bookmarkRepo) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
-    }
 }
