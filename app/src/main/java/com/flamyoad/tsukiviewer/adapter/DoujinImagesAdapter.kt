@@ -24,7 +24,7 @@ import java.io.File
 class DoujinImagesAdapter(
     private val itemType: ItemType,
     private val currentDir: String,
-    private val openReader: (Intent, File) -> Unit
+    private val openReader: (Intent) -> Unit
 ) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
@@ -70,8 +70,9 @@ class DoujinImagesAdapter(
                 val intent = Intent(context, ReaderActivity::class.java)
                 intent.putExtra(POSITION_BEFORE_OPENING_READER, position)
                 intent.putExtra(DIRECTORY_PATH, currentDir)
+                intent.putExtra(ReaderActivity.OPENING_PAGE, ReaderActivity.pageTransitionName(image))
 
-                openReader(intent, image)
+                openReader(intent)
             }
         }
 

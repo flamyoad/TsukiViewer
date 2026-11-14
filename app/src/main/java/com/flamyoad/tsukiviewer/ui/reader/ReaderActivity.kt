@@ -11,8 +11,9 @@ import android.view.MenuItem
 import android.view.View
 import android.view.WindowManager
 import android.widget.ImageView
-import androidx.activity.viewModels
+import android.view.animation.AnimationUtils
 import androidx.core.view.doOnPreDraw
+import androidx.activity.viewModels
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import com.flamyoad.tsukiviewer.security.LockableActivity
 import androidx.lifecycle.Observer
@@ -49,11 +50,11 @@ class ReaderActivity : LockableActivity(), ViewPagerListener, ReaderTabListener,
     private val viewModel: ReaderViewModel by viewModels { viewModelFactory }
 
     private var positionFromImageGrid = 0
-    private val sharedPageName by lazy { intent.getStringExtra(SHARED_PAGE) }
     private var returningSharedPage = false
     private val readyPages = mutableMapOf<String, WeakReference<SubsamplingScaleImageView>>()
     private var returnAnimation: ReaderPageReturnAnimation? = null
-    private val showReader = Runnable { binding.root.alpha = 1f }
+    private var openingPageName: String? = null
+    private val showLoadingReader = Runnable { revealReader(animate = false) }
     private var transitionSource: WeakReference<ReturnTarget>? = null
 
     private var viewPagerIndex: Int = -1
@@ -68,7 +69,6 @@ class ReaderActivity : LockableActivity(), ViewPagerListener, ReaderTabListener,
         (application as MyApplication).appComponent.inject(this)
         super.onCreate(savedInstanceState)
         if (Build.VERSION.SDK_INT >= 34) {
-            overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, R.anim.reader_no_window_animation, R.anim.reader_no_window_animation)
             overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, R.anim.reader_no_window_animation, R.anim.reader_no_window_animation)
         }
         binding = ActivityReaderBinding.inflate(layoutInflater)
@@ -78,16 +78,16 @@ class ReaderActivity : LockableActivity(), ViewPagerListener, ReaderTabListener,
             transitionSource = pendingSource
             pendingSource = null
         }
-        if (savedInstanceState == null && sharedPageName != null && !appLock.isLocked) {
-            // Keep the overview visible until the first reader page can draw.
-            binding.root.alpha = 0f
-            binding.root.postDelayed(showReader, INITIAL_PAGE_TIMEOUT_MS)
+        if (savedInstanceState == null && transitionSource?.get() != null && !appLock.isLocked) {
+            openingPageName = intent.getStringExtra(OPENING_PAGE)
+            if (openingPageName != null) {
+                binding.root.alpha = 0f
+                binding.root.postDelayed(showLoadingReader, OPENING_PAGE_TIMEOUT_MS)
+            }
         }
-
         viewModel.directoryNoLongerExists().observe(this, Observer { notExists ->
             if (notExists) {
-                binding.root.removeCallbacks(showReader)
-                showReader.run()
+                revealReader(animate = false)
                 toast("Directory not found. Renamed or deleted?")
             }
         })
@@ -210,25 +210,34 @@ class ReaderActivity : LockableActivity(), ViewPagerListener, ReaderTabListener,
 
     override fun quitActivity() = closeReader()
 
-    internal fun onReaderPageError(page: SubsamplingScaleImageView) {
-        if (sharedPageName == null || page.transitionName != sharedPageName) return
-        binding.root.removeCallbacks(showReader)
-        showReader.run()
-    }
-
     internal fun onReaderPageReady(page: SubsamplingScaleImageView) {
         val name = page.transitionName ?: return
         readyPages.entries.removeAll { it.value.get()?.transitionName != it.key }
         readyPages[name] = WeakReference(page)
-        if (name != sharedPageName) return
-        page.doOnPreDraw {
-            binding.root.removeCallbacks(showReader)
-            showReader.run()
+        if (name == openingPageName) {
+            page.doOnPreDraw {
+                if (page.transitionName == openingPageName) revealReader(animate = true)
+            }
+        }
+    }
+
+    internal fun onReaderPageError(page: SubsamplingScaleImageView) {
+        if (page.transitionName == openingPageName) revealReader(animate = false)
+    }
+
+    private fun revealReader(animate: Boolean) {
+        if (openingPageName == null) return
+        openingPageName = null
+        binding.root.removeCallbacks(showLoadingReader)
+        binding.root.alpha = 1f
+        if (animate && !isFinishing && !appLock.isLocked) {
+            binding.root.startAnimation(AnimationUtils.loadAnimation(this, R.anim.reader_open))
         }
     }
 
     override fun onDestroy() {
-        binding.root.removeCallbacks(showReader)
+        binding.root.removeCallbacks(showLoadingReader)
+        binding.root.clearAnimation()
         returnAnimation?.cancel()
         super.onDestroy()
     }
@@ -297,14 +306,13 @@ class ReaderActivity : LockableActivity(), ViewPagerListener, ReaderTabListener,
     }
 
     companion object {
-        private const val SHARED_PAGE = "reader_shared_page"
+        internal const val OPENING_PAGE = "reader_opening_page"
+        private const val OPENING_PAGE_TIMEOUT_MS = 2_500L
         private var pendingSource: WeakReference<ReturnTarget>? = null
 
-        internal fun setTransitionSource(intent: Intent, file: File, source: ReturnTarget) {
+        internal fun setTransitionSource(source: ReturnTarget) {
             pendingSource = WeakReference(source)
-            intent.putExtra(SHARED_PAGE, pageTransitionName(file))
         }
-        private const val INITIAL_PAGE_TIMEOUT_MS = 2_000L
 
         internal fun pageTransitionName(file: File): String = "reader-page:" + file.absolutePath
 

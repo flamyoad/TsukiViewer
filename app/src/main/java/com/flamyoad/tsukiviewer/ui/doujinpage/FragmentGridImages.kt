@@ -171,8 +171,8 @@ class FragmentGridImages : Fragment() {
 
     @Suppress("DEPRECATION")
     private fun setupRecyclerview(dirPath: String, type: ItemType, spanCount: Int) {
-        adapter = DoujinImagesAdapter(type, dirPath) { intent, image ->
-            ReaderActivity.setTransitionSource(intent, image, returnTarget)
+        adapter = DoujinImagesAdapter(type, dirPath) { intent ->
+            ReaderActivity.setTransitionSource(returnTarget)
             val noAnimation = R.anim.reader_no_window_animation
             val options = ActivityOptions.makeCustomAnimation(requireContext(), noAnimation, noAnimation)
             startActivityForResult(intent, IMAGE_POSITION_REQUEST_CODE, options.toBundle())
