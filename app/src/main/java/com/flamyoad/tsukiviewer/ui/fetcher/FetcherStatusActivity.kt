@@ -6,7 +6,7 @@ import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
+import com.flamyoad.tsukiviewer.security.LockableActivity
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -15,7 +15,7 @@ import com.flamyoad.tsukiviewer.adapter.FetchHistoryAdapter
 import com.flamyoad.tsukiviewer.databinding.ActivityFetcherStatusBinding
 import com.flamyoad.tsukiviewer.service.FetchMetadataService
 
-class FetcherStatusActivity : AppCompatActivity() {
+class FetcherStatusActivity : LockableActivity() {
 
     private lateinit var binding: ActivityFetcherStatusBinding
 

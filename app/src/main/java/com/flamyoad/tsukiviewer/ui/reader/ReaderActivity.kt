@@ -8,7 +8,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.WindowManager
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
+import com.flamyoad.tsukiviewer.security.LockableActivity
 import androidx.lifecycle.Observer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
@@ -30,7 +30,7 @@ import javax.inject.Inject
 const val MY_KEY_DOWN_INTENT = "my_key_down_intent"
 const val KEY_CODE = "key_code"
 
-class ReaderActivity : AppCompatActivity(), ViewPagerListener, ReaderTabListener, LastReadPageNumberListener {
+class ReaderActivity : LockableActivity(), ViewPagerListener, ReaderTabListener, LastReadPageNumberListener {
 
     private lateinit var binding: ActivityReaderBinding
 

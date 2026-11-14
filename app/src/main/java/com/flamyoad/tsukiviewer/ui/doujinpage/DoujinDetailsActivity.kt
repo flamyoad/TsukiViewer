@@ -6,7 +6,7 @@ import android.os.Bundle
 import android.os.PersistableBundle
 import android.view.MenuItem
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
+import com.flamyoad.tsukiviewer.security.LockableActivity
 import androidx.lifecycle.Observer
 import androidx.viewpager.widget.ViewPager
 import com.flamyoad.tsukiviewer.MyApplication
@@ -21,7 +21,7 @@ import com.flamyoad.tsukiviewer.utils.extensions.toast
 import com.google.android.material.snackbar.Snackbar
 import javax.inject.Inject
 
-class DoujinDetailsActivity : AppCompatActivity() {
+class DoujinDetailsActivity : LockableActivity() {
 
     private lateinit var binding: ActivityDoujinDetailsBinding
 

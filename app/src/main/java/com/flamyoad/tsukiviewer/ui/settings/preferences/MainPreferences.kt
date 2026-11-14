@@ -6,6 +6,9 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
@@ -16,6 +19,8 @@ import com.flamyoad.tsukiviewer.core.prefs.PreferenceKeys
 import com.flamyoad.tsukiviewer.ui.settings.GalleryAppPickerDialog
 import com.flamyoad.tsukiviewer.ui.settings.SettingsViewModel
 import androidx.core.content.edit
+import com.flamyoad.tsukiviewer.security.LockableActivity
+import kotlinx.coroutines.launch
 
 class MainPreferences : PreferenceFragmentCompat(), SharedPreferences.OnSharedPreferenceChangeListener {
     private val viewModel: SettingsViewModel by activityViewModels()
@@ -35,6 +40,11 @@ class MainPreferences : PreferenceFragmentCompat(), SharedPreferences.OnSharedPr
         sharedPrefs = appPreference.prefs
 
         sharedPrefs.registerOnSharedPreferenceChangeListener(this)
+
+        findPreference<SwitchPreference>(APP_LOCK)?.setOnPreferenceChangeListener { _, newValue ->
+            (requireActivity() as LockableActivity).requestAppLockChange(newValue as Boolean)
+            false
+        }
 
         externalGallerySwitch = findPreference(PreferenceKeys.USE_EXTERNAL_GALLERY)
         externalGalleryPicker = findPreference(PreferenceKeys.EXTERNAL_IMAGE_VIEWER)
@@ -75,6 +85,29 @@ class MainPreferences : PreferenceFragmentCompat(), SharedPreferences.OnSharedPr
 
     }
 
+    override fun onViewCreated(view: android.view.View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val host = requireActivity() as LockableActivity
+        val timeoutPreference = findPreference<Preference>(APP_LOCK_TIMEOUT)
+        timeoutPreference?.setOnPreferenceClickListener {
+            host.showAppLockTimeoutPicker()
+            true
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                host.appLock.timeout.collect { timeout ->
+                    timeoutPreference?.summary = getString(timeout.label)
+                }
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val enabled = (requireActivity() as LockableActivity).appLock.enabled.value
+        findPreference<SwitchPreference>(APP_LOCK)?.isChecked = enabled
+    }
+
     private fun showGalleryPicker() {
         val fm = requireActivity().supportFragmentManager
         val fragmentTransaction = fm.beginTransaction()
@@ -99,6 +132,9 @@ class MainPreferences : PreferenceFragmentCompat(), SharedPreferences.OnSharedPr
     }
 
     companion object {
+        private const val APP_LOCK = "pref_app_lock"
+        private const val APP_LOCK_TIMEOUT = "pref_app_lock_timeout"
+
         // Deprecated: Use PreferenceKeys from core module instead
         @Deprecated("Use PreferenceKeys.USE_EXTERNAL_GALLERY", ReplaceWith("PreferenceKeys.USE_EXTERNAL_GALLERY", "com.flamyoad.tsukiviewer.core.prefs.PreferenceKeys"))
         const val USE_EXTERNAL_GALLERY = PreferenceKeys.USE_EXTERNAL_GALLERY

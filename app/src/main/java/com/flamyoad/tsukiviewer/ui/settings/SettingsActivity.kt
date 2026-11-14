@@ -1,7 +1,7 @@
 package com.flamyoad.tsukiviewer.ui.settings
 
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
+import com.flamyoad.tsukiviewer.security.LockableActivity
 import android.os.Bundle
 import android.os.PersistableBundle
 import androidx.activity.viewModels
@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 private const val TOOLBAR_TITLE = "settings_toolbar_title"
 
-class SettingsActivity : AppCompatActivity(),
+class SettingsActivity : LockableActivity(),
     PreferenceFragmentCompat.OnPreferenceStartFragmentCallback{
 
     private lateinit var binding: ActivitySettingsBinding

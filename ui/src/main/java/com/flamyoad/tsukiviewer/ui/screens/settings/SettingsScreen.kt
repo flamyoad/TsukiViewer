@@ -44,6 +44,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.flamyoad.tsukiviewer.ui.R
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -60,6 +62,10 @@ fun SettingsScreen(
     onNavigateToIncludedFolders: () -> Unit = {},
     onRestartApp: () -> Unit = {},
     modifier: Modifier = Modifier,
+    appLockEnabled: Boolean = false,
+    onAppLockChange: ((Boolean) -> Unit)? = null,
+    appLockTimeoutLabel: String? = null,
+    onAppLockTimeoutClick: (() -> Unit)? = null,
     viewModel: SettingsViewModel = viewModel(
         factory = SettingsViewModelFactory(LocalContext.current.applicationContext as android.app.Application)
     )
@@ -176,6 +182,23 @@ fun SettingsScreen(
             ) {
                 // General Settings
                 SettingsCategory(title = "General") {
+                    if (onAppLockChange != null) {
+                        SwitchPreference(
+                            title = stringResource(R.string.app_lock),
+                            summary = stringResource(R.string.app_lock_summary),
+                            checked = appLockEnabled,
+                            onCheckedChange = onAppLockChange
+                        )
+                        HorizontalDivider()
+                    }
+                    if (onAppLockTimeoutClick != null) {
+                        ClickablePreference(
+                            title = stringResource(R.string.app_lock_timeout),
+                            summary = appLockTimeoutLabel,
+                            onClick = onAppLockTimeoutClick
+                        )
+                        HorizontalDivider()
+                    }
                     ClickablePreference(
                         title = "Included Folders",
                         summary = "Manage folders to scan for doujins",

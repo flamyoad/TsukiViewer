@@ -4,7 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
+import com.flamyoad.tsukiviewer.security.LockableActivity
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,7 +20,7 @@ import com.flamyoad.tsukiviewer.utils.extensions.toast
 import jp.wasabeef.recyclerview.animators.SlideInUpAnimator
 import javax.inject.Inject
 
-class RecentTabsActivity : AppCompatActivity() {
+class RecentTabsActivity : LockableActivity() {
 
     private lateinit var binding: ActivityRecentTabsBinding
 

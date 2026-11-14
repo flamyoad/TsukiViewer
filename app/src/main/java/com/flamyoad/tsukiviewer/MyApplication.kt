@@ -8,6 +8,7 @@ import com.flamyoad.tsukiviewer.di.AppComponent
 import com.flamyoad.tsukiviewer.di.AppModule
 import com.flamyoad.tsukiviewer.di.DaggerAppComponent
 import com.flamyoad.tsukiviewer.core.model.Doujin
+import com.flamyoad.tsukiviewer.security.AppLock
 import com.flamyoad.tsukiviewer.utils.ActivityHistory
 import com.jakewharton.threetenabp.AndroidThreeTen
 import kotlinx.coroutines.CoroutineName
@@ -19,6 +20,8 @@ class MyApplication : Application() {
 
     lateinit var appComponent: AppComponent
         private set
+
+    internal val appLock by lazy { AppLock(this) }
 
     val coroutineScope = MainScope() + CoroutineName("Application Scope")
 
