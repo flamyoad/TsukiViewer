@@ -20,9 +20,14 @@ buildscript {
 allprojects {
     repositories {
         google()
-        jcenter()
         mavenCentral()
-        maven { url "https://jitpack.io" }
+        maven {
+            url "https://jitpack.io"
+            content {
+                includeModule("com.github.chrisbanes", "PhotoView")
+                includeModule("com.github.ybq", "Android-SpinKit")
+            }
+        }
     }
 }
 

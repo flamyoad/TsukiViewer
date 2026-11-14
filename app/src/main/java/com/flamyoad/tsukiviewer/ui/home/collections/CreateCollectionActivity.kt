@@ -7,7 +7,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.inputmethod.EditorInfo
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
+import com.flamyoad.tsukiviewer.security.LockableActivity
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -26,7 +26,7 @@ import javax.inject.Inject
 
 private const val REQUEST_DIR_PICKER = 101
 
-class CreateCollectionActivity : AppCompatActivity(), TagSelectedListener {
+class CreateCollectionActivity : LockableActivity(), TagSelectedListener {
 
     private lateinit var binding: ActivityCreateCollectionBinding
 

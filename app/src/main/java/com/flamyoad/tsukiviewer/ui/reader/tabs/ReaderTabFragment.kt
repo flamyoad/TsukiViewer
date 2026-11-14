@@ -6,6 +6,9 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -47,6 +50,7 @@ class ReaderTabFragment : Fragment(),
     private var readerListener: ReaderTabListener? = null
     private var lastReadPageNumberListener: LastReadPageNumberListener? = null
     private var shouldReturnLastReadPosition: Boolean = false
+    private var cutoutTop = 0
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -82,6 +86,7 @@ class ReaderTabFragment : Fragment(),
         initBottomThumbnails()
         initPageIndicator()
         initToolbar()
+        keepToolbarBelowCutout()
 
         viewModel.recentTabs.observe(viewLifecycleOwner, Observer {
             binding.btnTab.text = it.size.toString()
@@ -115,6 +120,27 @@ class ReaderTabFragment : Fragment(),
 
         binding.btnBack.setOnClickListener {
             readerListener?.quitActivity()
+        }
+    }
+
+    private fun keepToolbarBelowCutout() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.appBarLayout) { _, insets ->
+            cutoutTop = insets.getInsets(WindowInsetsCompat.Type.displayCutout()).top
+            val page = viewModel.currentScrolledPosition.takeIf { it >= 0 }
+                ?: arguments?.getInt(STARTING_IMAGE_POSITION, 0) ?: 0
+            updateToolbarCutoutMargin(page)
+            insets
+        }
+        ViewCompat.requestApplyInsets(binding.appBarLayout)
+    }
+
+    private fun updateToolbarCutoutMargin(page: Int) {
+        val toolbar = binding.toolbar
+        val topMargin = if (page == 0) cutoutTop else 0
+        if ((toolbar.layoutParams as ViewGroup.MarginLayoutParams).topMargin != topMargin) {
+            toolbar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                this.topMargin = topMargin
+            }
         }
     }
 
@@ -251,6 +277,7 @@ class ReaderTabFragment : Fragment(),
 
     override fun onPageChange(pageNum: Int) {
         viewModel.currentScrolledPosition = pageNum
+        if (pageNum >= 0) updateToolbarCutoutMargin(pageNum)
         setPageIndicatorNumber(pageNum + 1)
 
         val bottomLayoutManager = binding.bottomListThumbnails.layoutManager as LinearLayoutManager?

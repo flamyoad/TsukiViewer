@@ -8,7 +8,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.ProgressBar
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
+import com.flamyoad.tsukiviewer.security.LockableActivity
 import androidx.appcompat.view.ActionMode
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
@@ -39,7 +39,7 @@ private const val ACTION_MODE = "action_mode"
 private const val ADD_BOOKMARK_DIALOG = "add_bookmark_dialog"
 private const val SEARCH_VIEW = "search_view"
 
-class SearchResultActivity : AppCompatActivity(),
+class SearchResultActivity : LockableActivity(),
     ActionModeListener<Doujin>,
     SearchView.OnQueryTextListener {
 

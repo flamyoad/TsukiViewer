@@ -8,6 +8,17 @@
         app:icon="@drawable/ic_general_settings_24dp"
         app:title="General">
 
+        <androidx.preference.SwitchPreference
+            app:key="pref_app_lock"
+            app:persistent="false"
+            app:summary="@string/app_lock_summary"
+            app:title="@string/app_lock" />
+
+        <Preference
+            app:key="pref_app_lock_timeout"
+            app:persistent="false"
+            app:title="@string/app_lock_timeout" />
+
         <Preference
             app:summary="Select folders to scan"
             app:title="Included folders">

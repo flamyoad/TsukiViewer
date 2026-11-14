@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_lock_locked_title">TsukiViewer is locked</string>
+    <string name="app_lock_locked_description">Use your fingerprint, face, or device screen lock to pick up where you left off.</string>
+    <string name="app_lock_locked_hint">Going back leaves TsukiViewer locked.</string>
+    <string name="app_lock_enable_description">Verify your identity to turn on App lock. You can choose when it locks again in Settings.</string>
+    <string name="app_lock_disable_description">Verify your identity to turn off App lock.</string>
+    <string name="app_lock_back">Back</string>
+    <string name="app_lock_confirm_title">Confirm your identity</string>
+    <string name="app_lock_unlock">Unlock</string>
+    <string name="app_lock_confirm">Authenticate</string>
+    <string name="app_lock_security_settings">Open security settings</string>
+    <string name="app_lock_setup_required">Set up a screen lock or enroll a supported biometric in Android security settings.</string>
+    <string name="app_lock_use_credential">Use PIN, pattern, or password</string>
+    <string name="app_lock_save_failed">Could not save the app lock setting. Try again.</string>
+    <string name="app_lock_timeout_immediately">Immediately</string>
+    <string name="app_lock_timeout_one_minute">1 minute</string>
+    <string name="app_lock_timeout_five_minutes">5 minutes</string>
+    <string name="app_lock_timeout_fifteen_minutes">15 minutes</string>
+    <string name="app_lock_timeout_thirty_minutes">30 minutes</string>
+    <string name="app_lock_timeout_cold_start">Cold start only</string>
+</resources>

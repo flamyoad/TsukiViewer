@@ -24,7 +24,11 @@ fun TsukiNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier,
     startDestination: String = Screen.Home.route,
-    onRestartApp: () -> Unit = {}
+    onRestartApp: () -> Unit = {},
+    appLockEnabled: Boolean = false,
+    onAppLockChange: ((Boolean) -> Unit)? = null,
+    appLockTimeoutLabel: String? = null,
+    onAppLockTimeoutClick: (() -> Unit)? = null
 ) {
     NavHost(
         navController = navController,
@@ -88,7 +92,11 @@ fun TsukiNavHost(
                 onNavigateToIncludedFolders = {
                     navController.navigate(Screen.IncludedFolders.route)
                 },
-                onRestartApp = onRestartApp
+                onRestartApp = onRestartApp,
+                appLockEnabled = appLockEnabled,
+                onAppLockChange = onAppLockChange,
+                appLockTimeoutLabel = appLockTimeoutLabel,
+                onAppLockTimeoutClick = onAppLockTimeoutClick
             )
         }
         

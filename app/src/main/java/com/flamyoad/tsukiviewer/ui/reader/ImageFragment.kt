@@ -3,14 +3,13 @@ package com.flamyoad.tsukiviewer.ui.reader
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.davemorrissey.labs.subscaleview.ImageSource
-import com.flamyoad.tsukiviewer.R
+import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import com.flamyoad.tsukiviewer.databinding.ReaderImageItemBinding
 import java.io.File
 
@@ -79,9 +78,20 @@ class ImageFragment : Fragment() {
     }
 
     fun loadImage() {
-        val imagePath = arguments?.getString(IMAGE_PATH)
+        val imagePath = arguments?.getString(IMAGE_PATH) ?: return
         val image = File(imagePath)
-        binding.photoView.setImage(ImageSource.uri(Uri.fromFile(image)))
+        val photo = binding.photoView
+        photo.transitionName = ReaderActivity.pageTransitionName(image)
+        photo.setOnImageEventListener(object : SubsamplingScaleImageView.DefaultOnImageEventListener() {
+            override fun onReady() {
+                (activity as? ReaderActivity)?.onReaderPageReady(photo)
+            }
+
+            override fun onImageLoadError(e: Exception) {
+                (activity as? ReaderActivity)?.onReaderPageError(photo)
+            }
+        })
+        photo.setImage(ImageSource.uri(Uri.fromFile(image)))
     }
 
     companion object {

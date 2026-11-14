@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
+import com.flamyoad.tsukiviewer.security.LockableActivity
 import androidx.core.view.children
 import androidx.lifecycle.Observer
 import com.flamyoad.tsukiviewer.MyApplication
@@ -20,7 +20,7 @@ import javax.inject.Inject
 
 private const val BACKMOST_POSITION = -1
 
-class EditorActivity : AppCompatActivity(), CreateTagListener {
+class EditorActivity : LockableActivity(), CreateTagListener {
     
     private lateinit var binding: ActivityEditorBinding
     

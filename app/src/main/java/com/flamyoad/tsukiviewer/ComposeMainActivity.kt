@@ -2,9 +2,11 @@ package com.flamyoad.tsukiviewer
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import com.flamyoad.tsukiviewer.security.LockableActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import com.flamyoad.tsukiviewer.ui.TsukiViewerApp
 
 /**
@@ -27,14 +29,20 @@ import com.flamyoad.tsukiviewer.ui.TsukiViewerApp
  * </activity>
  * ```
  */
-class ComposeMainActivity : ComponentActivity() {
+class ComposeMainActivity : LockableActivity() {
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val appLockEnabled by appLock.enabled.collectAsState()
+            val appLockTimeout by appLock.timeout.collectAsState()
             TsukiViewerApp(
-                onRestartApp = { restartApp() }
+                onRestartApp = { restartApp() },
+                appLockEnabled = appLockEnabled,
+                onAppLockChange = ::requestAppLockChange,
+                appLockTimeoutLabel = getString(appLockTimeout.label),
+                onAppLockTimeoutClick = ::showAppLockTimeoutPicker
             )
         }
     }

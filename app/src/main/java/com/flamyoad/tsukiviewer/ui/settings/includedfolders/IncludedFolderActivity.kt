@@ -12,7 +12,7 @@ import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
+import com.flamyoad.tsukiviewer.security.LockableActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
 
-class IncludedFolderActivity : AppCompatActivity(),
+class IncludedFolderActivity : LockableActivity(),
     AddFolderListener,
     RemoveFolderListener {
 

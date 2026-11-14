@@ -98,7 +98,11 @@ private val routesWithoutBottomNav = setOf(
 @Composable
 fun TsukiViewerApp(
     modifier: Modifier = Modifier,
-    onRestartApp: () -> Unit = {}
+    onRestartApp: () -> Unit = {},
+    appLockEnabled: Boolean = false,
+    onAppLockChange: ((Boolean) -> Unit)? = null,
+    appLockTimeoutLabel: String? = null,
+    onAppLockTimeoutClick: (() -> Unit)? = null
 ) {
     TsukiViewerTheme {
         val navController = rememberNavController()
@@ -159,7 +163,11 @@ fun TsukiViewerApp(
             TsukiNavHost(
                 navController = navController,
                 modifier = Modifier.padding(innerPadding),
-                onRestartApp = onRestartApp
+                onRestartApp = onRestartApp,
+                appLockEnabled = appLockEnabled,
+                onAppLockChange = onAppLockChange,
+                appLockTimeoutLabel = appLockTimeoutLabel,
+                onAppLockTimeoutClick = onAppLockTimeoutClick
             )
         }
     }

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_lock">App lock</string>
+    <string name="app_lock_summary">Require authentication to open TsukiViewer</string>
+    <string name="app_lock_timeout">Lock after</string>
+</resources>

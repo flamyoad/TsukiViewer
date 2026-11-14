@@ -2,8 +2,7 @@ package com.flamyoad.tsukiviewer
 
 import android.content.Context
 import android.content.Intent
-import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import com.flamyoad.tsukiviewer.security.LockableActivity
 import androidx.preference.PreferenceManager
 import com.flamyoad.tsukiviewer.ui.settings.preferences.MainPreferences
 
@@ -13,10 +12,9 @@ import com.flamyoad.tsukiviewer.ui.settings.preferences.MainPreferences
  * This activity checks the "pref_use_compose_ui" preference and launches either
  * [ComposeMainActivity] or [MainActivity] accordingly.
  */
-class LauncherActivity : AppCompatActivity() {
+class LauncherActivity : LockableActivity() {
     
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onAppUnlocked() {
 
         // todo: should use di here but w/e
         val sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this)

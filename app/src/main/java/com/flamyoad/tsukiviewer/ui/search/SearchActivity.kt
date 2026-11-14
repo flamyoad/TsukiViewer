@@ -4,7 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
+import com.flamyoad.tsukiviewer.security.LockableActivity
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.children
 import androidx.fragment.app.DialogFragment
@@ -23,7 +23,7 @@ import com.flamyoad.tsukiviewer.utils.ActivityStackUtils
 import com.google.android.material.chip.Chip
 import javax.inject.Inject
 
-class SearchActivity : AppCompatActivity(), TagSelectedListener {
+class SearchActivity : LockableActivity(), TagSelectedListener {
     
     private lateinit var binding: ActivitySearchBinding
     
