@@ -135,8 +135,12 @@ class VerticalStripReaderFragment : Fragment() {
     private fun initReader(readerPosition: Int) {
         val currentDir = arguments?.getString(CURRENT_DIR) ?: ""
 
-        val imageAdapter = ReaderImageAdapter()
-        layoutManager = WebtoonLayoutManager(requireActivity() as ReaderActivity)
+        val readerActivity = requireActivity() as ReaderActivity
+        val imageAdapter = ReaderImageAdapter(
+            readerActivity::onReaderPageReady,
+            readerActivity::onReaderPageError
+        )
+        layoutManager = WebtoonLayoutManager(readerActivity)
 
         binding.listImages.adapter = imageAdapter
         binding.listImages.layoutManager = layoutManager

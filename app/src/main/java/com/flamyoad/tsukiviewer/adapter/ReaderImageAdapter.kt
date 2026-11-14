@@ -10,9 +10,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import com.flamyoad.tsukiviewer.R
+import com.flamyoad.tsukiviewer.ui.reader.ReaderActivity
 import java.io.File
 
-class ReaderImageAdapter :
+class ReaderImageAdapter(
+    private val onPageReady: (SubsamplingScaleImageView) -> Unit,
+    private val onPageError: (SubsamplingScaleImageView) -> Unit
+) :
     RecyclerView.Adapter<ReaderImageAdapter.ImageViewHolder>() {
 
     private var imageList: List<File> = emptyList()
@@ -49,17 +53,27 @@ class ReaderImageAdapter :
         private val progressBarContainer: FrameLayout = itemView.findViewById(R.id.progressBarContainer)
 
         fun bind(file: File) {
+            photoView.transitionName = ReaderActivity.pageTransitionName(file)
+            progressBarContainer.isVisible = true
             photoView.setOnImageEventListener(object :
                 SubsamplingScaleImageView.DefaultOnImageEventListener() {
                 override fun onReady() {
                     super.onReady()
                     progressBarContainer.isVisible = false
+                    onPageReady(photoView)
+                }
+
+                override fun onImageLoadError(e: Exception) {
+                    progressBarContainer.isVisible = false
+                    onPageError(photoView)
                 }
             })
             photoView.setImage(ImageSource.uri(Uri.fromFile(file)))
         }
 
         fun recycle() {
+            photoView.transitionName = null
+            photoView.setOnImageEventListener(null)
             photoView.recycle()
         }
     }

@@ -2,17 +2,22 @@ package com.flamyoad.tsukiviewer.ui.reader
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Rect
+import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.view.WindowManager
+import android.widget.ImageView
 import androidx.activity.viewModels
+import androidx.core.view.doOnPreDraw
+import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import com.flamyoad.tsukiviewer.security.LockableActivity
 import androidx.lifecycle.Observer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter
@@ -24,11 +29,15 @@ import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabFragmentAdapter
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabListener
 import com.flamyoad.tsukiviewer.utils.extensions.reduceDragSensitivitySlightly
 import com.flamyoad.tsukiviewer.utils.extensions.toast
+import java.io.File
+import java.lang.ref.WeakReference
 import javax.inject.Inject
 
 
 const val MY_KEY_DOWN_INTENT = "my_key_down_intent"
 const val KEY_CODE = "key_code"
+
+private typealias ReturnTarget = (Int, (ImageView?) -> Unit) -> Unit
 
 class ReaderActivity : LockableActivity(), ViewPagerListener, ReaderTabListener, LastReadPageNumberListener {
 
@@ -40,6 +49,12 @@ class ReaderActivity : LockableActivity(), ViewPagerListener, ReaderTabListener,
     private val viewModel: ReaderViewModel by viewModels { viewModelFactory }
 
     private var positionFromImageGrid = 0
+    private val sharedPageName by lazy { intent.getStringExtra(SHARED_PAGE) }
+    private var returningSharedPage = false
+    private val readyPages = mutableMapOf<String, WeakReference<SubsamplingScaleImageView>>()
+    private var returnAnimation: ReaderPageReturnAnimation? = null
+    private val showReader = Runnable { binding.root.alpha = 1f }
+    private var transitionSource: WeakReference<ReturnTarget>? = null
 
     private var viewPagerIndex: Int = -1
 
@@ -52,20 +67,38 @@ class ReaderActivity : LockableActivity(), ViewPagerListener, ReaderTabListener,
     override fun onCreate(savedInstanceState: Bundle?) {
         (application as MyApplication).appComponent.inject(this)
         super.onCreate(savedInstanceState)
+        if (Build.VERSION.SDK_INT >= 34) {
+            overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, R.anim.reader_no_window_animation, R.anim.reader_no_window_animation)
+            overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, R.anim.reader_no_window_animation, R.anim.reader_no_window_animation)
+        }
         binding = ActivityReaderBinding.inflate(layoutInflater)
         setContentView(binding.root)
         window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+        if (savedInstanceState == null) {
+            transitionSource = pendingSource
+            pendingSource = null
+        }
+        if (savedInstanceState == null && sharedPageName != null && !appLock.isLocked) {
+            // Keep the overview visible until the first reader page can draw.
+            binding.root.alpha = 0f
+            binding.root.postDelayed(showReader, INITIAL_PAGE_TIMEOUT_MS)
+        }
 
         viewModel.directoryNoLongerExists().observe(this, Observer { notExists ->
             if (notExists) {
+                binding.root.removeCallbacks(showReader)
+                showReader.run()
                 toast("Directory not found. Renamed or deleted?")
-//                finish()
             }
         })
         positionFromImageGrid = intent.getIntExtra(
             DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER,
             0
         )
+
+        if (savedInstanceState == null) {
+            viewModel.lastReadImagePosition = positionFromImageGrid
+        }
 
         val currentDir = intent.getStringExtra(DoujinImagesAdapter.DIRECTORY_PATH) ?: ""
         viewModel.insertRecentTab(currentDir)
@@ -82,7 +115,7 @@ class ReaderActivity : LockableActivity(), ViewPagerListener, ReaderTabListener,
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {
-                finish()
+                closeReader()
             }
         }
         return true
@@ -173,14 +206,68 @@ class ReaderActivity : LockableActivity(), ViewPagerListener, ReaderTabListener,
         binding.viewPager.setCurrentItem(position, false)
     }
 
-    override fun onBackPressed() {
-        returnLastReadPageNumber()
-        super.onBackPressed()
+    override fun onBackPressed() = closeReader()
+
+    override fun quitActivity() = closeReader()
+
+    internal fun onReaderPageError(page: SubsamplingScaleImageView) {
+        if (sharedPageName == null || page.transitionName != sharedPageName) return
+        binding.root.removeCallbacks(showReader)
+        showReader.run()
     }
 
-    override fun quitActivity() {
+    internal fun onReaderPageReady(page: SubsamplingScaleImageView) {
+        val name = page.transitionName ?: return
+        readyPages.entries.removeAll { it.value.get()?.transitionName != it.key }
+        readyPages[name] = WeakReference(page)
+        if (name != sharedPageName) return
+        page.doOnPreDraw {
+            binding.root.removeCallbacks(showReader)
+            showReader.run()
+        }
+    }
+
+    override fun onDestroy() {
+        binding.root.removeCallbacks(showReader)
+        returnAnimation?.cancel()
+        super.onDestroy()
+    }
+
+    private fun closeReader() {
+        if (returningSharedPage || isFinishing) return
         returnLastReadPageNumber()
+        val position = viewModel.lastReadImagePosition
+        val source = transitionSource?.get()
+        val currentDirectory = intent.getStringExtra(DoujinImagesAdapter.DIRECTORY_PATH)
+        val originalTab = currentDirectory?.let { tabFragmentAdapter.getTab(it) }
+        val onOriginalTab = originalTab?.id?.let { tabFragmentAdapter.getTabPosition(it) } ==
+            binding.viewPager.currentItem
+        if (appLock.isLocked || !onOriginalTab || source == null) {
+            finishWithoutWindowAnimation()
+            return
+        }
+
+        returningSharedPage = true
+        source(position) { thumbnail ->
+            if (isFinishing || isDestroyed) return@source
+            val name = thumbnail?.transitionName
+            val page = readyPages[name]?.get()
+            if (!appLock.isLocked && thumbnail != null && page != null &&
+                page.transitionName == name && page.isAttachedToWindow &&
+                page.alpha > 0f && page.getGlobalVisibleRect(Rect())
+            ) {
+                returnAnimation = ReaderPageReturnAnimation.start(
+                    page, binding.root, thumbnail, ::finishWithoutWindowAnimation
+                )
+            }
+            if (returnAnimation == null) finishWithoutWindowAnimation()
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun finishWithoutWindowAnimation() {
         finish()
+        if (Build.VERSION.SDK_INT < 34) overridePendingTransition(0, 0)
     }
 
     override fun setUserInputEnabled(isEnabled: Boolean) {
@@ -210,6 +297,17 @@ class ReaderActivity : LockableActivity(), ViewPagerListener, ReaderTabListener,
     }
 
     companion object {
+        private const val SHARED_PAGE = "reader_shared_page"
+        private var pendingSource: WeakReference<ReturnTarget>? = null
+
+        internal fun setTransitionSource(intent: Intent, file: File, source: ReturnTarget) {
+            pendingSource = WeakReference(source)
+            intent.putExtra(SHARED_PAGE, pageTransitionName(file))
+        }
+        private const val INITIAL_PAGE_TIMEOUT_MS = 2_000L
+
+        internal fun pageTransitionName(file: File): String = "reader-page:" + file.absolutePath
+
         private const val VIEWPAGER_INDEX = "viewpager_index"
         const val RECENT_TAB_REQUEST_CODE = 101
     }

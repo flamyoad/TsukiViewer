@@ -3,7 +3,6 @@ package com.flamyoad.tsukiviewer.adapter
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,14 +18,13 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.ui.reader.ReaderActivity
 import com.flamyoad.tsukiviewer.ui.settings.preferences.MainPreferences
 import com.flamyoad.tsukiviewer.utils.TimeUtils
-import org.w3c.dom.Text
 import java.io.File
 
 
 class DoujinImagesAdapter(
     private val itemType: ItemType,
     private val currentDir: String,
-    private val startActivityForResult: (Intent) -> Unit // Function is passed from Activity to here since startActivityForResult() can only be called from Activity
+    private val openReader: (Intent, File) -> Unit
 ) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
@@ -56,7 +54,8 @@ class DoujinImagesAdapter(
         }
 
         layout.setOnClickListener {
-            val image = imageList[holder.adapterPosition]
+            val position = holder.bindingAdapterPosition
+            val image = imageList.getOrNull(position) ?: return@setOnClickListener
 
             val context = parent.context
 
@@ -69,10 +68,10 @@ class DoujinImagesAdapter(
                 launchExternalGallery(context, image)
             } else {
                 val intent = Intent(context, ReaderActivity::class.java)
-                intent.putExtra(POSITION_BEFORE_OPENING_READER, holder.adapterPosition)
+                intent.putExtra(POSITION_BEFORE_OPENING_READER, position)
                 intent.putExtra(DIRECTORY_PATH, currentDir)
 
-                startActivityForResult(intent)
+                openReader(intent, image)
             }
         }
 
@@ -80,7 +79,7 @@ class DoujinImagesAdapter(
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        val image = imageList[holder.adapterPosition]
+        val image = imageList[position]
         when (itemType) {
             ItemType.List -> (holder as DetailedImageViewHolder).bind(image)
             else -> (holder as ImageViewHolder).bind(image)
@@ -135,6 +134,7 @@ class DoujinImagesAdapter(
         val imageView: ImageView = itemView.findViewById(R.id.imageView)
 
         fun bind(file: File) {
+            imageView.transitionName = ReaderActivity.pageTransitionName(file)
             Glide.with(itemView.context)
                 .load(file.toUri())
                 .skipMemoryCache(true)
@@ -153,6 +153,7 @@ class DoujinImagesAdapter(
         val txtDate: TextView = itemView.findViewById(R.id.txtDate)
 
         fun bind(file: File) {
+            imageView.transitionName = ReaderActivity.pageTransitionName(file)
             Glide.with(itemView.context)
                 .load(file.toUri())
                 .transition(withCrossFade())

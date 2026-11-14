@@ -5,7 +5,6 @@
     android:id="@+id/parentLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorPrimary"
     android:fitsSystemWindows="true"
     tools:context=".ui.reader.ReaderActivity">
 
@@ -80,7 +79,6 @@
         android:id="@+id/imageContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/colorPrimary"
         app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior" />
 
     <View
