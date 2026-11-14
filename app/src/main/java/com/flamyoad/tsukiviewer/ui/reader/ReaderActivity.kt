@@ -12,6 +12,10 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.ImageView
 import android.view.animation.AnimationUtils
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.doOnPreDraw
 import androidx.activity.viewModels
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
@@ -72,8 +76,8 @@ class ReaderActivity : LockableActivity(), ViewPagerListener, ReaderTabListener,
             overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, R.anim.reader_no_window_animation, R.anim.reader_no_window_animation)
         }
         binding = ActivityReaderBinding.inflate(layoutInflater)
+        configureFullscreen()
         setContentView(binding.root)
-        window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
         if (savedInstanceState == null) {
             transitionSource = pendingSource
             pendingSource = null
@@ -105,6 +109,32 @@ class ReaderActivity : LockableActivity(), ViewPagerListener, ReaderTabListener,
 
         setupViewPager()
         binding.viewPager.reduceDragSensitivitySlightly()
+    }
+
+    private fun configureFullscreen() {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        if (Build.VERSION.SDK_INT >= 28) {
+            val attributes = window.attributes
+            attributes.layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            window.attributes = attributes
+        }
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            hide(WindowInsetsCompat.Type.statusBars())
+        }
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            val navigation = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            val cutout = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
+            binding.viewPager.setPadding(
+                maxOf(navigation.left, cutout.left),
+                0,
+                maxOf(navigation.right, cutout.right),
+                maxOf(navigation.bottom, cutout.bottom)
+            )
+            insets
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
