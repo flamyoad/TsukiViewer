@@ -23,8 +23,10 @@ const val DATABASE_NAME = "com.flamyoad.android.tsukiviewer.AppDatabase"
     SearchHistory::class,
     Collection::class,
     CollectionCriteria::class,
-    RecentTab::class
-    ), version = 5)
+    RecentTab::class,
+    CoverFingerprintEntry::class,
+    RelatedMangaCacheEntry::class
+    ), version = 7)
 
 abstract class AppDatabase: RoomDatabase() {
 
@@ -40,6 +42,8 @@ abstract class AppDatabase: RoomDatabase() {
     abstract fun collectionCriteriaDao(): CollectionCriteriaDao
     abstract fun collectionDoujinDao(): CollectionDoujinDao
     abstract fun recentTabDao(): RecentTabDao
+    abstract fun coverFingerprintDao(): CoverFingerprintDao
+    abstract fun relatedMangaCacheDao(): RelatedMangaCacheDao
 
     companion object {
         @Volatile
@@ -71,13 +75,42 @@ abstract class AppDatabase: RoomDatabase() {
             }
         }
 
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `cover_fingerprints` (
+                        `directoryPath` TEXT NOT NULL PRIMARY KEY,
+                        `coverPath` TEXT NOT NULL,
+                        `lastModified` INTEGER NOT NULL,
+                        `byteCount` INTEGER NOT NULL,
+                        `algorithmVersion` INTEGER NOT NULL,
+                        `horizontalHash` INTEGER,
+                        `verticalHash` INTEGER
+                    )
+                """.trimIndent())
+            }
+        }
+
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `related_manga_cache` (
+                        `directoryPath` TEXT NOT NULL PRIMARY KEY,
+                        `libraryKey` TEXT NOT NULL,
+                        `savedAt` INTEGER NOT NULL,
+                        `payload` TEXT NOT NULL
+                    )
+                """.trimIndent())
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
                     DATABASE_NAME)
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
                     .build()
 
                 INSTANCE = instance

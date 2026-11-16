@@ -4,15 +4,26 @@ import android.app.Application
 import android.net.Uri
 import androidx.core.net.toUri
 import androidx.lifecycle.*
+import androidx.preference.PreferenceManager
 import com.flamyoad.tsukiviewer.MyAppPreference
+import com.flamyoad.tsukiviewer.core.db.AppDatabase
 import com.flamyoad.tsukiviewer.core.model.BookmarkGroup
 import com.flamyoad.tsukiviewer.core.model.DoujinDetailsWithTags
 import com.flamyoad.tsukiviewer.core.model.Source
 import com.flamyoad.tsukiviewer.core.repository.BookmarkRepository
 import com.flamyoad.tsukiviewer.core.repository.MetadataRepository
+import com.flamyoad.tsukiviewer.core.repository.RELATED_MANGA_PAGE_SIZE
+import com.flamyoad.tsukiviewer.core.repository.RelatedMangaRepository
 import com.flamyoad.tsukiviewer.utils.ImageFileFilter
 import com.flamyoad.tsukiviewer.utils.WindowsExplorerComparator
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -61,6 +72,23 @@ class DoujinViewModel @Inject constructor(
 
     var currentPath: String = ""
 
+    private val relatedMangaPath = MutableStateFlow<File?>(null)
+    private val relatedMangaCount = MutableStateFlow(RELATED_MANGA_PAGE_SIZE)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val relatedMangaPages = relatedMangaPath.filterNotNull()
+        .flatMapLatest { directory ->
+            val repository = RelatedMangaRepository(AppDatabase.getInstance(application))
+            val preferences = PreferenceManager.getDefaultSharedPreferences(application)
+            repository.observePages(directory, preferences, relatedMangaCount)
+        }
+        .combine(relatedMangaCount) { results, count -> results to count }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null to RELATED_MANGA_PAGE_SIZE)
+
+    fun showMoreRelatedManga() {
+        relatedMangaCount.value += RELATED_MANGA_PAGE_SIZE
+    }
+
     init {
         gridViewStyle.value = myAppPreference.getDefaultViewStyle()
         landingPage.value = myAppPreference.getDefaultLandingPage()
@@ -75,6 +103,8 @@ class DoujinViewModel @Inject constructor(
         }
 
         val dir = File(dirPath)
+        relatedMangaCount.value = RELATED_MANGA_PAGE_SIZE
+        relatedMangaPath.value = dir.takeIf { dirPath.isNotBlank() }
 
         detailWithTags = metadataRepo
             .doujinDetailsDao

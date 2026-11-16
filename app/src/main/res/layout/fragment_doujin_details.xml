@@ -85,15 +85,10 @@
 
         <TextView
             android:id="@+id/lblTag"
+            style="@style/DoujinDetailsSectionHeader"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="@color/blackOlive"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="8dp"
             android:text="TAGS"
-            android:textColor="@android:color/white"
-            android:textSize="15sp"
-            android:typeface="monospace"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/imgBackground" />
@@ -131,6 +126,63 @@
                 tools:visibility="visible" />
         </FrameLayout>
 
+        <LinearLayout
+            android:id="@+id/relatedMangaSection"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="12dp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tagLayout">
+
+            <TextView
+                style="@style/DoujinDetailsSectionHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:accessibilityHeading="true"
+                android:text="@string/related_manga" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/relatedMangaCards"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"
+                android:paddingStart="8dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/relatedMangaStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:baselineAligned="false"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="8dp">
+
+                <ProgressBar
+                    android:id="@+id/relatedMangaProgress"
+                    style="?android:attr/progressBarStyleSmall"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="8dp"
+                    android:importantForAccessibility="no" />
+
+                <TextView
+                    android:id="@+id/relatedMangaMessage"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:accessibilityLiveRegion="polite"
+                    android:includeFontPadding="false"
+                    android:textColor="@color/mainTextColor"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </LinearLayout>
+
         <!--
             This divider is not used. I just feel lazy to remove it
             since I have to refactor the constraints if this gets removed
@@ -143,19 +195,14 @@
             android:background="@android:color/transparent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tagLayout" />
+            app:layout_constraintTop_toBottomOf="@id/relatedMangaSection" />
 
         <TextView
             android:id="@+id/lblFolderDetails"
+            style="@style/DoujinDetailsSectionHeader"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="@color/blackOlive"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="8dp"
             android:text="FOLDER DETAILS"
-            android:textColor="@android:color/white"
-            android:textSize="15sp"
-            android:typeface="monospace"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/verticalDivider" />

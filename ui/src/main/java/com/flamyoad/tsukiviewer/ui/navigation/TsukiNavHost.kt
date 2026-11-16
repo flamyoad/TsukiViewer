@@ -118,6 +118,9 @@ fun TsukiNavHost(
             val doujinPath = Screen.DoujinDetails.decodePath(encodedPath)
             DoujinDetailsScreen(
                 doujinPath = doujinPath,
+                onRelatedMangaClick = { path ->
+                    navController.navigate(Screen.DoujinDetails.createRoute(path))
+                },
                 onNavigateBack = {
                     navController.popBackStack()
                 },

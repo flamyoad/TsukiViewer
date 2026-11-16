@@ -1,5 +1,7 @@
 package com.flamyoad.tsukiviewer.ui.screens.settings
 
+import com.flamyoad.tsukiviewer.core.prefs.PreferenceKeys
+
 /**
  * UI state for settings screen.
  */
@@ -12,6 +14,7 @@ data class SettingsUiState(
     val defaultGridViewStyle: GridViewStyle = GridViewStyle.SCALED,
     val useWindowsExplorerSort: Boolean = false,
     val doujinViewMode: DoujinViewMode = DoujinViewMode.NORMAL_GRID,
+    val showRelatedManga: Boolean = PreferenceKeys.SHOW_RELATED_MANGA_DEFAULT,
     val useComposeUi: Boolean = true,  // Toggle between Compose and XML views
     val isLoading: Boolean = false,
     val showGalleryPickerDialog: Boolean = false,

@@ -254,6 +254,7 @@ class MetadataRepository(
                 doujinTagDao.insert(DoujinTag(doujinId, tagId))
             }
         }
+        RelatedMangaRepository.invalidateLibrary(db)
         return item.title.english
     }
 
@@ -285,6 +286,7 @@ class MetadataRepository(
                     insertTagElseIncrement(doujinId, tag)
                 }
             }
+            RelatedMangaRepository.invalidateLibrary(db)
         }
     }
 
@@ -323,6 +325,7 @@ class MetadataRepository(
                 doujinTagDao.deleteFromDoujin(doujinDetails.id!!)
                 doujinTagDao.decrementTagCount(doujinDetails.id)
             }
+            RelatedMangaRepository.invalidateLibrary(db)
         }
     }
 

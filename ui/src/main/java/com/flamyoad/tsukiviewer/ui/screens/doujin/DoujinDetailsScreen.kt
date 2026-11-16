@@ -72,16 +72,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.preference.PreferenceManager
 import coil.compose.AsyncImage
 import com.flamyoad.tsukiviewer.core.db.AppDatabase
 import com.flamyoad.tsukiviewer.core.repository.BookmarkRepository
 import com.flamyoad.tsukiviewer.core.repository.MetadataRepository
+import com.flamyoad.tsukiviewer.core.repository.RelatedManga
+import com.flamyoad.tsukiviewer.core.repository.RelatedMangaRepository
 import com.flamyoad.tsukiviewer.ui.screens.doujin.components.BookmarkDialog
 import com.flamyoad.tsukiviewer.ui.screens.doujin.components.TagGroup
 import com.flamyoad.tsukiviewer.ui.theme.ColorPrimaryLight
@@ -90,6 +96,7 @@ import com.flamyoad.tsukiviewer.ui.theme.TextWhite
 import com.flamyoad.tsukiviewer.ui.theme.TsukiViewerTheme
 import com.flamyoad.tsukiviewer.ui.theme.WineRed
 import kotlinx.coroutines.launch
+import java.io.File
 
 private enum class DoujinTab(val title: String) {
     Details("Details"),
@@ -104,7 +111,8 @@ fun DoujinDetailsScreen(
     onReadClick: () -> Unit,
     onImageClick: (Int) -> Unit = {},
     onTagClick: (TagUiModel) -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onRelatedMangaClick: (String) -> Unit
 ) {
     val context = LocalContext.current
     val application = context.applicationContext as Application
@@ -140,6 +148,15 @@ fun DoujinDetailsScreen(
     
     val tabs = DoujinTab.entries
     val pagerState = rememberPagerState(pageCount = { tabs.size })
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    val relatedRepository = remember(db) { RelatedMangaRepository(db) }
+    val preferences = remember(application) { PreferenceManager.getDefaultSharedPreferences(application) }
+    var relatedManga by remember(doujinPath) { mutableStateOf(emptyList<RelatedManga>()) }
+    LaunchedEffect(lifecycle, doujinPath) {
+        lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            relatedRepository.observe(File(doujinPath), preferences).collect { relatedManga = it }
+        }
+    }
     
     // Load doujin details when path changes
     LaunchedEffect(doujinPath) {
@@ -274,6 +291,8 @@ fun DoujinDetailsScreen(
                         DoujinTab.Details -> DoujinDetailsContent(
                             uiState = uiState,
                             onTagClick = onTagClick,
+                            relatedManga = relatedManga,
+                            onRelatedMangaClick = onRelatedMangaClick,
                             modifier = Modifier.fillMaxSize()
                         )
                         DoujinTab.Images -> DoujinImagesContent(
@@ -293,7 +312,9 @@ fun DoujinDetailsScreen(
 private fun DoujinDetailsContent(
     uiState: DoujinDetailsUiState,
     onTagClick: (TagUiModel) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    relatedManga: List<RelatedManga> = emptyList(),
+    onRelatedMangaClick: (String) -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
     
@@ -504,6 +525,10 @@ private fun DoujinDetailsContent(
             }
         }
         
+        if (relatedManga.isNotEmpty()) {
+            RelatedMangaRow(relatedManga, onRelatedMangaClick)
+        }
+
         // Bottom spacing for FAB
         Spacer(modifier = Modifier.height(80.dp))
     }

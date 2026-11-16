@@ -15,6 +15,8 @@ import com.flamyoad.tsukiviewer.core.model.Source
 import com.flamyoad.tsukiviewer.service.FetchMetadataService
 import com.flamyoad.tsukiviewer.core.repository.BookmarkRepository
 import com.flamyoad.tsukiviewer.core.repository.MetadataRepository
+import com.flamyoad.tsukiviewer.core.db.AppDatabase
+import com.flamyoad.tsukiviewer.core.repository.RelatedMangaRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -115,6 +117,8 @@ class LocalDoujinViewModel @Inject constructor(
 
             withContext(Dispatchers.IO) {
                 includedDirectories = metadataRepo.pathDao.getAllBlocking()
+                val previousLibrary = (app as MyApplication).fullDoujinList
+                    ?.associate { it.path to it.lastModified }
 
                 // Clears doujins from directories previously included, but are now removed by the user
                 if (doujinListBuffer.isNotEmpty()) {
@@ -135,6 +139,9 @@ class LocalDoujinViewModel @Inject constructor(
 
                 withContext(Dispatchers.Main) {
                     (app as MyApplication).fullDoujinList = doujinListBuffer
+                    if (previousLibrary != null && previousLibrary != doujinListBuffer.associate { it.path to it.lastModified }) {
+                        RelatedMangaRepository.invalidateLibrary(AppDatabase.getInstance(app))
+                    }
                     isLoading.value = false
 
                     if (shouldSendDirsToService) {

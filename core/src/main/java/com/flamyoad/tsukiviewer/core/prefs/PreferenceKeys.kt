@@ -17,6 +17,8 @@ object PreferenceKeys {
     const val COLLECTION_VIEW_STYLE = "pref_collection_view_style"
     const val DOUJIN_VIEW_MODE = "pref_doujin_view_mode"
     const val DOUJIN_DETAILS_LANDING_SCR = "pref_doujin_details_landing_screen"
+    const val SHOW_RELATED_MANGA = "pref_show_related_manga"
+    const val SHOW_RELATED_MANGA_DEFAULT = true
     const val USE_COMPOSE_UI = "pref_use_compose_ui"
     
     // Volume button preferences
