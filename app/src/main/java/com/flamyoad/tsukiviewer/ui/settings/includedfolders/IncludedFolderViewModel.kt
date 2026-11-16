@@ -1,5 +1,6 @@
 package com.flamyoad.tsukiviewer.ui.settings.includedfolders
 
+import com.flamyoad.tsukiviewer.core.repository.RelatedMangaRepository
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
@@ -21,12 +22,14 @@ class IncludedFolderViewModel @Inject constructor(
         val folder = IncludedPath(dir = dir.canonicalFile)
         viewModelScope.launch {
             pathDao.insert(folder)
+            RelatedMangaRepository.invalidateLibrary()
         }
     }
 
     fun delete(includedPath: IncludedPath) {
         viewModelScope.launch {
             pathDao.delete(includedPath)
+            RelatedMangaRepository.invalidateLibrary()
         }
     }
 }

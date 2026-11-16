@@ -1,5 +1,6 @@
 package com.flamyoad.tsukiviewer.ui.settings
 
+import com.flamyoad.tsukiviewer.core.repository.RelatedMangaRepository
 import android.app.Application
 import android.content.Intent
 import android.content.SharedPreferences
@@ -58,6 +59,7 @@ class SettingsViewModel @Inject constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             doujinDetailsDao.deleteAll()
+            RelatedMangaRepository.invalidateLibrary()
 
             withContext(Dispatchers.Main) {
                 isRemovingItems.value = false
@@ -72,10 +74,10 @@ class SettingsViewModel @Inject constructor(
             db.withTransaction {
                 doujinTagsDao.deleteAll()
                 tagDao.deleteAll()
-
-                withContext(Dispatchers.Main) {
-                    isRemovingItems.value = false
-                }
+            }
+            RelatedMangaRepository.invalidateLibrary(db)
+            withContext(Dispatchers.Main) {
+                isRemovingItems.value = false
             }
         }
     }

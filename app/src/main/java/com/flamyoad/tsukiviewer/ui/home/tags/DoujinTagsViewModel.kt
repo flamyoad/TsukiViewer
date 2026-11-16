@@ -1,5 +1,6 @@
 package com.flamyoad.tsukiviewer.ui.home.tags
 
+import com.flamyoad.tsukiviewer.core.repository.RelatedMangaRepository
 import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.core.db.dao.DoujinTagsDao
 import com.flamyoad.tsukiviewer.core.db.dao.TagDao
@@ -116,6 +117,7 @@ class DoujinTagsViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             doujinTagDao.deleteFromTag(tagId)
             tagDao.delete(tagId)
+            RelatedMangaRepository.invalidateLibrary()
         }
     }
 }

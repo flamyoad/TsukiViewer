@@ -1,6 +1,7 @@
 package com.flamyoad.tsukiviewer.ui.doujinpage
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
 import android.text.Spannable
@@ -8,12 +9,19 @@ import android.text.SpannableString
 import android.text.style.StyleSpan
 import android.util.Log
 import android.view.*
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
+import com.flamyoad.tsukiviewer.core.R as CoreR
 import com.flamyoad.tsukiviewer.adapter.DoujinTagsAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.databinding.FragmentDoujinDetailsBinding
@@ -21,6 +29,7 @@ import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.core.model.DoujinDetails
 import com.flamyoad.tsukiviewer.core.model.DoujinDetailsWithTags
 import com.flamyoad.tsukiviewer.core.model.Source
+import com.flamyoad.tsukiviewer.core.repository.RelatedManga
 import com.flamyoad.tsukiviewer.service.FetchMetadataService
 import com.flamyoad.tsukiviewer.ui.home.local.DialogSelectSource
 import com.flamyoad.tsukiviewer.ui.home.local.SelectSourceListener
@@ -30,6 +39,7 @@ import com.flamyoad.tsukiviewer.utils.TimeUtils
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxLayoutManager
+import kotlinx.coroutines.launch
 import java.io.File
 import java.util.*
 import javax.inject.Inject
@@ -59,8 +69,71 @@ class FragmentDoujinDetails : Fragment(), SelectSourceListener {
     }
 
     override fun onDestroyView() {
+        binding.relatedMangaCards.adapter = null
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val path = requireActivity().intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH)
+        if (path.isNullOrBlank()) return
+
+        val adapter = RelatedMangaAdapter(Glide.with(this), ::openRelatedManga)
+        val cards = binding.relatedMangaCards
+        val layout = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        cards.layoutManager = layout
+        cards.adapter = adapter
+        cards.isNestedScrollingEnabled = false
+
+        var canLoadMore = false
+        cards.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                if (!canLoadMore || adapter.itemCount == 0) return
+                val lastVisible = layout.findLastVisibleItemPosition()
+                val allItemsFit = !cards.canScrollHorizontally(-1) && !cards.canScrollHorizontally(1)
+                if (lastVisible != RecyclerView.NO_POSITION && lastVisible >= adapter.itemCount - 2 &&
+                    (dx != 0 || allItemsFit)
+                ) {
+                    canLoadMore = false
+                    viewModel.showMoreRelatedManga()
+                }
+            }
+        })
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                viewModel.relatedMangaPages.collect { (result, count) ->
+                    val visible = result?.matches.orEmpty().take(count)
+                    val searching = result?.searching == true
+                    binding.relatedMangaSection.isVisible = result != null
+                    cards.isVisible = visible.isNotEmpty()
+                    binding.relatedMangaStatus.isVisible = result != null && (searching || visible.isEmpty())
+                    binding.relatedMangaProgress.isVisible = searching
+                    binding.relatedMangaMessage.setText(
+                        if (searching) CoreR.string.related_manga_searching else CoreR.string.related_manga_empty
+                    )
+                    canLoadMore = false
+                    adapter.submitList(visible) {
+                        canLoadMore = result != null &&
+                            (result.matches.size > count || result.canSearchMore && result.matches.size == count)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun openRelatedManga(match: RelatedManga) {
+        val context = requireContext()
+        val intent = Intent(context, DoujinDetailsActivity::class.java).apply {
+            putExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH, match.directory.path)
+            putExtra(LocalDoujinsAdapter.DOUJIN_NAME, match.title)
+            putExtra(DoujinDetailsActivity.OPEN_OVERVIEW, true)
+            if (ActivityStackUtils.shouldStartWithClearTop(context)) {
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            }
+        }
+        saveActivityInfo()
+        startActivity(intent)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

@@ -58,6 +58,12 @@
 
         <androidx.preference.SwitchPreference
             app:defaultValue="true"
+            app:key="pref_show_related_manga"
+            app:summary="@string/show_related_manga_summary"
+            app:title="@string/show_related_manga" />
+
+        <androidx.preference.SwitchPreference
+            app:defaultValue="true"
             app:key="pref_use_compose_ui"
             app:summary="Switch between modern Compose UI and classic XML views. App will restart when changed."
             app:title="Use new Compose UI" />

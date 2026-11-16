@@ -37,7 +37,8 @@ object ActivityStackUtils {
             is ActivityHistory.DoujinDetailsActivity -> {
                 ActivityHistory.DoujinDetailsActivity(
                     dirPath = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH) ?: return,
-                    doujinName = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_NAME) ?: return
+                    doujinName = intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_NAME) ?: return,
+                    openOverview = intent.getBooleanExtra(DoujinDetailsActivity.OPEN_OVERVIEW, false)
                 )
             }
             is ActivityHistory.SearchResultActivity -> {
@@ -73,6 +74,7 @@ object ActivityStackUtils {
                     flags = FLAG_ACTIVITY_CLEAR_TOP
                     putExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH, activityHistory.dirPath)
                     putExtra(LocalDoujinsAdapter.DOUJIN_NAME, activityHistory.doujinName)
+                    putExtra(DoujinDetailsActivity.OPEN_OVERVIEW, activityHistory.openOverview)
                 }
             }
             is ActivityHistory.SearchResultActivity -> {

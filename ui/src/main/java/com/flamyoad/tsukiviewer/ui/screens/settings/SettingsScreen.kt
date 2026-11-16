@@ -45,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import com.flamyoad.tsukiviewer.core.R as CoreR
 import com.flamyoad.tsukiviewer.ui.R
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
@@ -207,6 +208,15 @@ fun SettingsScreen(
                     
                     HorizontalDivider()
                     
+                    SwitchPreference(
+                        title = stringResource(CoreR.string.show_related_manga),
+                        summary = stringResource(CoreR.string.show_related_manga_summary),
+                        checked = uiState.showRelatedManga,
+                        onCheckedChange = viewModel::setShowRelatedManga
+                    )
+
+                    HorizontalDivider()
+
                     SwitchPreference(
                         title = "Use new Compose UI",
                         summary = if (uiState.useComposeUi) "Using modern Compose screens" else "Using classic XML views",

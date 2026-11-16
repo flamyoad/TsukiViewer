@@ -1,5 +1,6 @@
 package com.flamyoad.tsukiviewer.ui.screens.settings.includedfolders
 
+import com.flamyoad.tsukiviewer.core.repository.RelatedMangaRepository
 import android.app.Application
 import android.os.Build
 import android.os.Environment
@@ -91,6 +92,7 @@ class IncludedFoldersViewModel(
                 
                 val includedPath = IncludedPath(dir = file.canonicalFile)
                 pathDao.insert(includedPath)
+                RelatedMangaRepository.invalidateLibrary(database)
                 _uiState.update { it.copy(snackbarMessage = "Folder added: ${file.name}") }
             } catch (e: Exception) {
                 _uiState.update { it.copy(snackbarMessage = "Failed to add folder: ${e.message}") }
@@ -106,6 +108,7 @@ class IncludedFoldersViewModel(
                 if (folderToRemove != null) {
                     val includedPath = IncludedPath(dir = File(folderToRemove.path))
                     pathDao.delete(includedPath)
+                    RelatedMangaRepository.invalidateLibrary(database)
                     _uiState.update { it.copy(snackbarMessage = "Folder removed: ${folderToRemove.displayName}") }
                 }
             } catch (e: Exception) {

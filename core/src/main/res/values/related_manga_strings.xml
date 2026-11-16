@@ -1,0 +1,15 @@
+<resources>
+    <string name="related_manga">Related manga</string>
+    <string name="related_manga_searching">Looking for related manga…</string>
+    <string name="related_manga_empty">No related manga found in your library.</string>
+    <string name="show_related_manga">Show related manga</string>
+    <string name="show_related_manga_summary">Suggest titles from your local library in the overview</string>
+    <string name="related_same_series_and_character">Same series and character</string>
+    <string name="related_same_series">Same series</string>
+    <string name="related_shared_character">Shares a character</string>
+    <string name="related_similar_title">Similar title</string>
+    <string name="related_shared_folder_tag">Shared folder tag</string>
+    <string name="related_similar_cover">Similar cover</string>
+    <string name="related_shared_artist">Same artist</string>
+    <string name="related_shared_tags">Shares tags</string>
+</resources>

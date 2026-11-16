@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import androidx.core.content.edit
+import com.flamyoad.tsukiviewer.core.prefs.PreferenceKeys
 
 /**
  * ViewModel for the Settings screen.
@@ -56,12 +57,20 @@ class SettingsViewModel(
                     useWindowsExplorerSort = windowsSort,
                     doujinViewMode = DoujinViewMode.entries.getOrElse(viewModeOrdinal) { DoujinViewMode.NORMAL_GRID },
                     useComposeUi = useComposeUi,
+                    showRelatedManga = prefs.getBoolean(
+                        PreferenceKeys.SHOW_RELATED_MANGA, PreferenceKeys.SHOW_RELATED_MANGA_DEFAULT
+                    ),
                     isLoading = false
                 )
             }
         }
     }
     
+    fun setShowRelatedManga(value: Boolean) {
+        prefs.edit { putBoolean(PreferenceKeys.SHOW_RELATED_MANGA, value) }
+        _uiState.update { it.copy(showRelatedManga = value) }
+    }
+
     fun setUseExternalGallery(value: Boolean) {
         prefs.edit { putBoolean(PREF_USE_EXTERNAL_GALLERY, value) }
         _uiState.update { it.copy(useExternalGallery = value) }

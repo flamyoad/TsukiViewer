@@ -101,7 +101,7 @@ class DoujinDetailsActivity : LockableActivity() {
 
         viewModel.landingPage().observe(this, Observer {
             // Do not trigger on screen rotation. Only trigger on first time when entering activity
-            if (savedInstanceState != null) return@Observer
+            if (savedInstanceState != null || intent.getBooleanExtra(OPEN_OVERVIEW, false)) return@Observer
 
             when (it) {
                 LandingPageMode.DoujinDetails -> binding.viewpager.setCurrentItem(0, false)
@@ -175,6 +175,7 @@ class DoujinDetailsActivity : LockableActivity() {
     }
 
     companion object {
+        internal const val OPEN_OVERVIEW = "open_overview"
         private const val VIEWPAGER_POSITION = "viewpager_position"
     }
 }
