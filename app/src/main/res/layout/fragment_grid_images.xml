@@ -8,7 +8,7 @@
     tools:context=".ui.doujinpage.FragmentGridImages"
     android:background="@color/webDraculaBackgroundColor">
 
-    <com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
+    <com.flamyoad.tsukiviewer.utils.ui.PinchFastScrollRecyclerView
         android:id="@+id/listImages"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

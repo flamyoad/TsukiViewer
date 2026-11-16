@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.flamyoad.tsukiviewer.ActionModeListener
 import com.flamyoad.tsukiviewer.MyAppPreference
+import com.flamyoad.tsukiviewer.MyAppPreference.XmlGrid
 import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
@@ -28,7 +29,7 @@ import com.flamyoad.tsukiviewer.core.model.ViewMode
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
 import com.flamyoad.tsukiviewer.utils.ActivityHistory
 import com.flamyoad.tsukiviewer.utils.ActivityStackUtils
-import com.flamyoad.tsukiviewer.utils.ui.GridItemDecoration
+import com.flamyoad.tsukiviewer.utils.ui.GridPinchGesture
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -69,6 +70,7 @@ class SearchResultActivity : LockableActivity(),
 
         initRecyclerView(appPreference.getDoujinViewMode())
         initToolbar()
+        viewModel.searchedResult().observe(this, Observer { adapter.setList(it) })
         handleIntent(getIntent())
 
         viewModel.snackbarText.observe(this, Observer { text ->
@@ -86,6 +88,17 @@ class SearchResultActivity : LockableActivity(),
                 actionMode?.invalidate()
             }
         })
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val landscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val recycler = binding.listSearchedDoujins
+        val manager = recycler.layoutManager as? GridLayoutManager ?: return
+        val span = appPreference.getXmlGridSpan(
+            XmlGrid.LIBRARY, adapter.getViewMode(), landscape, manager.spanCount
+        )
+        recycler.gridPinch.restoreSpanCount(span)
     }
 
     override fun onBackPressed() {
@@ -223,44 +236,24 @@ class SearchResultActivity : LockableActivity(),
         adapter.setViewMode(viewMode)
         adapter.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
 
-        val spanCount = when (resources.configuration.orientation) {
-            Configuration.ORIENTATION_PORTRAIT -> {
-                when (viewMode) {
-                    ViewMode.NORMAL_GRID -> 2
-                    ViewMode.MINI_GRID -> 3
-                    ViewMode.SCALED -> 2
-                }
-            }
-            Configuration.ORIENTATION_LANDSCAPE -> {
-                when (viewMode) {
-                    ViewMode.NORMAL_GRID -> 4
-                    ViewMode.MINI_GRID -> 5
-                    ViewMode.SCALED -> 4
-                }
-            }
+        val landscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val maxSpan = GridPinchGesture.maxSpanCount(landscape)
+        val defaultSpan = when (resources.configuration.orientation) {
+            Configuration.ORIENTATION_PORTRAIT -> if (viewMode == ViewMode.MINI_GRID) 3 else 2
+            Configuration.ORIENTATION_LANDSCAPE -> if (viewMode == ViewMode.MINI_GRID) 5 else 4
             else -> 2
         }
+        val span = appPreference.getXmlGridSpan(XmlGrid.LIBRARY, viewMode, landscape, defaultSpan)
+            .coerceIn(GridPinchGesture.MIN_SPAN_COUNT, maxSpan)
 
-        val gridLayoutManager = GridLayoutManager(this, spanCount)
-
-        binding.listSearchedDoujins.adapter = adapter
-        binding.listSearchedDoujins.layoutManager = gridLayoutManager
-        binding.listSearchedDoujins.setHasFixedSize(true)
-        binding.listSearchedDoujins.itemAnimator = null
-
-        if (binding.listSearchedDoujins.itemDecorationCount == 0) {
-            val itemDecoration =
-                GridItemDecoration(
-                    spanCount,
-                    4,
-                    includeEdge = true
-                )
-            binding.listSearchedDoujins.addItemDecoration(itemDecoration)
+        val recycler = binding.listSearchedDoujins
+        recycler.adapter = adapter
+        recycler.layoutManager = GridLayoutManager(this, span)
+        recycler.setHasFixedSize(true)
+        recycler.itemAnimator = null
+        recycler.gridPinch.configure(maxSpan, spacing = 4, includeEdge = true) { spanCount ->
+            appPreference.setXmlGridSpan(XmlGrid.LIBRARY, viewMode, landscape, spanCount)
         }
-
-        viewModel.searchedResult().observe(this, Observer {
-            adapter.setList(it)
-        })
     }
 
     override fun onQueryTextChange(newText: String?): Boolean {

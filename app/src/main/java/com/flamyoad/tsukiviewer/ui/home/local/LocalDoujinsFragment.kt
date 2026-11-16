@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView.Adapter.StateRestorationPolicy
 import com.flamyoad.tsukiviewer.ActionModeListener
 import com.flamyoad.tsukiviewer.BaseFragment
 import com.flamyoad.tsukiviewer.MyAppPreference
+import com.flamyoad.tsukiviewer.MyAppPreference.XmlGrid
 import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
@@ -29,7 +30,7 @@ import com.flamyoad.tsukiviewer.core.model.ViewMode
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
 import com.flamyoad.tsukiviewer.ui.home.collections.doujins.CollectionDoujinsActivity
 import com.flamyoad.tsukiviewer.ui.search.SearchActivity
-import com.flamyoad.tsukiviewer.utils.ui.GridItemDecoration
+import com.flamyoad.tsukiviewer.utils.ui.GridPinchGesture
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -82,6 +83,7 @@ class LocalDoujinsFragment : BaseFragment(),
     }
 
     override fun onDestroyView() {
+        binding.listLocalDoujins.gridPinch.reset()
         super.onDestroyView()
         _binding = null
     }
@@ -99,6 +101,14 @@ class LocalDoujinsFragment : BaseFragment(),
 
     override fun onResume() {
         super.onResume()
+        val landscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val recycler = binding.listLocalDoujins
+        val manager = recycler.layoutManager as? GridLayoutManager
+        if (manager != null) {
+            appPreference?.getXmlGridSpan(
+                XmlGrid.LIBRARY, adapter.getViewMode(), landscape, manager.spanCount
+            )?.let(recycler.gridPinch::restoreSpanCount)
+        }
         viewModel.reloadDoujins()
     }
 
@@ -177,6 +187,13 @@ class LocalDoujinsFragment : BaseFragment(),
         appPreference = MyAppPreference.getInstance(requireContext())
         initRecyclerView(appPreference?.getDoujinViewMode() ?: ViewMode.SCALED)
 
+        viewModel.doujinList().observe(viewLifecycleOwner, Observer { newList ->
+            adapter.setList(newList)
+            if (newList.isNotEmpty()) {
+                binding.listLocalDoujins.visibility = View.VISIBLE
+            }
+        })
+
         if (savedInstanceState != null) {
             val shouldRestartActionMode = savedInstanceState.getBoolean(ACTION_MODE, false)
             if (shouldRestartActionMode) {
@@ -220,49 +237,24 @@ class LocalDoujinsFragment : BaseFragment(),
         adapter.setViewMode(viewMode)
         adapter.stateRestorationPolicy = StateRestorationPolicy.PREVENT_WHEN_EMPTY
 
-        val spanCount = when (resources.configuration.orientation) {
-            Configuration.ORIENTATION_PORTRAIT -> {
-                when (viewMode) {
-                    ViewMode.NORMAL_GRID -> 2
-                    ViewMode.MINI_GRID -> 3
-                    ViewMode.SCALED -> 2
-                }
-            }
-            Configuration.ORIENTATION_LANDSCAPE -> {
-                when (viewMode) {
-                    ViewMode.NORMAL_GRID -> 4
-                    ViewMode.MINI_GRID -> 5
-                    ViewMode.SCALED -> 4
-                }
-            }
+        val landscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val maxSpan = GridPinchGesture.maxSpanCount(landscape)
+        val defaultSpan = when (resources.configuration.orientation) {
+            Configuration.ORIENTATION_PORTRAIT -> if (viewMode == ViewMode.MINI_GRID) 3 else 2
+            Configuration.ORIENTATION_LANDSCAPE -> if (viewMode == ViewMode.MINI_GRID) 5 else 4
             else -> 2
         }
 
-        val gridLayoutManager = GridLayoutManager(context, spanCount)
-
-        binding.listLocalDoujins.swapAdapter(adapter, false)
-        binding.listLocalDoujins.layoutManager = gridLayoutManager
-
-        // Prevent the same decor from stacking on top of each other.
-        if (binding.listLocalDoujins.itemDecorationCount == 0) {
-            val itemDecoration =
-                GridItemDecoration(
-                    spanCount,
-                    10,
-                    includeEdge = true
-                )
-            binding.listLocalDoujins.addItemDecoration(itemDecoration)
+        val recycler = binding.listLocalDoujins
+        val span = (appPreference?.getXmlGridSpan(XmlGrid.LIBRARY, viewMode, landscape, defaultSpan)
+            ?: defaultSpan).coerceIn(GridPinchGesture.MIN_SPAN_COUNT, maxSpan)
+        recycler.swapAdapter(adapter, false)
+        recycler.layoutManager = GridLayoutManager(requireContext(), span)
+        recycler.gridPinch.configure(maxSpan, spacing = 10, includeEdge = true) { spanCount ->
+            appPreference?.setXmlGridSpan(XmlGrid.LIBRARY, viewMode, landscape, spanCount)
         }
-
-        binding.listLocalDoujins.setHasFixedSize(true)
-        binding.listLocalDoujins.itemAnimator = null
-
-        viewModel.doujinList().observe(viewLifecycleOwner, Observer { newList ->
-            adapter.setList(newList)
-            if (newList.isNotEmpty()) {
-                binding.listLocalDoujins.visibility = View.VISIBLE
-            }
-        })
+        recycler.setHasFixedSize(true)
+        recycler.itemAnimator = null
     }
 
     private fun openSortDialog() {

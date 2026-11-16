@@ -14,6 +14,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
+import com.flamyoad.tsukiviewer.MyAppPreference
+import com.flamyoad.tsukiviewer.MyAppPreference.XmlGrid
 import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter
@@ -22,7 +24,7 @@ import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
 import com.flamyoad.tsukiviewer.databinding.FragmentGridImagesBinding
 import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.ui.reader.ReaderActivity
-import com.flamyoad.tsukiviewer.utils.ui.GridItemDecoration
+import com.flamyoad.tsukiviewer.utils.ui.GridPinchGesture
 import javax.inject.Inject
 
 const val GRID_ITEM_SPAN_PORTRAIT = 3
@@ -68,8 +70,10 @@ class FragmentGridImages : Fragment() {
     }
 
     override fun onDestroyView() {
+        binding.listImages.gridPinch.reset()
         super.onDestroyView()
         _binding = null
+        adapter = null
     }
 
     override fun onResume() {
@@ -89,12 +93,6 @@ class FragmentGridImages : Fragment() {
                     GridViewStyle.Row -> setListToRow(dirPath)
                     GridViewStyle.List -> setListToList(dirPath)
                     else -> {}
-                }
-
-                if (this::gridLayoutManager.isInitialized) {
-                    // Gets the current item position before replacing the adapter
-                    val currentPosition = gridLayoutManager.findFirstVisibleItemPosition()
-                    gridLayoutManager.scrollToPosition(currentPosition)
                 }
             })
         }
@@ -118,6 +116,7 @@ class FragmentGridImages : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         setHasOptionsMenu(true)
+        viewModel.imageList().observe(viewLifecycleOwner, Observer { adapter?.setList(it) })
 
         viewModel.directoryNoLongerExists().observe(viewLifecycleOwner, Observer { notExists ->
             if (notExists) {
@@ -170,7 +169,21 @@ class FragmentGridImages : Fragment() {
     }
 
     @Suppress("DEPRECATION")
-    private fun setupRecyclerview(dirPath: String, type: ItemType, spanCount: Int) {
+    private fun setupRecyclerview(dirPath: String, type: ItemType, defaultSpan: Int) {
+        val recycler = binding.listImages
+        val currentPosition = (recycler.layoutManager as? GridLayoutManager)
+            ?.findFirstVisibleItemPosition() ?: -1
+        val landscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val maxSpan = GridPinchGesture.maxSpanCount(landscape)
+        val canResize = type == ItemType.Grid || type == ItemType.Scaled
+        val preference = MyAppPreference.getInstance(requireContext())
+        val span = if (canResize) {
+            preference.getXmlGridSpan(XmlGrid.IMAGES, type, landscape, defaultSpan)
+                .coerceIn(GridPinchGesture.MIN_SPAN_COUNT, maxSpan)
+        } else {
+            defaultSpan
+        }
+
         adapter = DoujinImagesAdapter(type, dirPath) { intent ->
             ReaderActivity.setTransitionSource(returnTarget)
             val noAnimation = R.anim.reader_no_window_animation
@@ -179,32 +192,15 @@ class FragmentGridImages : Fragment() {
         }
 
         adapter?.setHasStableIds(true)
+        viewModel.imageList().value?.let { adapter?.setList(it) }
 
-        gridLayoutManager = GridLayoutManager(context, spanCount)
-
-        binding.listImages.adapter = adapter
-        binding.listImages.layoutManager = gridLayoutManager
-        /*
-           Since this method is called each time the view type is changed,
-           We have to clear the item decorations added previously.
-           Otherwise, the decors stack on top of other. 1dp will become 2dp, 2 dp will become 3dp and so on...
-         */
-        while (binding.listImages.itemDecorationCount > 0) {
-            binding.listImages.removeItemDecorationAt(0)
+        gridLayoutManager = GridLayoutManager(context, span)
+        recycler.adapter = adapter
+        recycler.layoutManager = gridLayoutManager
+        recycler.gridPinch.configure(maxSpan, spacing = 4, includeEdge = false, enabled = canResize) {
+            preference.setXmlGridSpan(XmlGrid.IMAGES, type, landscape, it)
         }
-
-        val itemDecoration =
-            GridItemDecoration(
-                spanCount,
-                4,
-                includeEdge = false
-            )
-
-        binding.listImages.addItemDecoration(itemDecoration)
-
-        viewModel.imageList().observe(viewLifecycleOwner, Observer {
-            adapter?.setList(it)
-        })
+        if (currentPosition >= 0) gridLayoutManager.scrollToPosition(currentPosition)
     }
 
     private fun prepareReturnThumbnail(position: Int, onReady: (ImageView?) -> Unit) {
@@ -256,7 +252,7 @@ class FragmentGridImages : Fragment() {
 
     // Scrolls the list to the last seen item in the ViewPager in the ReaderActivity after user presses the back button
     private fun syncGridPositionWithReader() {
-        if (!this::gridLayoutManager.isInitialized) {
+        if (binding.listImages.layoutManager == null) {
             return
         }
 

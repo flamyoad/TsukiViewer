@@ -132,6 +132,23 @@ class MyAppPreference private constructor(context: Context) {
         corePreference.setCollectionViewStyle(style)
     }
 
+    enum class XmlGrid(val preferenceName: String) {
+        LIBRARY("local"),
+        IMAGES("images")
+    }
+
+    fun getXmlGridSpan(grid: XmlGrid, mode: Enum<*>, landscape: Boolean, default: Int): Int =
+        prefs.getInt(xmlGridSpanKey(grid, mode, landscape), default)
+
+    fun setXmlGridSpan(grid: XmlGrid, mode: Enum<*>, landscape: Boolean, span: Int) {
+        prefs.edit().putInt(xmlGridSpanKey(grid, mode, landscape), span).apply()
+    }
+
+    private fun xmlGridSpanKey(grid: XmlGrid, mode: Enum<*>, landscape: Boolean): String {
+        val orientation = if (landscape) "landscape" else "portrait"
+        return "xml_${grid.preferenceName}_grid_span_${mode.name}_$orientation"
+    }
+
     fun getDoujinViewMode(): ViewMode {
         val name = corePreference.getDoujinViewMode()
         return try {
