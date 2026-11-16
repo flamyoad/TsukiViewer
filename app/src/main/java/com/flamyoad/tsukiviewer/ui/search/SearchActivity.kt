@@ -6,6 +6,8 @@ import android.view.View
 import androidx.activity.viewModels
 import com.flamyoad.tsukiviewer.security.LockableActivity
 import androidx.appcompat.widget.SearchView
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.children
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.Observer
@@ -26,6 +28,7 @@ import javax.inject.Inject
 class SearchActivity : LockableActivity(), TagSelectedListener {
     
     private lateinit var binding: ActivitySearchBinding
+    private var showKeyboardOnEntry = false
     
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
@@ -46,6 +49,7 @@ class SearchActivity : LockableActivity(), TagSelectedListener {
         super.onCreate(savedInstanceState)
         binding = ActivitySearchBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        showKeyboardOnEntry = savedInstanceState == null
 
         savedInstanceState?.let {
             val tags = it.getStringArray(SELECTED_TAGS)
@@ -64,6 +68,25 @@ class SearchActivity : LockableActivity(), TagSelectedListener {
         binding.chipAddItem.setOnClickListener {
             val tagListFragment = TagPickerDialogFragment.newInstance()
             tagListFragment.show(supportFragmentManager, DIALOG_FRAGMENT_TAG)
+        }
+    }
+
+    override fun onAppUnlocked() {
+        showInitialKeyboard()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) showInitialKeyboard()
+    }
+
+    private fun showInitialKeyboard() {
+        if (!showKeyboardOnEntry || !hasWindowFocus() || appLock.isLocked) return
+
+        val searchView = binding.searchBarInclude.searchView
+        if (searchView.requestFocus()) {
+            showKeyboardOnEntry = false
+            WindowCompat.getInsetsController(window, searchView).show(WindowInsetsCompat.Type.ime())
         }
     }
 

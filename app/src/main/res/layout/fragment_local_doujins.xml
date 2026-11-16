@@ -13,7 +13,7 @@
         android:layout_height="match_parent"
         app:handleHeight="32dp">
 
-        <androidx.recyclerview.widget.RecyclerView
+        <com.flamyoad.tsukiviewer.utils.ui.PinchGridRecyclerView
             android:id="@+id/listLocalDoujins"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
