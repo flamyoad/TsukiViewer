@@ -1,46 +1,38 @@
 package com.flamyoad.tsukiviewer.ui.reader.recents
 
-import android.app.Application
-import androidx.lifecycle.*
-import com.flamyoad.tsukiviewer.MyApplication
+import androidx.lifecycle.ViewModel
 import com.flamyoad.tsukiviewer.core.db.dao.RecentTabDao
 import com.flamyoad.tsukiviewer.core.model.RecentTab
-import kotlinx.coroutines.*
+import com.flamyoad.tsukiviewer.core.repository.DoujinRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class RecentTabsViewModel @Inject constructor(
-    private val application: Application,
-    private val recentTabDao: RecentTabDao
+    private val recentTabDao: RecentTabDao,
+    private val library: DoujinRepository
 ) : ViewModel() {
 
-    private val applicationScope: CoroutineScope = (application as MyApplication).coroutineScope
+    val tabList = recentTabDao.getAll()
 
-    val toast = MutableLiveData<String>("")
-    fun toast(): LiveData<String> = toast
-
-    val tabList: LiveData<List<RecentTab>> = recentTabDao.getAll()
-
-    var hasScrolledList: Boolean = false
-
-    fun removeRecentTab(tab: RecentTab) {
-        viewModelScope.launch(Dispatchers.IO) {
-            recentTabDao.delete(tab)
-        }
+    suspend fun close(tab: RecentTab): Boolean = withContext(Dispatchers.IO) {
+        recentTabDao.delete(tab) > 0
     }
 
-    // Clear all existing tabs except the current one in reader
-    fun clearRecentTabs(exemptedTabId: Long) {
-        applicationScope.launch(Dispatchers.IO) {
-            val deleteCount = recentTabDao.deleteAllExcept(exemptedTabId)
+    suspend fun closeTabs(keepTabId: Long?) = withContext(Dispatchers.IO) {
+        recentTabDao.deleteAllExcept(keepTabId ?: -1L)
+    }
 
-            withContext(Dispatchers.Main) {
-                toast.value = when (deleteCount) {
-                    0 or -1 -> "No tabs cleared"
-                    1 -> "1 tab cleared"
-                    else -> "$deleteCount tabs cleared"
-                }
-                toast.value = "" // Resets the toast
-            }
-        }
+    suspend fun restore(tab: RecentTab): Long = recentTabDao.restore(tab)
+
+    suspend fun loadLibrary(): List<RecentTab> = withContext(Dispatchers.IO) {
+        library.localBookCovers().map { (folder, cover) ->
+            RecentTab(title = folder.name, dirPath = folder, thumbnail = cover)
+        }.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.title })
+    }
+
+    suspend fun open(book: RecentTab): Long? = withContext(Dispatchers.IO) {
+        if (!book.thumbnail.isFile) return@withContext null
+        recentTabDao.open(book)
     }
 }

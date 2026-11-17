@@ -26,7 +26,7 @@ const val DATABASE_NAME = "com.flamyoad.android.tsukiviewer.AppDatabase"
     RecentTab::class,
     CoverFingerprintEntry::class,
     RelatedMangaCacheEntry::class
-    ), version = 8)
+    ), version = 9)
 
 abstract class AppDatabase: RoomDatabase() {
 
@@ -110,13 +110,32 @@ abstract class AppDatabase: RoomDatabase() {
             }
         }
 
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("""
+                    CREATE TABLE `recent_tabs_new` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+                        `title` TEXT NOT NULL,
+                        `dirPath` TEXT NOT NULL,
+                        `thumbnail` TEXT NOT NULL
+                    )
+                """.trimIndent())
+                database.execSQL("""
+                    INSERT INTO `recent_tabs_new` (`id`, `title`, `dirPath`, `thumbnail`)
+                    SELECT `id`, `title`, `dirPath`, `thumbnail` FROM `recent_tabs`
+                """.trimIndent())
+                database.execSQL("DROP TABLE `recent_tabs`")
+                database.execSQL("ALTER TABLE `recent_tabs_new` RENAME TO `recent_tabs`")
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
                     DATABASE_NAME)
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
                     .build()
 
                 INSTANCE = instance

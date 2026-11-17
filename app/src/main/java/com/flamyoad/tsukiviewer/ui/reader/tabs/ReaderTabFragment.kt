@@ -1,7 +1,6 @@
 package com.flamyoad.tsukiviewer.ui.reader.tabs
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -25,8 +24,6 @@ import com.flamyoad.tsukiviewer.databinding.FragmentReaderTabBinding
 import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.core.model.RecentTab
 import com.flamyoad.tsukiviewer.ui.reader.*
-import com.flamyoad.tsukiviewer.ui.reader.ReaderActivity.Companion.RECENT_TAB_REQUEST_CODE
-import com.flamyoad.tsukiviewer.ui.reader.recents.RecentTabsActivity
 import com.flamyoad.tsukiviewer.utils.extensions.toast
 import java.io.File
 import javax.inject.Inject
@@ -63,6 +60,19 @@ class ReaderTabFragment : Fragment(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         shouldReturnLastReadPosition = arguments?.getBoolean(RETURN_LAST_READ_POSITION) ?: false
+        if (viewModel.currentScrolledPosition < 0) {
+            viewModel.currentScrolledPosition = savedInstanceState?.getInt(SAVED_PAGE, -1) ?: -1
+        }
+    }
+
+    override fun onPause() {
+        viewModel.savePage(arguments?.getString(DIR_PATH).orEmpty())
+        super.onPause()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(SAVED_PAGE, viewModel.currentScrolledPosition)
     }
 
     override fun onCreateView(
@@ -90,6 +100,9 @@ class ReaderTabFragment : Fragment(),
 
         viewModel.recentTabs.observe(viewLifecycleOwner, Observer {
             binding.btnTab.text = it.size.toString()
+            binding.btnTab.contentDescription = resources.getQuantityString(
+                R.plurals.reader_tabs_show, it.size, it.size
+            )
         })
 
         parentViewModel.readerMode().observe(viewLifecycleOwner, Observer {
@@ -110,12 +123,7 @@ class ReaderTabFragment : Fragment(),
         }
 
         binding.btnTab.setOnClickListener {
-            val tabId = arguments?.getLong(TAB_ID) ?: -1
-            val intent = Intent(requireContext(), RecentTabsActivity::class.java)
-            intent.apply {
-                putExtra(TAB_ID, tabId)
-            }
-            requireActivity().startActivityForResult(intent, RECENT_TAB_REQUEST_CODE)
+            readerListener?.openTabSwitcher()
         }
 
         binding.btnBack.setOnClickListener {
@@ -151,7 +159,9 @@ class ReaderTabFragment : Fragment(),
 
     private fun setupReader(mode: ReaderMode) {
         val currentDir = arguments?.getString(DIR_PATH) ?: ""
-        val positionInGrid = arguments?.getInt(STARTING_IMAGE_POSITION, 0) ?: 0
+        val positionInGrid = viewModel.currentScrolledPosition.takeIf { it >= 0 }
+            ?: arguments?.getInt(STARTING_IMAGE_POSITION, -1)?.takeIf { it >= 0 }
+            ?: viewModel.savedPage(currentDir)
 
         viewModel.scanForImages(currentDir)
 
@@ -311,8 +321,8 @@ class ReaderTabFragment : Fragment(),
     }
 
     companion object {
-        const val TAB_ID = "tab_id"
         const val DIR_PATH = "dir_path"
+        private const val SAVED_PAGE = "saved_page"
         const val STARTING_IMAGE_POSITION = "starting_image_position"
         const val RETURN_LAST_READ_POSITION = "return_last_read_position"
 
@@ -320,7 +330,6 @@ class ReaderTabFragment : Fragment(),
         fun newInstance(tab: RecentTab, startPosition: Int, returnLastReadPosition: Boolean) =
             ReaderTabFragment().apply {
                 arguments = Bundle().apply {
-                    putLong(TAB_ID, tab.id ?: -1)
                     putString(DIR_PATH, tab.dirPath.absolutePath)
                     putInt(STARTING_IMAGE_POSITION, startPosition)
                     putBoolean(RETURN_LAST_READ_POSITION, returnLastReadPosition)

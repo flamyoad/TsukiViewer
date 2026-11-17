@@ -28,7 +28,6 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter
 import com.flamyoad.tsukiviewer.databinding.ActivityReaderBinding
 import com.flamyoad.tsukiviewer.di.ViewModelFactory
-import com.flamyoad.tsukiviewer.core.model.RecentTab
 import com.flamyoad.tsukiviewer.ui.reader.recents.RecentTabsActivity
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabFragmentAdapter
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabListener
@@ -61,11 +60,7 @@ class ReaderActivity : LockableActivity(), ViewPagerListener, ReaderTabListener,
     private val showLoadingReader = Runnable { revealReader(animate = false) }
     private var transitionSource: WeakReference<ReturnTarget>? = null
 
-    private var viewPagerIndex: Int = -1
-
-    private var chosenTabId: Long? = null
-
-    private var tabChosenFromRecentTabs: Boolean = false
+    private var pendingTabId: Long? = null
 
     private lateinit var tabFragmentAdapter: ReaderTabFragmentAdapter
 
@@ -105,9 +100,13 @@ class ReaderActivity : LockableActivity(), ViewPagerListener, ReaderTabListener,
         }
 
         val currentDir = intent.getStringExtra(DoujinImagesAdapter.DIRECTORY_PATH) ?: ""
-        viewModel.insertRecentTab(currentDir)
+        pendingTabId = savedInstanceState?.getLong(SELECTED_TAB_ID, RecentTabsActivity.NO_TAB)
+            ?.takeUnless { it == RecentTabsActivity.NO_TAB }
 
-        setupViewPager()
+        setupViewPager(startPosition = positionFromImageGrid.takeIf { savedInstanceState == null })
+        if (savedInstanceState == null && currentDir.isNotEmpty()) {
+            viewModel.insertRecentTab(currentDir)
+        }
         binding.viewPager.reduceDragSensitivitySlightly()
     }
 
@@ -153,25 +152,20 @@ class ReaderActivity : LockableActivity(), ViewPagerListener, ReaderTabListener,
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == RECENT_TAB_REQUEST_CODE && resultCode == RESULT_OK) {
-            val tabId = data?.getLongExtra(RecentTabsActivity.CHOSEN_TAB_ID, -1L) ?: -1L
-            if (tabId == -1L) {
-                return
-            }
-            viewModel.setCurrentTab(tabId)
-            tabChosenFromRecentTabs = true
-            chosenTabId = tabId
+        if (requestCode != RECENT_TAB_REQUEST_CODE || resultCode != RESULT_OK || data == null) return
+        val tabId = data.getLongExtra(RecentTabsActivity.CHOSEN_TAB_ID, RecentTabsActivity.NO_TAB)
+        if (tabId == RecentTabsActivity.NO_TAB) {
+            closeReader()
+            return
         }
+        pendingTabId = tabId
+        selectPendingTab()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt(VIEWPAGER_INDEX, binding.viewPager.currentItem)
-    }
-
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        super.onRestoreInstanceState(savedInstanceState)
-        viewPagerIndex = savedInstanceState.getInt(VIEWPAGER_INDEX)
+        val id = pendingTabId ?: tabFragmentAdapter.tabIdAt(binding.viewPager.currentItem)
+        outState.putLong(SELECTED_TAB_ID, id ?: RecentTabsActivity.NO_TAB)
     }
 
     /* dispatchKeyEvent is preferred over onKeyDown
@@ -193,50 +187,58 @@ class ReaderActivity : LockableActivity(), ViewPagerListener, ReaderTabListener,
         }
     }
 
-    private fun setupViewPager() {
+    private fun setupViewPager(startPosition: Int?) {
         tabFragmentAdapter = ReaderTabFragmentAdapter(this)
 
         tabFragmentAdapter.setFirstItem(
             intent.getStringExtra(DoujinImagesAdapter.DIRECTORY_PATH) ?: "",
-            intent.getIntExtra(DoujinImagesAdapter.POSITION_BEFORE_OPENING_READER, 0)
+            startPosition
         )
 
-        binding.viewPager.apply {
-            adapter = tabFragmentAdapter
+        val pager = binding.viewPager
+        (pager.getChildAt(0) as RecyclerView).layoutManager?.isItemPrefetchEnabled = false
+
+        viewModel.recentTabs.observe(this) { tabs ->
+            val previousPosition = pager.currentItem
+            val previousId = tabFragmentAdapter.tabIdAt(previousPosition)
+            val originalDirectory = intent.getStringExtra(DoujinImagesAdapter.DIRECTORY_PATH).orEmpty()
+
+            tabFragmentAdapter.setList(tabs)
+            if (pager.adapter == null && tabs.isNotEmpty()) pager.adapter = tabFragmentAdapter
+            if (tabs.isEmpty()) return@observe
+
+            if (selectPendingTab()) return@observe
+            val preferredId = previousId ?: tabFragmentAdapter.getTab(originalDirectory)?.id
+            val position = preferredId?.let(tabFragmentAdapter::getTabPosition) ?: -1
+            val nextPosition = if (position >= 0) position else previousPosition.coerceAtMost(tabs.lastIndex)
+            pager.setCurrentItem(nextPosition, false)
         }
 
-        viewModel.recentTabs.observe(this, Observer {
-            tabFragmentAdapter.setList(it)
-            val currentDir = intent.getStringExtra(DoujinImagesAdapter.DIRECTORY_PATH) ?: ""
-            val currentTab = when (tabChosenFromRecentTabs) {
-                true -> tabFragmentAdapter.getTab(chosenTabId ?: -1)
-                false -> tabFragmentAdapter.getTab(currentDir)
-            }
-
-            if (currentTab != null) {
-                switchReaderTab(currentTab)
-            }
-
-            (binding.viewPager.getChildAt(0) as RecyclerView).layoutManager!!.isItemPrefetchEnabled = false
-        })
-
-        viewModel.currentTab().observe(this, Observer {
-            switchReaderTab(it)
-        })
+        viewModel.openedTabId.observe(this) { id ->
+            pendingTabId = id ?: return@observe
+            viewModel.clearOpenedTab()
+            selectPendingTab()
+        }
     }
 
-    private fun switchReaderTab(tab: RecentTab) {
-        if (viewPagerIndex != -1) {
-            binding.viewPager.setCurrentItem(viewPagerIndex, false)
-            viewPagerIndex = -1 // resets the index
-            return
-        }
-
-        val position = tabFragmentAdapter.getTabPosition(tab.id ?: return)
+    private fun selectPendingTab(): Boolean {
+        val id = pendingTabId ?: return false
+        val position = tabFragmentAdapter.getTabPosition(id)
+        if (position < 0 || binding.viewPager.adapter == null) return false
         binding.viewPager.setCurrentItem(position, false)
+        pendingTabId = null
+        return true
     }
 
     override fun onBackPressed() = closeReader()
+
+    override fun openTabSwitcher() {
+        val activeTabId = tabFragmentAdapter.tabIdAt(binding.viewPager.currentItem) ?: return
+        val intent = Intent(this, RecentTabsActivity::class.java)
+            .putExtra(RecentTabsActivity.ACTIVE_TAB_ID, activeTabId)
+        startActivityForResult(intent, RECENT_TAB_REQUEST_CODE)
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+    }
 
     override fun quitActivity() = closeReader()
 
@@ -346,7 +348,7 @@ class ReaderActivity : LockableActivity(), ViewPagerListener, ReaderTabListener,
 
         internal fun pageTransitionName(file: File): String = "reader-page:" + file.absolutePath
 
-        private const val VIEWPAGER_INDEX = "viewpager_index"
+        private const val SELECTED_TAB_ID = "selected_tab_id"
         const val RECENT_TAB_REQUEST_CODE = 101
     }
 }

@@ -1,86 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    tools:context=".ui.reader.recents.RecentTabsActivity">
+    android:background="@color/colorPrimaryDark"
+    android:orientation="vertical">
 
-    <ImageView
-        android:id="@+id/imgBackground"
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="?attr/actionBarSize"
         android:background="@color/colorPrimary"
-        android:scaleType="centerCrop"
-        android:tint="#6F000000"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:src="@drawable/ayumu" />
+        android:theme="@style/AppTheme.AppBarOverlay"
+        app:navigationIcon="@drawable/ic_arrow_back_white_24dp"
+        app:popupTheme="@style/AppTheme.PopupOverlay"
+        app:title="@string/reader_tabs" />
 
-    <TextView
-        android:id="@+id/btnBack"
-        style="?android:attr/borderlessButtonStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="?attr/actionBarSize"
-        android:adjustViewBounds="true"
-        android:clickable="true"
-        android:drawableStart="@drawable/ic_view_agenda_gray_24dp"
-        android:drawablePadding="5dp"
-        android:focusable="true"
-        android:gravity="center_vertical"
-        android:text="Go Back to Reader"
-        android:textColor="#B9B9B9"
-        android:translationZ="2dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/listTabs"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:paddingStart="80dp"
-        android:paddingTop="100dp"
-        android:paddingBottom="130dp"
-        android:scrollbars="none"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        tools:listitem="@layout/reader_tab_item"
-        tools:orientation="horizontal"
-        tools:ignore="RtlSymmetry" />
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
-        <FrameLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/fab_border"
-            app:layout_constraintBottom_toTopOf="@id/txtHint"
-            app:layout_constraintEnd_toEndOf="@id/txtHint"
-            app:layout_constraintStart_toStartOf="@id/txtHint">
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/listTabs"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:padding="8dp"
+            android:scrollbars="vertical" />
 
-            <androidx.appcompat.widget.AppCompatImageButton
-                android:id="@+id/btnClearRecents"
-                android:layout_width="54dp"
-                android:layout_height="54dp"
-                android:src="@drawable/ic_close_gray_24dp"
-                android:background="?android:attr/selectableItemBackgroundBorderless" />
+        <LinearLayout
+            android:id="@+id/emptyTabs"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:visibility="gone">
 
-        </FrameLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/reader_tabs_empty"
+                android:textColor="@color/miWhite"
+                android:textSize="18sp" />
 
-    <TextView
-        android:id="@+id/txtHint"
-        android:layout_width="wrap_content"
-        android:layout_height="50dp"
-        android:gravity="center_vertical"
-        android:text="Swipe left/right. Click to change tabs"
-        android:textColor="#B9B9B9"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/openBook"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/reader_tabs_open_book"
+                android:textColor="@color/white"
+                app:backgroundTint="@color/wine_red" />
+        </LinearLayout>
+    </FrameLayout>
+</LinearLayout>

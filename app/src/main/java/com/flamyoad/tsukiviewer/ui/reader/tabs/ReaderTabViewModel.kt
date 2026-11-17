@@ -23,6 +23,15 @@ class ReaderTabViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val appPreference = MyAppPreference.getInstance(application.applicationContext)
+    private val readingPages = application.getSharedPreferences("reader_pages", Application.MODE_PRIVATE)
+
+    fun savedPage(path: String): Int = readingPages.getInt(path, 0)
+
+    fun savePage(path: String) {
+        if (path.isNotEmpty() && currentScrolledPosition >= 0) {
+            readingPages.edit().putInt(path, currentScrolledPosition).apply()
+        }
+    }
 
     private val imageList = MutableLiveData<List<File>>()
     fun imageList(): LiveData<List<File>> = imageList

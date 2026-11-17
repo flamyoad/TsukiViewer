@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reader_tabs">Tabs</string>
+    <string name="reader_tabs_count">Tabs (%1$d)</string>
+    <string name="reader_tabs_back">Back to reader</string>
+    <string name="reader_tabs_empty">No open tabs</string>
+    <string name="reader_tabs_open_book">Open a book</string>
+    <string name="reader_tabs_close_others">Close other tabs</string>
+    <string name="reader_tabs_close_all">Close all tabs</string>
+    <string name="reader_tabs_close">Close %1$s</string>
+    <string name="reader_tabs_active">%1$s, active tab</string>
+    <string name="reader_tabs_closed">Tab closed</string>
+    <string name="reader_tabs_undo">Undo</string>
+    <string name="reader_tabs_search">Search library</string>
+    <string name="reader_tabs_no_books">No books found</string>
+    <string name="reader_tabs_loading">Loading library…</string>
+    <string name="reader_tabs_error">Couldn’t complete the tab action</string>
+    <string name="reader_tabs_book_unavailable">This book is unavailable</string>
+    <plurals name="reader_tabs_show">
+        <item quantity="one">Show %d open tab</item>
+        <item quantity="other">Show %d open tabs</item>
+    </plurals>
+</resources>
