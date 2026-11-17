@@ -10,17 +10,74 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.File
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 private const val GRID_SIZE = 9
 private const val MAX_DECODE_SIZE = 128
 private const val MAX_MATCH_DISTANCE = 12
 
-internal data class CoverFingerprint(val horizontal: Long, val vertical: Long) {
+internal data class CoverFingerprint(val horizontal: Long, val vertical: Long, val palette: Long? = null) {
     fun distanceTo(other: CoverFingerprint): Int? {
-        val distance = java.lang.Long.bitCount(horizontal xor other.horizontal) +
+        val edges = java.lang.Long.bitCount(horizontal xor other.horizontal) +
             java.lang.Long.bitCount(vertical xor other.vertical)
-        return distance.takeIf { it <= MAX_MATCH_DISTANCE }
+        val a = palette ?: return edges.takeIf { it <= MAX_MATCH_DISTANCE }
+        val b = other.palette ?: return edges.takeIf { it <= MAX_MATCH_DISTANCE }
+        var sharedColor = 0
+        var colorA = 0
+        var colorB = 0
+        var sharedHues = 0
+        for (hue in 0 until COLOR_HUES) {
+            val weightA = paletteWeight(a, hue)
+            val weightB = paletteWeight(b, hue)
+            val shared = minOf(weightA, weightB)
+            colorA += weightA
+            colorB += weightB
+            sharedColor += shared
+            if (shared > 0) sharedHues++
+        }
+
+        // A colored cover needs some agreement in hue even when the edges align closely.
+        if (edges <= MAX_MATCH_DISTANCE && (maxOf(colorA, colorB) < 3 || sharedColor >= 2)) return edges
+        if (minOf(colorA, colorB) < 3 || sharedColor < 3) return null
+        val overlap = sharedColor.toDouble() / maxOf(colorA, colorB)
+        val edgeLimit = if (sharedHues >= 2) 64 else 36
+        if (overlap < 0.68 || edges > edgeLimit) return null
+
+        // Palette matches rank below near-duplicates, with hue overlap weighted above edges.
+        return MAX_MATCH_DISTANCE + 1 + ((1 - overlap) * 64).roundToInt() + edges / 4
     }
+}
+
+private const val COLOR_HUES = 12
+
+private fun paletteWeight(signature: Long, bin: Int): Int = (signature ushr (bin * 4) and 0xf).toInt()
+
+internal fun coverPalette(pixels: IntArray): Long {
+    val bins = IntArray(16)
+    for (pixel in pixels) {
+        val r = pixel ushr 16 and 0xff
+        val g = pixel ushr 8 and 0xff
+        val b = pixel and 0xff
+        val high = maxOf(r, g, b)
+        val delta = high - minOf(r, g, b)
+        if (high < 42 || delta < 30 || delta * 4 < high) {
+            bins[COLOR_HUES + high / 64]++
+            continue
+        }
+        val hue = when (high) {
+            r -> (g - b).toDouble() / delta
+            g -> 2.0 + (b - r).toDouble() / delta
+            else -> 4.0 + (r - g).toDouble() / delta
+        }
+        bins[((hue * 2).roundToInt() + COLOR_HUES) % COLOR_HUES]++
+    }
+
+    var signature = 0L
+    for ((index, count) in bins.withIndex()) {
+        val weight = (count * 15.0 / pixels.size).roundToInt()
+        signature = signature or (weight.toLong() shl (index * 4))
+    }
+    return signature
 }
 
 internal class CoverFingerprints(private val dao: CoverFingerprintDao) {
@@ -44,7 +101,7 @@ internal class CoverFingerprints(private val dao: CoverFingerprintDao) {
                 entry.algorithmVersion == ALGORITHM_VERSION
             ) {
                 return if (entry.horizontalHash != null && entry.verticalHash != null) {
-                    CoverFingerprint(entry.horizontalHash, entry.verticalHash)
+                    CoverFingerprint(entry.horizontalHash, entry.verticalHash, entry.paletteHash)
                 } else null
             }
 
@@ -53,7 +110,7 @@ internal class CoverFingerprints(private val dao: CoverFingerprintDao) {
             updates.add(
                 CoverFingerprintEntry(
                     directory.path, cover.path, modified, length, ALGORITHM_VERSION,
-                    result?.horizontal, result?.vertical
+                    result?.horizontal, result?.vertical, result?.palette
                 )
             )
             return result
@@ -73,7 +130,7 @@ internal class CoverFingerprints(private val dao: CoverFingerprintDao) {
     }
 
     private companion object {
-        const val ALGORITHM_VERSION = 1
+        const val ALGORITHM_VERSION = 2
         val refreshLock = Mutex()
     }
 
@@ -99,7 +156,7 @@ internal class CoverFingerprints(private val dao: CoverFingerprintDao) {
                 val blue = pixel and 0xff
                 (299 * red + 587 * green + 114 * blue) / 1000
             }
-            fingerprintCover(luminance)
+            fingerprintCover(luminance)?.copy(palette = coverPalette(pixels))
         } finally {
             if (thumbnail !== bitmap) thumbnail.recycle()
             bitmap.recycle()

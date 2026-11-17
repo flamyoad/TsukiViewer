@@ -26,7 +26,7 @@ const val DATABASE_NAME = "com.flamyoad.android.tsukiviewer.AppDatabase"
     RecentTab::class,
     CoverFingerprintEntry::class,
     RelatedMangaCacheEntry::class
-    ), version = 7)
+    ), version = 8)
 
 abstract class AppDatabase: RoomDatabase() {
 
@@ -104,13 +104,19 @@ abstract class AppDatabase: RoomDatabase() {
             }
         }
 
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE `cover_fingerprints` ADD COLUMN `paletteHash` INTEGER")
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
                     DATABASE_NAME)
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
                     .build()
 
                 INSTANCE = instance

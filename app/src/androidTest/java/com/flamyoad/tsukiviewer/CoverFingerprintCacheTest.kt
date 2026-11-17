@@ -57,7 +57,10 @@ class CoverFingerprintCacheTest {
 
                 check(prefs.edit().remove(PreferenceKeys.SHOW_RELATED_MANGA).commit())
                 assertEquals(RelatedMangaReason.SIMILAR_COVER, recommendations.first().single().reason)
-                db.coverFingerprintDao().getAll().single { it.directoryPath == target.path }
+                db.coverFingerprintDao().getAll().single { it.directoryPath == target.path }.also {
+                    assertTrue(it.paletteHash != null)
+                    assertEquals(2, it.algorithmVersion)
+                }
             }
 
             open().useDatabase { db ->

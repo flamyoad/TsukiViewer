@@ -59,6 +59,13 @@ android {
 
 }
 
+// Package the current Room schema in the migration test APK after KAPT exports it.
+tasks.configureEach {
+    if (name == 'mergeDebugAndroidTestAssets') {
+        dependsOn ':core:kaptDebugKotlin'
+    }
+}
+
 dependencies {
     // Core module
     implementation project(':core')
