@@ -10,7 +10,7 @@ import java.io.File
 @TypeConverters(FolderConverter::class)
 
 data class RecentTab(
-    @PrimaryKey val id: Long? = null,
+    @PrimaryKey(autoGenerate = true) val id: Long? = null,
     val title: String,
     val dirPath: File,
     val thumbnail: File

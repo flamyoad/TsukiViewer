@@ -11,5 +11,6 @@ data class CoverFingerprintEntry(
     val byteCount: Long,
     val algorithmVersion: Int,
     val horizontalHash: Long?,
-    val verticalHash: Long?
+    val verticalHash: Long?,
+    val paletteHash: Long? = null
 )

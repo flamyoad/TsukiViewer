@@ -9,7 +9,7 @@ import com.flamyoad.tsukiviewer.core.model.RecentTab
 @TypeConverters(FolderConverter::class)
 interface RecentTabDao {
 
-    @Query("SELECT * FROM recent_tabs")
+    @Query("SELECT * FROM recent_tabs ORDER BY id")
     fun getAll(): LiveData<List<RecentTab>>
 
     @Query("SELECT * FROM recent_tabs WHERE id = :id")
@@ -24,8 +24,22 @@ interface RecentTabDao {
     @Insert
     fun insert(tab: RecentTab): Long
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertIfIdAvailable(tab: RecentTab): Long
+
+    @Transaction
+    suspend fun open(tab: RecentTab): Long =
+        getByPath(tab.dirPath.absolutePath)?.id ?: insert(tab)
+
+    @Transaction
+    suspend fun restore(tab: RecentTab): Long {
+        getByPath(tab.dirPath.absolutePath)?.id?.let { return it }
+        val restoredId = insertIfIdAvailable(tab)
+        return if (restoredId == -1L) insert(tab.copy(id = null)) else restoredId
+    }
+
     @Delete
-    fun delete(tab: RecentTab)
+    fun delete(tab: RecentTab): Int
 
     @Query("DELETE FROM recent_tabs WHERE id != :tabId")
     fun deleteAllExcept(tabId: Long): Int

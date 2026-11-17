@@ -141,6 +141,27 @@ class RelatedMangaTest {
     }
 
     @Test
+    fun similarPalettesCanMatchEvenWhenManyEdgesDiffer() {
+        val orange = 0xf47b22
+        val blue = 0x325fc9
+        val palette = coverPalette(IntArray(81) { if (it % 2 == 0) orange else blue })
+        val unrelated = coverPalette(IntArray(81) { if (it % 2 == 0) 0x68b52f else 0xcc42a1 })
+        val source = CoverFingerprint(0L, 0L, palette)
+        val rearranged = CoverFingerprint(0xFFFFFL, 0xFFFFFL, palette)
+
+        assertTrue(requireNotNull(source.distanceTo(rearranged)) > requireNotNull(source.distanceTo(source)))
+        assertEquals(null, source.distanceTo(rearranged.copy(palette = unrelated)))
+        assertEquals(null, source.distanceTo(source.copy(palette = unrelated)))
+    }
+
+    @Test
+    fun aSingleSharedColorStillNeedsCloserEdges() {
+        val palette = coverPalette(IntArray(81) { 0x325fc9 })
+        val source = CoverFingerprint(0L, 0L, palette)
+        assertEquals(null, source.distanceTo(CoverFingerprint(0xFFFFFL, 0xFFFFFL, palette)))
+    }
+
+    @Test
     fun excludesTheCurrentMangaAndLimitsTiesToSix() = runBlocking {
         val source = candidate("Moon Garden", listOf(series))
         val candidates = (8 downTo 1).map { candidate("Volume $it", listOf(series)) } + source

@@ -1,13 +1,11 @@
 package com.flamyoad.tsukiviewer.ui.reader
 
 import android.app.Application
-import androidx.core.net.toUri
 import androidx.lifecycle.*
 import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.core.db.dao.RecentTabDao
 import com.flamyoad.tsukiviewer.core.model.RecentTab
 import com.flamyoad.tsukiviewer.utils.FileUtils
-import com.flamyoad.tsukiviewer.utils.extensions.imageExtensions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -29,8 +27,8 @@ class ReaderViewModel @Inject constructor(
     private val readerMode = MutableLiveData<ReaderMode>()
     fun readerMode(): LiveData<ReaderMode> = readerMode.distinctUntilChanged()
 
-    private val currentTab = MutableLiveData<RecentTab>()
-    fun currentTab(): LiveData<RecentTab> = currentTab
+    private val openedTab = MutableLiveData<Long?>()
+    val openedTabId: LiveData<Long?> = openedTab
 
     val recentTabs: LiveData<List<RecentTab>>
 
@@ -41,36 +39,16 @@ class ReaderViewModel @Inject constructor(
     }
 
     fun insertRecentTab(path: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val dir = File(path)
-            val coverImage = FileUtils.getCoverImage(dir)
-
-            val tab = RecentTab(null, dir.name, dir, coverImage)
-
-            val lastExistingTab = recentTabDao.getByPath(path)
-            if (lastExistingTab != null) {
-                withContext(Dispatchers.Main) {
-                    currentTab.value = lastExistingTab
-                }
-                return@launch
-            }
-
-            val insertId = recentTabDao.insert(tab)
-            val newlyInsertedTab = recentTabDao.get(insertId)
-            withContext(Dispatchers.Main) {
-                currentTab.value = newlyInsertedTab
+        viewModelScope.launch {
+            openedTab.value = withContext(Dispatchers.IO) {
+                val dir = File(path)
+                recentTabDao.open(RecentTab(null, dir.name, dir, FileUtils.getCoverImage(dir)))
             }
         }
     }
 
-    fun setCurrentTab(tabId: Long) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val tab = recentTabDao.get(tabId)
-
-            withContext(Dispatchers.Main) {
-                currentTab.value = tab
-            }
-        }
+    internal fun clearOpenedTab() {
+        openedTab.value = null
     }
 
     fun setReaderMode(mode: ReaderMode) {

@@ -26,6 +26,9 @@ class DoujinRepository(
     // Cache for the full doujin list - can be set from outside
     var cachedDoujinList: MutableList<Doujin>? = null
 
+    suspend fun localBookCovers(): Map<File, File> =
+        discoverLibraryCovers(pathDao.getAllBlocking())
+
     fun scanForDoujins(keyword: String, tags: String, shouldIncludeAllTags: Boolean)
             : Flow<Doujin> {
         val keywordLowerCase = keyword.toLowerCase(Locale.ROOT)

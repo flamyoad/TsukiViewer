@@ -10,8 +10,7 @@ class ReaderTabFragmentAdapter(activity: FragmentActivity): FragmentStateAdapter
     private var tabList: List<RecentTab> = emptyList()
 
     private var dirPath: String = ""
-    private var positionOfStartingFragment: Int = 0
-    private var positionOfStartingImage: Int = 0
+    private var positionOfStartingImage: Int? = null
 
     override fun getItemCount(): Int {
         return tabList.size
@@ -19,14 +18,20 @@ class ReaderTabFragmentAdapter(activity: FragmentActivity): FragmentStateAdapter
 
     fun setList(list: List<RecentTab>) {
         this.tabList = list
-        positionOfStartingFragment = list.indexOfFirst { tab -> tab.dirPath.absolutePath == dirPath }
         notifyDataSetChanged()
     }
 
-    fun setFirstItem(dirPath: String, startPosition: Int) {
+    fun setFirstItem(dirPath: String, startPosition: Int?) {
         this.dirPath = dirPath
         this.positionOfStartingImage = startPosition
     }
+
+    override fun getItemId(position: Int): Long =
+        requireNotNull(tabList[position].id)
+
+    override fun containsItem(itemId: Long): Boolean = tabList.any { it.id == itemId }
+
+    fun tabIdAt(position: Int): Long? = tabList.getOrNull(position)?.id
 
     fun getTabPosition(tabId: Long): Int {
         return tabList.indexOfFirst { tab -> tab.id == tabId }
@@ -41,10 +46,13 @@ class ReaderTabFragmentAdapter(activity: FragmentActivity): FragmentStateAdapter
     }
 
     override fun createFragment(position: Int): Fragment {
-        if (position == positionOfStartingFragment) {
-            return ReaderTabFragment.newInstance(tabList[position], positionOfStartingImage, true)
+        val tab = tabList[position]
+        val isOriginalBook = tab.dirPath.absolutePath == dirPath
+        val startPosition = if (isOriginalBook) {
+            positionOfStartingImage.also { positionOfStartingImage = null }
         } else {
-            return ReaderTabFragment.newInstance(tabList[position], 0, false)
+            null
         }
+        return ReaderTabFragment.newInstance(tab, startPosition ?: -1, isOriginalBook)
     }
 }
