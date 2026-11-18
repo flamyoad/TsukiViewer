@@ -111,16 +111,6 @@
                         app:backgroundTint="#70415F"
                         app:cornerRadius="16dp" />
 
-                    <TextView
-                        android:id="@+id/locked_hint"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:gravity="center"
-                        android:text="@string/app_lock_locked_hint"
-                        android:textAppearance="?attr/textAppearanceBody2"
-                        android:textColor="#624F60" />
-
                 </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
         </FrameLayout>

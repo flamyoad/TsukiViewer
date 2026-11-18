@@ -109,15 +109,12 @@ class HorizontalSwipeReaderFragment : Fragment() {
             imageAdapter.setList(it)
 
             binding.viewpager.setCurrentItem(readerPosition, false)
-            readerListener?.onPageChange(readerPosition)
+            readerListener?.onPageChange(binding.viewpager.currentItem)
 
             viewModel.currentPath = currentDir
         })
 
-        binding.viewpager.addOnPageChangeListener(object: ViewPager.OnPageChangeListener {
-            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
-                viewModel.currentScrolledPosition = position
-            }
+        binding.viewpager.addOnPageChangeListener(object : ViewPager.SimpleOnPageChangeListener() {
             override fun onPageSelected(position: Int) { // For page indicator
                 readerListener?.onPageChange(position)
             }

@@ -8,7 +8,9 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.view.WindowManager
 import android.widget.ImageView
 import android.view.animation.AnimationUtils
@@ -29,6 +31,7 @@ import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter
 import com.flamyoad.tsukiviewer.databinding.ActivityReaderBinding
 import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.ui.reader.recents.RecentTabsActivity
+import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabFragment
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabFragmentAdapter
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabListener
 import com.flamyoad.tsukiviewer.utils.extensions.reduceDragSensitivitySlightly
@@ -36,6 +39,7 @@ import com.flamyoad.tsukiviewer.utils.extensions.toast
 import java.io.File
 import java.lang.ref.WeakReference
 import javax.inject.Inject
+import kotlin.math.abs
 
 
 const val MY_KEY_DOWN_INTENT = "my_key_down_intent"
@@ -61,6 +65,12 @@ class ReaderActivity : LockableActivity(), ViewPagerListener, ReaderTabListener,
     private var transitionSource: WeakReference<ReturnTarget>? = null
 
     private var pendingTabId: Long? = null
+    private var sidebarSwipeTab: ReaderTabFragment? = null
+    private var sidebarSwipeDirection = 0
+    private var sidebarSwipeStartX = 0f
+    private var sidebarSwipeStartY = 0f
+    private var sidebarSwipeClaimed = false
+    private var sidebarSwipeClosing = false
 
     private lateinit var tabFragmentAdapter: ReaderTabFragmentAdapter
 
@@ -230,7 +240,62 @@ class ReaderActivity : LockableActivity(), ViewPagerListener, ReaderTabListener,
         return true
     }
 
-    override fun onBackPressed() = closeReader()
+    private fun activeReaderTab(): ReaderTabFragment? =
+        supportFragmentManager.fragments.filterIsInstance<ReaderTabFragment>().firstOrNull { it.isResumed }
+
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                sidebarSwipeTab = activeReaderTab()
+                sidebarSwipeDirection = sidebarSwipeTab?.sidebarSwipeDirection(event.rawX, event.rawY) ?: 0
+                sidebarSwipeClosing = sidebarSwipeTab?.isPageSidebarOpen == true
+                sidebarSwipeStartX = event.rawX
+                sidebarSwipeStartY = event.rawY
+                sidebarSwipeClaimed = false
+            }
+            MotionEvent.ACTION_MOVE, MotionEvent.ACTION_UP -> {
+                if (sidebarSwipeDirection != 0) {
+                    val slop = ViewConfiguration.get(this).scaledTouchSlop
+                    val travel = (event.rawX - sidebarSwipeStartX) * sidebarSwipeDirection
+                    val verticalTravel = abs(event.rawY - sidebarSwipeStartY)
+                    val swipeDistance = (if (sidebarSwipeClosing) 24 else 40) * resources.displayMetrics.density
+                    val horizontalDrag = travel > verticalTravel
+                    val isUp = event.actionMasked == MotionEvent.ACTION_UP
+                    val claimDistance = if (isUp) swipeDistance else slop.toFloat()
+                    if (!sidebarSwipeClaimed) {
+                        // Keep watching for a close swipe after initial vertical drift in the reader.
+                        if (travel < -slop || (!sidebarSwipeClosing && verticalTravel > slop && !horizontalDrag)) {
+                            sidebarSwipeDirection = 0
+                        } else if (horizontalDrag && travel >= claimDistance) {
+                            // Cancel the image or pager before it handles the rest of the swipe.
+                            val cancel = MotionEvent.obtain(event)
+                            cancel.action = MotionEvent.ACTION_CANCEL
+                            super.dispatchTouchEvent(cancel)
+                            cancel.recycle()
+                            sidebarSwipeClaimed = true
+                        }
+                    }
+                    if (isUp && sidebarSwipeClaimed && travel >= swipeDistance &&
+                        sidebarSwipeTab === activeReaderTab()
+                    ) {
+                        sidebarSwipeTab?.togglePageSidebar()
+                    }
+                }
+            }
+            MotionEvent.ACTION_POINTER_DOWN -> sidebarSwipeDirection = 0
+        }
+        val handled = sidebarSwipeClaimed || super.dispatchTouchEvent(event)
+        if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
+            sidebarSwipeTab = null
+            sidebarSwipeDirection = 0
+            sidebarSwipeClaimed = false
+        }
+        return handled
+    }
+
+    override fun onBackPressed() {
+        if (activeReaderTab()?.dismissPageSidebar() != true) closeReader()
+    }
 
     override fun openTabSwitcher() {
         val activeTabId = tabFragmentAdapter.tabIdAt(binding.viewPager.currentItem) ?: return

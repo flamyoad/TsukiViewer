@@ -90,13 +90,16 @@
         style="@style/doujin_item_cardview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end">
+        android:layout_gravity="bottom|end"
+        app:cardBackgroundColor="#5A5757">
 
         <TextView
             android:id="@+id/txtCurrentPageNumber"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="#5A5757"
             android:gravity="center"
             android:minWidth="80dp"
             android:paddingHorizontal="4dp"
@@ -105,6 +108,18 @@
             tools:text="10/200" />
 
     </com.google.android.material.card.MaterialCardView>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/pageSidebar"
+        android:layout_width="76dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:background="?android:attr/colorBackground"
+        android:clipToPadding="false"
+        android:paddingTop="?attr/actionBarSize"
+        android:paddingBottom="8dp"
+        android:scrollbars="vertical"
+        android:visibility="gone" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/readerModeDialog"

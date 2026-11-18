@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.WebtoonLayoutManager
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.ReaderImageAdapter
 import com.flamyoad.tsukiviewer.databinding.FragmentVerticalStripReaderBinding
+import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabFragment
 import com.flamyoad.tsukiviewer.ui.reader.tabs.ReaderTabViewModel
 
 class VerticalStripReaderFragment : Fragment() {
@@ -47,6 +48,7 @@ class VerticalStripReaderFragment : Fragment() {
     private var viewPagerListener: ViewPagerListener? = null
 
     private lateinit var layoutManager: WebtoonLayoutManager
+    private var jumpTarget: Int? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -103,7 +105,7 @@ class VerticalStripReaderFragment : Fragment() {
         }
 
         initReader(readerPosition)
-        setupPageIndicator(readerPosition)
+        setupPageIndicator()
 
         binding.listImages.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
             override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
@@ -142,6 +144,9 @@ class VerticalStripReaderFragment : Fragment() {
         )
         layoutManager = WebtoonLayoutManager(readerActivity)
 
+        binding.listImages.shouldPrioritizePageScroll = {
+            (parentFragment as? ReaderTabFragment)?.isPageSidebarOpen == true
+        }
         binding.listImages.adapter = imageAdapter
         binding.listImages.layoutManager = layoutManager
         binding.listImages.setHasFixedSize(true)
@@ -158,16 +163,16 @@ class VerticalStripReaderFragment : Fragment() {
              */
             binding.listImages.scrollBy(0, 1)
             binding.listImages.scrollBy(0, -1)
-
-            readerListener?.onPageChange(readerPosition)
+            if (readerPosition in it.indices) {
+                jumpTarget = readerPosition
+                readerListener?.onPageChange(readerPosition)
+            }
 
             viewModel.currentPath = currentDir
         })
     }
 
-    private fun setupPageIndicator(readerPosition: Int) {
-        readerListener?.onPageChange(readerPosition)
-
+    private fun setupPageIndicator() {
         binding.listImages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
@@ -178,24 +183,24 @@ class VerticalStripReaderFragment : Fragment() {
 
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                val lastCompletelyVisible =
-                    layoutManager.findLastCompletelyVisibleItemPosition()
-                val firstVisible = layoutManager.findFirstVisibleItemPosition()
-
-                if (lastCompletelyVisible != RecyclerView.NO_POSITION) {
-                    readerListener?.onPageChange(lastCompletelyVisible)
-                } else {
-                    readerListener?.onPageChange(firstVisible)
-                }
-
-                viewModel.currentScrolledPosition = firstVisible
+                // A relayout can show earlier pages alongside the jump target at the end.
+                if (dy == 0 && jumpTarget != null) return
+                jumpTarget = null
+                val page = layoutManager.findLastCompletelyVisibleItemPosition()
+                    .takeUnless { it == RecyclerView.NO_POSITION }
+                    ?: layoutManager.findFirstVisibleItemPosition()
+                if (page != RecyclerView.NO_POSITION) readerListener?.onPageChange(page)
             }
         })
     }
 
     private fun scrollTo(position: Int) {
-        layoutManager.scrollToPositionWithOffset(position, 0)
         viewModel.resetBottomThumbnailState()
+        if (position !in 0 until layoutManager.itemCount) return
+        binding.listImages.stopScroll()
+        jumpTarget = position
+        layoutManager.scrollToPositionWithOffset(position, 0)
+        readerListener?.onPageChange(position)
     }
 
     private fun handleVolumeKey(scrollDirection: VolumeButtonScrollDirection) {
@@ -242,9 +247,9 @@ class VerticalStripReaderFragment : Fragment() {
 
             // Offset has to be 0, if not it scrolls to the middle of the item
             if (lastCompletelyVisible != RecyclerView.NO_POSITION) {
-                layoutManager.scrollToPosition(lastCompletelyVisible + 1)
+                scrollTo(lastCompletelyVisible + 1)
             } else {
-                layoutManager.scrollToPosition(firstVisible + 1)
+                scrollTo(firstVisible + 1)
             }
         }
     }
@@ -257,9 +262,9 @@ class VerticalStripReaderFragment : Fragment() {
 
             // Offset has to be 0, if not it scrolls to the middle of the item
             if (firstCompletelyVisible != RecyclerView.NO_POSITION) {
-                layoutManager.scrollToPosition(firstCompletelyVisible - 1)
+                scrollTo(firstCompletelyVisible - 1)
             } else {
-                layoutManager.scrollToPosition(lastVisible - 1)
+                scrollTo(lastVisible - 1)
             }
         }
     }

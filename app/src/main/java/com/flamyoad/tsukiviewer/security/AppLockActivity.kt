@@ -96,7 +96,6 @@ class AppLockActivity : AppCompatActivity() {
                     R.string.app_lock_disable_description
                 }
             )
-            binding.lockedHint.isVisible = false
             binding.unlock.setText(R.string.app_lock_confirm)
         }
         binding.unlock.setOnClickListener { authenticate() }

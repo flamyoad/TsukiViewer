@@ -20,4 +20,7 @@
     <string name="vpn_is_needed_if_block">VPN is needed if your ISP blocks the domain address\nI recommend using
         <a href="https://play.google.com/store/apps/details?id=com.cloudflare.onedotonedotonedotone&amp;hl=en&amp;gl=US">1.1.1.1</a>
     </string>
+    <string name="reader_page_thumbnail">Page %1$d</string>
+    <string name="reader_page_sidebar_toggle">%1$s. Show pages</string>
+    <string name="reader_page_sidebar_hide">%1$s. Hide pages</string>
 </resources>

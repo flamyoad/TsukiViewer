@@ -114,16 +114,12 @@ class VerticalSwipeReaderFragment : Fragment() {
             imageAdapter.setList(it)
 
             binding.viewpager.setCurrentItem(readerPosition, false)
-            readerListener?.onPageChange(readerPosition)
+            readerListener?.onPageChange(binding.viewpager.currentItem)
 
             viewModel.currentPath = currentDir
         })
 
         binding.viewpager.registerOnPageChangeCallback(object: ViewPager2.OnPageChangeCallback() {
-            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
-                super.onPageScrolled(position, positionOffset, positionOffsetPixels)
-                viewModel.currentScrolledPosition = position
-            }
 
             // For page indicator
             override fun onPageSelected(position: Int) {
