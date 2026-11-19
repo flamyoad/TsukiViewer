@@ -9,6 +9,10 @@ import android.graphics.PointF
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.util.AttributeSet
+import androidx.core.view.ViewCompat
+import com.flamyoad.tsukiviewer.R
+import com.flamyoad.tsukiviewer.core.prefs.MyAppPreference
+import com.flamyoad.tsukiviewer.core.prefs.PreferenceKeys
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
@@ -42,11 +46,24 @@ class ReaderPageImageView(context: Context, attrs: AttributeSet) :
     private var animation: GifDrawable? = null
     private var wantsPlayback = false
     private var attemptedPlayback = false
+    private var playbackOverride: Boolean? = null
+    private val shouldPlay: Boolean
+        get() = playbackOverride ?: MyAppPreference.getInstance(context).prefs
+            .getBoolean(PreferenceKeys.READER_GIF_AUTOPLAY, true)
     private val frameOrigin = PointF()
 
     fun setPage(file: File) {
         stopAnimation()
-        gifFile = file.takeIf { it.extension.equals("gif", ignoreCase = true) }
+        val newGif = file.takeIf { it.extension.equals("gif", ignoreCase = true) }
+        if (newGif != gifFile) playbackOverride = null
+        gifFile = newGif
+        if (newGif != null) {
+            setOnClickListener { toggleGifPlayback() }
+        } else {
+            setOnClickListener(null)
+            isClickable = false
+        }
+        updatePlaybackDescription()
         val source = ImageSource.uri(Uri.fromFile(file))
         if (gifFile != null) {
             setBitmapDecoderFactory { ImageDecoder { _, _ -> decodeGifPreview(file) } }
@@ -76,9 +93,32 @@ class ReaderPageImageView(context: Context, attrs: AttributeSet) :
         maybeStartAnimation()
     }
 
+    private fun toggleGifPlayback() {
+        if (!wantsPlayback || gifFile == null) return
+        val drawable = animation
+        if (drawable != null && !drawable.isRunning) {
+            val manuallyPaused = playbackOverride == false
+            playbackOverride = true
+            if (manuallyPaused) drawable.start() else drawable.startFromFirstFrame()
+        } else if (shouldPlay) {
+            playbackOverride = false
+            if (drawable == null) releaseAnimation() else drawable.stop()
+        } else {
+            playbackOverride = true
+            maybeStartAnimation()
+        }
+        updatePlaybackDescription()
+    }
+
+    private fun updatePlaybackDescription() {
+        ViewCompat.setStateDescription(this, gifFile?.let {
+            context.getString(if (shouldPlay) R.string.reader_gif_playing else R.string.reader_gif_paused)
+        })
+    }
+
     private fun maybeStartAnimation() {
         val file = gifFile ?: return
-        if (!wantsPlayback || !isAttachedToWindow || attemptedPlayback) return
+        if (!wantsPlayback || !shouldPlay || !isAttachedToWindow || attemptedPlayback) return
         val scope = findViewTreeLifecycleOwner()?.lifecycleScope ?: return
         attemptedPlayback = true
         check = scope.launch {
@@ -121,6 +161,7 @@ class ReaderPageImageView(context: Context, attrs: AttributeSet) :
                 animation = resource
                 resource.callback = this@ReaderPageImageView
                 resource.setBounds(0, 0, resource.intrinsicWidth, resource.intrinsicHeight)
+                resource.setLoopCount(GifDrawable.LOOP_INTRINSIC)
                 resource.start()
                 invalidate()
             }

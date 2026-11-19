@@ -29,4 +29,8 @@
     <string name="reader_separate_cover">Show cover on its own</string>
     <string name="reader_right_to_left">Right-to-left reading</string>
     <string name="reader_right_to_left_summary">Put the first page on the right and reverse horizontal swipes</string>
+    <string name="reader_gif_autoplay">Autoplay GIFs</string>
+    <string name="reader_gif_autoplay_summary">Play visible GIF pages automatically. Tap a GIF to pause or play it.</string>
+    <string name="reader_gif_playing">GIF playback enabled</string>
+    <string name="reader_gif_paused">GIF paused</string>
 </resources>
