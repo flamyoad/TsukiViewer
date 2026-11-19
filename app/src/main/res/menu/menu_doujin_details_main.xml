@@ -31,6 +31,12 @@
 <!--        </menu>-->
 <!--    </item>-->
 
+    <item
+        android:id="@+id/action_open_manga_folder"
+        android:orderInCategory="102"
+        android:title="@string/open_manga_folder"
+        app:showAsAction="never" />
+
     <item android:id="@+id/action_open_in_browser"
         android:title="Open in browser"
         app:showAsAction="never"
