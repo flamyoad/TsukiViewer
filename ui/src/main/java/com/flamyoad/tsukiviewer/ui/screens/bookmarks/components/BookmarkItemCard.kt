@@ -1,9 +1,6 @@
 package com.flamyoad.tsukiviewer.ui.screens.bookmarks.components
 
-import android.net.Uri
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
@@ -29,24 +26,22 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.flamyoad.tsukiviewer.ui.components.selectionZoom
 import com.flamyoad.tsukiviewer.ui.screens.bookmarks.BookmarkItemUiModel
 import com.flamyoad.tsukiviewer.ui.theme.TsukiViewerTheme
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BookmarkItemCard(
     item: BookmarkItemUiModel,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    selectionActive: Boolean = item.isSelected
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick
-            ),
+            .selectionZoom(selectionActive, onClick, onLongClick),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column {

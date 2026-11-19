@@ -6,6 +6,9 @@ import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.flamyoad.tsukiviewer.core.db.AppDatabase
+import com.flamyoad.tsukiviewer.core.model.RecentTab
+import com.flamyoad.tsukiviewer.core.prefs.MyAppPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,7 +27,10 @@ class ReaderViewModel(
     private val application: Application
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(ReaderUiState())
+    private val preference = MyAppPreference.getInstance(application)
+    private val _uiState = MutableStateFlow(
+        ReaderUiState(readerMode = ReaderMode.fromPreference(preference.getDefaultReaderMode()))
+    )
     val uiState: StateFlow<ReaderUiState> = _uiState.asStateFlow()
 
     private val imageExtensions = arrayOf("jpg", "png", "gif", "jpeg", "webp", "jpe", "bmp")
@@ -88,6 +94,9 @@ class ReaderViewModel(
                     naturalCompare(o1.name, o2.name)
                 }
 
+                AppDatabase.getInstance(application).recentTabDao().open(
+                    RecentTab(title = dir.name, dirPath = dir, thumbnail = images.first())
+                )
                 val imageUris = images.map { it.toUri() }
                 val validInitialPage = initialPage.coerceIn(0, images.size - 1)
 
@@ -120,35 +129,23 @@ class ReaderViewModel(
         _uiState.update { it.copy(showControls = !it.showControls) }
     }
 
-    /**
-     * Show/hide controls explicitly.
-     */
-    fun setControlsVisible(visible: Boolean) {
-        _uiState.update { it.copy(showControls = visible) }
+    fun jumpToPage(page: Int) {
+        _uiState.update { if (page in it.imageList.indices) it.copy(requestedPage = page) else it }
     }
 
-    /**
-     * Toggle mode selector visibility.
-     */
+    fun completePageJump(page: Int) {
+        _uiState.update { if (it.requestedPage == page) it.copy(currentPage = page, requestedPage = null) else it }
+    }
+
     fun toggleModeSelector() {
-        _uiState.update { 
-            it.copy(
-                showModeSelector = !it.showModeSelector,
-                showThumbnailBar = if (!it.showModeSelector) false else it.showThumbnailBar
-            ) 
+        _uiState.update {
+            val show = !it.showModeSelector
+            it.copy(showModeSelector = show, showThumbnailBar = show)
         }
     }
 
-    /**
-     * Toggle thumbnail bar visibility.
-     */
-    fun toggleThumbnailBar() {
-        _uiState.update { 
-            it.copy(
-                showThumbnailBar = !it.showThumbnailBar,
-                showModeSelector = if (!it.showThumbnailBar) false else it.showModeSelector
-            ) 
-        }
+    fun hideModeSelector() {
+        _uiState.update { it.copy(showModeSelector = false) }
     }
 
     /**

@@ -5,6 +5,7 @@ import androidx.room.*
 import com.flamyoad.tsukiviewer.core.db.typeconverter.TagSortingModeConverter
 import com.flamyoad.tsukiviewer.core.model.Tag
 import com.flamyoad.tsukiviewer.core.model.TagSortingMode
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 @TypeConverters(TagSortingModeConverter::class)
@@ -24,6 +25,9 @@ interface TagDao {
 
     @Query("SELECT * FROM tags ORDER BY name")
     fun getAll(): LiveData<List<Tag>>
+
+    @Query("SELECT * FROM tags ORDER BY name")
+    fun observeAll(): Flow<List<Tag>>
 
     @Query("SELECT * FROM tags ORDER BY name")
     suspend fun getAllBlocking(): List<Tag>

@@ -6,27 +6,21 @@ import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CreateNewFolder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,12 +41,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.flamyoad.tsukiviewer.ui.screens.settings.includedfolders.components.IncludedFolderItem
-import com.flamyoad.tsukiviewer.ui.theme.TsukiViewerTheme
 
 /**
  * Screen for managing included folders that will be scanned for doujins.
@@ -176,7 +169,8 @@ fun IncludedFoldersScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Included Folders") },
+                expandedHeight = 56.dp,
+                title = { Text("Included Folder", fontSize = 20.sp, fontWeight = FontWeight.Medium) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -185,27 +179,22 @@ fun IncludedFoldersScreen(
                         )
                     }
                 },
+                actions = {
+                    IconButton(onClick = { folderPickerLauncher.launch(null) }) {
+                        Icon(Icons.Filled.Add, "Add folder")
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 windowInsets = WindowInsets(
                     top = 0.dp,
                     bottom = 0.dp,
                 )
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    folderPickerLauncher.launch(null)
-                }
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = "Add folder"
-                )
-            }
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         modifier = modifier
@@ -222,21 +211,13 @@ fun IncludedFoldersScreen(
                 }
             }
             
-            uiState.folders.isEmpty() -> {
-                EmptyFoldersContent(
-                    onAddFolderClick = { folderPickerLauncher.launch(null) },
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                )
-            }
-            
+            uiState.folders.isEmpty() -> Unit
+
             else -> {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding),
-                    contentPadding = PaddingValues(vertical = 8.dp)
+                        .padding(innerPadding)
                 ) {
                     items(
                         items = uiState.folders,
@@ -249,53 +230,6 @@ fun IncludedFoldersScreen(
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun EmptyFoldersContent(
-    onAddFolderClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier.padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            imageVector = Icons.Filled.CreateNewFolder,
-            contentDescription = null,
-            modifier = Modifier.padding(16.dp),
-            tint = MaterialTheme.colorScheme.primary
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        Text(
-            text = "No Folders Added",
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        Text(
-            text = "Add folders containing your manga/doujin collections to start browsing.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        Button(onClick = onAddFolderClick) {
-            Icon(
-                imageVector = Icons.Filled.Add,
-                contentDescription = null,
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            Text("Add Folder")
         }
     }
 }
@@ -323,16 +257,5 @@ private fun getPathFromUri(uri: Uri): String? {
             }
         }
         else -> null
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun IncludedFoldersScreenPreview() {
-    TsukiViewerTheme {
-        EmptyFoldersContent(
-            onAddFolderClick = {},
-            modifier = Modifier.fillMaxSize()
-        )
     }
 }

@@ -160,6 +160,7 @@ fun TagDetailsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
+                expandedHeight = 56.dp,
                 title = { 
                     Text(
                         text = uiState.tag?.let { "${it.type}: ${it.name}" } ?: "Tag Details"
@@ -174,8 +175,10 @@ fun TagDetailsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 windowInsets = WindowInsets(
                     top = 0.dp,

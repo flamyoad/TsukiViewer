@@ -10,7 +10,8 @@ data class CollectionUiModel(
     val title: String,
     val coverImageUri: Uri?,
     val itemCount: Int = 0,
-    val tags: List<String> = emptyList()
+    val tags: List<String> = emptyList(),
+    val criteriaSummary: String = ""
 )
 
 /**

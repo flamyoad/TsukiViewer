@@ -6,6 +6,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.flamyoad.tsukiviewer.core.prefs.MyAppPreference
 import com.flamyoad.tsukiviewer.core.db.AppDatabase
 import com.flamyoad.tsukiviewer.core.model.Doujin
 import com.flamyoad.tsukiviewer.core.repository.MetadataRepository
@@ -30,7 +31,8 @@ class HomeViewModel(
     private val metadataRepo: MetadataRepository
 ) : ViewModel() {
     
-    private val _uiState = MutableStateFlow(HomeUiState())
+    private val preferences = MyAppPreference.getInstance(application)
+    private val _uiState = MutableStateFlow(HomeUiState(viewMode = readViewMode()))
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
     
     private val _events = MutableSharedFlow<HomeEvent>()
@@ -49,6 +51,7 @@ class HomeViewModel(
     }
     
     fun loadDoujins() {
+        _uiState.update { it.copy(viewMode = readViewMode()) }
         loadingJob?.cancel()
         loadingJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
@@ -157,7 +160,15 @@ class HomeViewModel(
         }
     }
     
+    private fun readViewMode(): ViewMode = when (val stored = preferences.getDoujinViewMode()) {
+        "0" -> ViewMode.NORMAL_GRID
+        "1" -> ViewMode.MINI_GRID
+        "2" -> ViewMode.SCALED
+        else -> ViewMode.entries.firstOrNull { it.name == stored } ?: ViewMode.SCALED
+    }
+
     fun setViewMode(mode: ViewMode) {
+        preferences.setDoujinViewMode(mode.name)
         _uiState.update { it.copy(viewMode = mode) }
     }
     
@@ -219,25 +230,6 @@ class HomeViewModel(
     }
     
     fun getSelectedDoujins(): List<DoujinUiModel> = selectedDoujins.toList()
-    
-    fun bookmarkSelectedDoujins() {
-        val count = selectedDoujins.size
-        // For now, show a snackbar - full implementation would use BookmarkRepository
-        showSnackbar("Bookmarked $count item(s)")
-        cancelActionMode()
-    }
-    
-    fun editSelectedDoujins() {
-        if (selectedDoujins.size == 1) {
-            val path = selectedDoujins.first().path
-            viewModelScope.launch {
-                _events.emit(HomeEvent.NavigateToDoujinDetails(path))
-            }
-            cancelActionMode()
-        } else {
-            showSnackbar("Please select only one item to edit")
-        }
-    }
     
     fun showSnackbar(message: String) {
         _uiState.update { it.copy(snackbarMessage = message) }

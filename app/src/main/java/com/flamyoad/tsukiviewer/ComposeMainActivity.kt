@@ -2,6 +2,7 @@ package com.flamyoad.tsukiviewer
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.KeyEvent
 import com.flamyoad.tsukiviewer.security.LockableActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -30,15 +31,28 @@ import com.flamyoad.tsukiviewer.ui.TsukiViewerApp
  * ```
  */
 class ComposeMainActivity : LockableActivity() {
+    private var readerVolumeHandler: ((KeyEvent) -> Boolean)? = null
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val isVolume = event.keyCode == KeyEvent.KEYCODE_VOLUME_UP ||
+            event.keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
+        if (isVolume && !appLock.isLocked && readerVolumeHandler?.invoke(event) == true) return true
+        return super.dispatchKeyEvent(event)
+    }
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // AppCompat installs its own content view, so set the Activity owners
+        // on the window before Navigation 3 looks up its Back dispatcher.
+        initializeViewTreeOwners()
         setContent {
             val appLockEnabled by appLock.enabled.collectAsState()
             val appLockTimeout by appLock.timeout.collectAsState()
             TsukiViewerApp(
-                onRestartApp = { restartApp() },
+                onRestartApp = ::restartApp,
+                onQuitApp = ::finish,
+                setReaderVolumeHandler = { readerVolumeHandler = it },
                 appLockEnabled = appLockEnabled,
                 onAppLockChange = ::requestAppLockChange,
                 appLockTimeoutLabel = getString(appLockTimeout.label),

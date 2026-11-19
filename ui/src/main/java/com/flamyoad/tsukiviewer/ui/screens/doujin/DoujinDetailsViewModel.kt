@@ -40,7 +40,7 @@ class DoujinDetailsViewModel(
     private var bookmarkGroupTickStatus = hashMapOf<String, Boolean>()
 
     private val imageExtensions = arrayOf("jpg", "png", "gif", "jpeg", "webp", "jpe", "bmp")
-    private val dateFormat = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
+    private val dateFormat = SimpleDateFormat("d MMM, yyyy h:mm:ss a", Locale.getDefault())
 
     fun loadDoujinDetails(dirPath: String) {
         if (dirPath == currentPath && !_uiState.value.isLoading) {
@@ -107,6 +107,10 @@ class DoujinDetailsViewModel(
             // Load metadata from database
             loadMetadata(dir)
         }
+    }
+
+    fun refreshMetadata(path: String) {
+        if (currentPath == path && !_uiState.value.isLoading) loadMetadata(File(path))
     }
 
     private fun loadMetadata(dir: File) {

@@ -1,5 +1,25 @@
 package com.flamyoad.tsukiviewer.ui.screens.bookmarks
 
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -62,6 +82,9 @@ fun BookmarksScreen(
     )
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val gridState = rememberLazyGridState()
+    val scope = rememberCoroutineScope()
+    var showOptions by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     
     // Show snackbar when message is available
@@ -86,6 +109,7 @@ fun BookmarksScreen(
                 uiState.isActionModeActive -> {
                     // Action mode top bar
                     TopAppBar(
+                        expandedHeight = 56.dp,
                         title = { Text("${uiState.selectedCount} selected") },
                         navigationIcon = {
                             IconButton(onClick = { viewModel.cancelActionMode() }) {
@@ -104,8 +128,10 @@ fun BookmarksScreen(
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                            actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                            titleContentColor = MaterialTheme.colorScheme.onPrimary
                         ),
                         windowInsets = WindowInsets(
                             top = 0.dp,
@@ -145,7 +171,9 @@ fun BookmarksScreen(
                 else -> {
                     // Normal top bar
                     TopAppBar(
-                        title = { Text("Bookmarks") },
+                        expandedHeight = 56.dp,
+                        title = { Text("Bookmarks", fontSize = 20.sp, fontWeight = FontWeight.Medium) },
+                    navigationIcon = { Spacer(Modifier.width(56.dp)) },
                         actions = {
                             IconButton(onClick = { viewModel.setSearchActive(true) }) {
                                 Icon(
@@ -153,16 +181,23 @@ fun BookmarksScreen(
                                     contentDescription = "Search"
                                 )
                             }
-                            IconButton(onClick = { viewModel.showCreateGroupDialog() }) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = "Add Group"
-                                )
+                            Box {
+                                IconButton(onClick = { showOptions = true }) {
+                                    Icon(Icons.Default.MoreVert, "More options")
+                                }
+                                DropdownMenu(expanded = showOptions, onDismissRequest = { showOptions = false }) {
+                                    DropdownMenuItem(text = { Text("Add new group") }, onClick = {
+                                        showOptions = false
+                                        viewModel.showCreateGroupDialog()
+                                    })
+                                }
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                            actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                            titleContentColor = MaterialTheme.colorScheme.onPrimary
                         ),
                         windowInsets = WindowInsets(
                             top = 0.dp,
@@ -170,6 +205,16 @@ fun BookmarksScreen(
                         )
                     )
                 }
+            }
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { scope.launch { if (uiState.items.isNotEmpty()) gridState.animateScrollToItem(0) } },
+                shape = CircleShape,
+                containerColor = Color(0xFFED2553),
+                contentColor = Color.White
+            ) {
+                Icon(Icons.Default.KeyboardArrowUp, "Scroll to top")
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -180,26 +225,40 @@ fun BookmarksScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Groups horizontal list
-            if (uiState.groups.isNotEmpty()) {
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    items(
-                        items = uiState.groups,
-                        key = { it.name }
-                    ) { group ->
-                        BookmarkGroupChip(
-                            group = group,
-                            isSelected = group.name == uiState.selectedGroupName,
-                            onClick = { viewModel.selectGroup(group.name) }
-                        )
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 4.dp),
+                modifier = Modifier.fillMaxWidth().height(112.dp).background(Color(0xFF42464B))
+            ) {
+                item(key = "add-bookmark-group") {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.width(98.dp)
+                            .clickable { viewModel.showCreateGroupDialog() }.padding(vertical = 12.dp)
+                    ) {
+                        Box(
+                            Modifier.size(50.dp).background(Color(0xFFB33E5C), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) { Icon(Icons.Default.Add, contentDescription = null, tint = Color.White) }
+                        Text("Add new group", Modifier.padding(top = 16.dp), color = Color.White, fontSize = 12.sp)
                     }
                 }
+                items(items = uiState.groups, key = { "group-${it.name}" }) { group ->
+                    BookmarkGroupChip(
+                        group = group,
+                        isSelected = group.name == uiState.selectedGroupName,
+                        onClick = { viewModel.selectGroup(group.name) }
+                    )
+                }
             }
-            
+            Text(
+                uiState.selectedGroupName ?: "No bookmark exists",
+                Modifier.fillMaxWidth().background(Color(0xFF313335)).padding(vertical = 10.dp),
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                fontSize = 14.sp,
+                lineHeight = 18.sp
+            )
+
             // Content
             when {
                 uiState.isLoading -> {
@@ -211,53 +270,12 @@ fun BookmarksScreen(
                     }
                 }
                 
-                uiState.groups.isEmpty() -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = "No Bookmarks",
-                                style = MaterialTheme.typography.headlineMedium
-                            )
-                            Text(
-                                text = "Bookmark your favorite doujins to see them here",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-                
-                uiState.items.isEmpty() -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = if (uiState.searchQuery.isNotEmpty()) "No results" else "Empty Group",
-                                style = MaterialTheme.typography.headlineMedium
-                            )
-                            Text(
-                                text = "This group has no bookmarked items",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-                
+                uiState.items.isEmpty() -> Unit
+
                 else -> {
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(3),
+                        state = gridState,
                         contentPadding = PaddingValues(8.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -269,6 +287,7 @@ fun BookmarksScreen(
                         ) { item ->
                             BookmarkItemCard(
                                 item = item,
+                                selectionActive = uiState.isActionModeActive,
                                 onClick = {
                                     if (uiState.isActionModeActive) {
                                         viewModel.onItemClick(item)

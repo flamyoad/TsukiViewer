@@ -3,7 +3,18 @@ package com.flamyoad.tsukiviewer.ui.screens.settings.components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.Icon
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.sp
+import com.flamyoad.tsukiviewer.ui.theme.WineRed
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -16,16 +27,19 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun SettingsCategory(
     title: String,
+    icon: ImageVector,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 20.dp, bottom = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(32.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(24.dp))
+            Text(title, fontSize = 12.sp, color = WineRed)
+        }
         content()
     }
 }
@@ -42,21 +56,24 @@ fun SwitchPreference(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(enabled = enabled) { onCheckedChange(!checked) }
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .toggleable(checked, enabled = enabled, role = Role.Switch, onValueChange = onCheckedChange)
+            .heightIn(min = 72.dp)
+            .padding(start = 72.dp, end = 12.dp, top = 10.dp, bottom = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.bodyLarge,
+                fontSize = 16.sp,
+                lineHeight = 19.sp,
                 color = if (enabled) MaterialTheme.colorScheme.onSurface 
                         else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
             )
             if (summary != null) {
                 Text(
                     text = summary,
-                    style = MaterialTheme.typography.bodyMedium,
+                    fontSize = 14.sp,
+                    lineHeight = 16.sp,
                     color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant 
                             else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                 )
@@ -64,8 +81,16 @@ fun SwitchPreference(
         }
         Switch(
             checked = checked,
-            onCheckedChange = onCheckedChange,
-            enabled = enabled
+            onCheckedChange = null,
+            enabled = enabled,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = MaterialTheme.colorScheme.primaryContainer,
+                checkedTrackColor = MaterialTheme.colorScheme.outlineVariant
+            ),
+            modifier = Modifier.graphicsLayer {
+                scaleX = 0.72f
+                scaleY = 0.65f
+            }
         )
     }
 }
@@ -82,43 +107,25 @@ fun ClickablePreference(
         modifier = modifier
             .fillMaxWidth()
             .clickable(enabled = enabled, onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .heightIn(min = 72.dp)
+            .padding(start = 72.dp, end = 16.dp, top = 10.dp, bottom = 10.dp),
+        verticalArrangement = Arrangement.Center
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.bodyLarge,
+            fontSize = 16.sp,
+            lineHeight = 19.sp,
             color = if (enabled) MaterialTheme.colorScheme.onSurface 
                     else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
         )
         if (summary != null) {
             Text(
                 text = summary,
-                style = MaterialTheme.typography.bodyMedium,
+                fontSize = 14.sp,
+                lineHeight = 16.sp,
                 color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant 
                         else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
             )
         }
     }
-}
-
-@Composable
-fun <T> ListPreference(
-    title: String,
-    summary: String? = null,
-    value: T,
-    options: List<T>,
-    optionLabels: List<String>,
-    onValueChange: (T) -> Unit,
-    enabled: Boolean = true,
-    modifier: Modifier = Modifier
-) {
-    val currentLabel = optionLabels.getOrElse(options.indexOf(value)) { summary ?: "" }
-    
-    ClickablePreference(
-        title = title,
-        summary = currentLabel,
-        onClick = { /* Show dialog - would be handled by parent */ },
-        enabled = enabled,
-        modifier = modifier
-    )
 }

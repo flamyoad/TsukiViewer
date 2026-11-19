@@ -1,55 +1,64 @@
 package com.flamyoad.tsukiviewer.ui.navigation
 
-import java.net.URLDecoder
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
+import androidx.navigation3.runtime.NavKey
+import kotlinx.serialization.Serializable
+import java.util.UUID
 
-/**
- * Sealed class representing all navigation destinations in the app.
- */
-sealed class Screen(val route: String) {
-    
-    object Home : Screen("home")
-    
-    object Search : Screen("search")
-    
-    object Collections : Screen("collections")
-    
-    object Tags : Screen("tags")
-    
-    object Bookmarks : Screen("bookmarks")
-    
-    object Settings : Screen("settings")
-    
-    object IncludedFolders : Screen("included_folders")
-    
-    object DoujinDetails : Screen("doujin_details/{doujinPath}") {
-        fun createRoute(doujinPath: String): String {
-            val encodedPath = URLEncoder.encode(doujinPath, StandardCharsets.UTF_8.toString())
-            return "doujin_details/$encodedPath"
-        }
-        
-        fun decodePath(encodedPath: String): String {
-            return URLDecoder.decode(encodedPath, StandardCharsets.UTF_8.toString())
-        }
-    }
-    
-    object DoujinReader : Screen("doujin_reader/{doujinPath}?initialPage={initialPage}") {
-        fun createRoute(doujinPath: String, initialPage: Int = 0): String {
-            val encodedPath = URLEncoder.encode(doujinPath, StandardCharsets.UTF_8.toString())
-            return "doujin_reader/$encodedPath?initialPage=$initialPage"
-        }
-        
-        fun decodePath(encodedPath: String): String {
-            return URLDecoder.decode(encodedPath, StandardCharsets.UTF_8.toString())
-        }
-    }
-    
-    object CollectionDetails : Screen("collection_details/{collectionId}") {
-        fun createRoute(collectionId: Long): String = "collection_details/$collectionId"
-    }
-    
-    object TagDetails : Screen("tag_details/{tagId}") {
-        fun createRoute(tagId: Long): String = "tag_details/$tagId"
-    }
+@Serializable
+sealed interface Screen : NavKey {
+    @Serializable
+    data object Home : Screen
+
+    @Serializable
+    data object Search : Screen
+
+    @Serializable
+    data class SearchResults(val title: String, val tags: String, val requireAllTags: Boolean) : Screen
+
+    @Serializable
+    data object Collections : Screen
+
+    @Serializable
+    data object Tags : Screen
+
+    @Serializable
+    data object Bookmarks : Screen
+
+    @Serializable
+    data object Settings : Screen
+
+    @Serializable
+    data object IncludedFolders : Screen
+
+    @Serializable
+    data class RecentTabs(val activePath: String? = null) : Screen
+
+    @Serializable
+    data class MetadataEditor(val paths: List<String>) : Screen
+
+    @Serializable
+    data class FetchStatus(val paths: List<String>) : Screen
+
+    @Serializable
+    data class DoujinDetails(
+        val path: String,
+        // Related galleries can lead back to an earlier gallery in this stack.
+        val entryId: String = UUID.randomUUID().toString()
+    ) : Screen
+
+    @Serializable
+    data class DoujinReader(
+        val path: String,
+        val initialPage: Int = 0,
+        val galleryEntry: String? = null
+    ) : Screen
+
+    @Serializable
+    data class CollectionDetails(val collectionId: Long) : Screen
+
+    @Serializable
+    data class CollectionEditor(val collectionId: Long?) : Screen
+
+    @Serializable
+    data class TagDetails(val tagId: Long) : Screen
 }
