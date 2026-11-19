@@ -10,6 +10,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -46,7 +47,7 @@ private val DarkColorScheme = darkColorScheme(
  * Light color scheme matching the original XML app theme.
  * Features:
  * - Dark gray toolbar (#313335)
- * - Light gray background (#ECECEC)  
+ * - White window background
  * - White cards
  * - Wine red accent (#B33E5C)
  * - Blue action items (#267AFF)
@@ -64,7 +65,7 @@ private val LightColorScheme = lightColorScheme(
     onTertiary = OnTertiary,
     tertiaryContainer = TertiaryContainer,
     onTertiaryContainer = OnTertiaryContainer,
-    background = Background,             // #ECECEC - light gray
+    background = Color.White,
     onBackground = OnBackground,
     surface = Surface,                   // #FFFFFF - white cards
     onSurface = OnSurface,
@@ -100,7 +101,10 @@ fun TsukiViewerTheme(
             // Status bar matches the primary color (dark gray toolbar)
             window.statusBarColor = ColorPrimaryDark.toArgb()
             // Light status bar icons since we have a dark toolbar
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+            WindowCompat.getInsetsController(window, view).apply {
+                isAppearanceLightStatusBars = false
+                isAppearanceLightNavigationBars = false
+            }
         }
     }
 

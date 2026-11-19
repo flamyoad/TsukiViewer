@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-parcelize'
 apply plugin: 'com.google.gms.google-services'
@@ -7,15 +8,11 @@ apply plugin: 'com.google.firebase.crashlytics'
 
 android {
     namespace 'com.flamyoad.tsukiviewer'
-    compileSdkVersion 34
+    compileSdkVersion 36
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = "17"
     }
 
     buildFeatures {
@@ -23,13 +20,9 @@ android {
         compose true
     }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion "1.5.8"
-    }
-
     defaultConfig {
         applicationId "com.flamyoad.tsukiviewer"
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 34
         versionCode 12
         versionName "3.2.0"
@@ -66,6 +59,14 @@ tasks.configureEach {
     }
 }
 
+kotlin {
+    compilerOptions {
+        // Keep the API level of deprecated stdlib calls used by the View implementation.
+        apiVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+    }
+}
+
 dependencies {
     // Core module
     implementation project(':core')
@@ -74,12 +75,12 @@ dependencies {
     implementation project(':ui')
 
     // Compose dependencies for app module
-    implementation "androidx.activity:activity-compose:1.8.2"
+    implementation "androidx.activity:activity-compose:1.12.4"
 
     implementation "androidx.biometric:biometric:1.1.0"
 
     def preference_version = "1.1.1"
-    def dagger_version = "2.48"
+    def dagger_version = "2.59.2"
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
@@ -90,6 +91,7 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    androidTestImplementation 'androidx.compose.ui:ui-test-junit4:1.9.5'
 
     implementation "androidx.fragment:fragment-ktx:1.2.5"
     implementation "androidx.activity:activity-ktx:1.0.0"
@@ -113,7 +115,7 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
     kapt "androidx.lifecycle:lifecycle-compiler:$lifecycle_version"
 
-    def room_version = "2.6.1"
+    def room_version = "2.8.4"
     implementation "androidx.room:room-runtime:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
     implementation "androidx.room:room-ktx:$room_version"

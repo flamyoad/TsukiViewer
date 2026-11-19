@@ -1,5 +1,7 @@
 package com.flamyoad.tsukiviewer.ui.screens.bookmarks.components
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.sp
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,12 +39,12 @@ fun BookmarkGroupChip(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .clickable(onClick = onClick)
-            .padding(8.dp)
+            .padding(horizontal = 4.dp, vertical = 12.dp)
     ) {
         // Group thumbnail
         Box(
             modifier = Modifier
-                .size(64.dp)
+                .size(50.dp)
                 .clip(CircleShape)
                 .background(
                     if (isSelected) MaterialTheme.colorScheme.primaryContainer
@@ -55,7 +57,7 @@ fun BookmarkGroupChip(
                     model = group.thumbnailUri,
                     contentDescription = group.name,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.size(64.dp).clip(CircleShape)
+                    modifier = Modifier.size(50.dp).clip(CircleShape)
                 )
             } else {
                 Icon(
@@ -72,19 +74,18 @@ fun BookmarkGroupChip(
         Text(
             text = group.name,
             style = MaterialTheme.typography.labelMedium,
-            maxLines = 1,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
-            color = if (isSelected) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(top = 4.dp)
+            color = Color.White,
+            modifier = Modifier.padding(top = 8.dp)
         )
         
         // Item count
         Text(
-            text = "${group.itemCount}",
+            text = "(${group.itemCount})",
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = Color(0xFFC4C4C4)
         )
     }
 }

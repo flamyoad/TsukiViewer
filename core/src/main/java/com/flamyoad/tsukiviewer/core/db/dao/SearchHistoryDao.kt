@@ -1,11 +1,11 @@
 package com.flamyoad.tsukiviewer.core.db.dao
 
-import androidx.lifecycle.LiveData
 import androidx.paging.DataSource
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
 import com.flamyoad.tsukiviewer.core.model.SearchHistory
 
 @Dao
@@ -22,6 +22,9 @@ interface SearchHistoryDao {
 
     @Query("SELECT * FROM search_history ORDER BY id DESC")
     fun getAll(): DataSource.Factory<Int, SearchHistory>
+
+    @Query("SELECT * FROM search_history ORDER BY id DESC")
+    fun observeAll(): Flow<List<SearchHistory>>
 
     @Query("DELETE FROM search_history")
     fun deleteAll()

@@ -19,6 +19,9 @@ interface DoujinTagsDao {
     @Query("DELETE FROM doujin_tags WHERE doujinId = :tagId")
     suspend fun deleteFromTag(tagId: Long)
 
+    @Query("DELETE FROM doujin_tags WHERE tagId = :tagId")
+    suspend fun deleteTagAssociations(tagId: Long)
+
     @Query("DELETE FROM doujin_tags")
     suspend fun deleteAll()
 

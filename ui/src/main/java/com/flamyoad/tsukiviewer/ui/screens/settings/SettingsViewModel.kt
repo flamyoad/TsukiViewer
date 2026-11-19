@@ -1,8 +1,7 @@
 package com.flamyoad.tsukiviewer.ui.screens.settings
 
 import android.app.Application
-import android.content.Context
-import android.preference.PreferenceManager
+import androidx.preference.PreferenceManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -12,7 +11,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import androidx.core.content.edit
+import androidx.room.withTransaction
+import com.flamyoad.tsukiviewer.core.db.AppDatabase
+import com.flamyoad.tsukiviewer.core.model.ReaderSpreadPreferences
+import com.flamyoad.tsukiviewer.core.repository.RelatedMangaRepository
+import com.flamyoad.tsukiviewer.core.repository.SearchHistoryRepository
+import kotlinx.coroutines.CancellationException
 import com.flamyoad.tsukiviewer.core.prefs.PreferenceKeys
+import com.flamyoad.tsukiviewer.ui.screens.doujin.GridViewStyle
+import com.flamyoad.tsukiviewer.ui.screens.doujin.ReaderMode
 
 /**
  * ViewModel for the Settings screen.
@@ -37,13 +44,13 @@ class SettingsViewModel(
             // Load from shared preferences
             val useExternalGallery = prefs.getBoolean(PREF_USE_EXTERNAL_GALLERY, false)
             val externalGalleryPackage = prefs.getString(PREF_EXTERNAL_GALLERY_PKG, "") ?: ""
-            val scrollByVolumeButtons = prefs.getBoolean(PREF_SCROLL_BY_VOLUME, false)
+            val scrollByVolumeButtons = prefs.getBoolean(PREF_SCROLL_BY_VOLUME, true)
             val confirmBeforeQuit = prefs.getBoolean(PREF_CONFIRM_QUIT, true)
-            // XML ListPreference stores values as Strings, so we need to parse them
-            val readerModeOrdinal = prefs.getString(PREF_READER_MODE, "0")?.toIntOrNull() ?: 0
-            val gridStyleOrdinal = prefs.getString(PREF_GRID_STYLE, "0")?.toIntOrNull() ?: 0
-            val windowsSort = prefs.getBoolean(PREF_WINDOWS_SORT, false)
-            val viewModeOrdinal = prefs.getString(PREF_VIEW_MODE, "0")?.toIntOrNull() ?: 0
+            val readerMode = ReaderMode.fromPreference(prefs.getString(PREF_READER_MODE, null))
+            val gridStyle = GridViewStyle.fromPreference(prefs.getString(PREF_GRID_STYLE, null))
+            val windowsSort = prefs.getBoolean(PREF_WINDOWS_SORT, true)
+            val viewMode = prefs.getString(PREF_VIEW_MODE, null)
+            val spreads = ReaderSpreadPreferences.read(prefs)
             val useComposeUi = prefs.getBoolean(PREF_USE_COMPOSE_UI, true)
             
             _uiState.update { 
@@ -52,11 +59,17 @@ class SettingsViewModel(
                     externalGalleryPackage = externalGalleryPackage,
                     scrollByVolumeButtons = scrollByVolumeButtons,
                     confirmBeforeQuit = confirmBeforeQuit,
-                    readerRightToLeft = prefs.getBoolean(PreferenceKeys.READER_RIGHT_TO_LEFT, false),
-                    defaultReaderMode = ReaderMode.entries.getOrElse(readerModeOrdinal) { ReaderMode.HORIZONTAL_SWIPE },
-                    defaultGridViewStyle = GridViewStyle.entries.getOrElse(gridStyleOrdinal) { GridViewStyle.SCALED },
+                    readerRightToLeft = spreads.rightToLeft,
+                    automaticSpreads = spreads.enabled,
+                    separateCover = spreads.separateCover,
+                    defaultReaderMode = readerMode,
+                    defaultGridViewStyle = gridStyle,
+                    openImageGridFirst = prefs.getString(PreferenceKeys.DOUJIN_DETAILS_LANDING_SCR, null) == "ImageGrid",
+                    readerGifAutoplay = prefs.getBoolean(PreferenceKeys.READER_GIF_AUTOPLAY, true),
                     useWindowsExplorerSort = windowsSort,
-                    doujinViewMode = DoujinViewMode.entries.getOrElse(viewModeOrdinal) { DoujinViewMode.NORMAL_GRID },
+                    doujinViewMode = DoujinViewMode.entries.firstOrNull { it.name == viewMode }
+                        ?: viewMode?.toIntOrNull()?.let { DoujinViewMode.entries.getOrNull(it) }
+                        ?: DoujinViewMode.SCALED,
                     useComposeUi = useComposeUi,
                     showRelatedManga = prefs.getBoolean(
                         PreferenceKeys.SHOW_RELATED_MANGA, PreferenceKeys.SHOW_RELATED_MANGA_DEFAULT
@@ -92,15 +105,77 @@ class SettingsViewModel(
         _uiState.update { it.copy(confirmBeforeQuit = value) }
     }
     
+    fun setAutomaticSpreads(value: Boolean) {
+        ReaderSpreadPreferences.read(prefs).copy(enabled = value).save(prefs)
+        _uiState.update { it.copy(automaticSpreads = value) }
+    }
+
+    fun setSeparateCover(value: Boolean) {
+        ReaderSpreadPreferences.read(prefs).copy(separateCover = value).save(prefs)
+        _uiState.update { it.copy(separateCover = value) }
+    }
+
+    fun clearData(option: ClearDataOption) {
+        if (_uiState.value.clearingData) return
+        _uiState.update { it.copy(clearingData = true) }
+        viewModelScope.launch {
+            try {
+                val db = AppDatabase.getInstance(application)
+                when (option) {
+                    ClearDataOption.METADATA -> {
+                        db.withTransaction {
+                            db.doujinTagDao().deleteAll()
+                            db.doujinDetailsDao().deleteAll()
+                        }
+                        RelatedMangaRepository.invalidateLibrary(db)
+                    }
+                    ClearDataOption.TAGS -> {
+                        db.withTransaction {
+                            db.doujinTagDao().deleteAll()
+                            db.tagsDao().deleteAll()
+                        }
+                        RelatedMangaRepository.invalidateLibrary(db)
+                    }
+                    ClearDataOption.SEARCH_HISTORY -> SearchHistoryRepository(db.searchHistoryDao()).deleteAll()
+                }
+                _uiState.update { it.copy(snackbarMessage = "Data cleared") }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                _uiState.update { it.copy(snackbarMessage = "Could not clear data") }
+            } finally {
+                _uiState.update { it.copy(clearingData = false) }
+            }
+        }
+    }
+
+    fun getPreference(key: String, default: String): String = prefs.getString(key, default) ?: default
+
+    fun setPreference(key: String, value: String) {
+        prefs.edit { putString(key, value) }
+    }
+
+    fun setLandingScreen(openImageGrid: Boolean) {
+        prefs.edit {
+            putString(PreferenceKeys.DOUJIN_DETAILS_LANDING_SCR, if (openImageGrid) "ImageGrid" else "DoujinDetails")
+        }
+        _uiState.update { it.copy(openImageGridFirst = openImageGrid) }
+    }
+
+    fun setReaderGifAutoplay(value: Boolean) {
+        prefs.edit { putBoolean(PreferenceKeys.READER_GIF_AUTOPLAY, value) }
+        _uiState.update { it.copy(readerGifAutoplay = value) }
+    }
+
     fun setDefaultReaderMode(mode: ReaderMode) {
         // Store as String for compatibility with XML ListPreference
-        prefs.edit { putString(PREF_READER_MODE, mode.ordinal.toString()) }
+        prefs.edit { putString(PREF_READER_MODE, mode.preferenceValue) }
         _uiState.update { it.copy(defaultReaderMode = mode) }
     }
     
     fun setDefaultGridViewStyle(style: GridViewStyle) {
         // Store as String for compatibility with XML ListPreference
-        prefs.edit { putString(PREF_GRID_STYLE, style.ordinal.toString()) }
+        prefs.edit { putString(PREF_GRID_STYLE, style.name) }
         _uiState.update { it.copy(defaultGridViewStyle = style) }
     }
     
@@ -111,7 +186,7 @@ class SettingsViewModel(
     
     fun setDoujinViewMode(mode: DoujinViewMode) {
         // Store as String for compatibility with XML ListPreference
-        prefs.edit { putString(PREF_VIEW_MODE, mode.ordinal.toString()) }
+        prefs.edit { putString(PREF_VIEW_MODE, mode.name) }
         _uiState.update { it.copy(doujinViewMode = mode) }
     }
     
@@ -143,7 +218,7 @@ class SettingsViewModel(
                 packageName = resolveInfo.activityInfo.packageName,
                 appName = resolveInfo.loadLabel(application.packageManager).toString()
             )
-        }
+        }.distinctBy(GalleryAppInfo::packageName).sortedBy(GalleryAppInfo::appName)
     }
     
     fun clearSnackbar() {
@@ -176,4 +251,10 @@ class SettingsViewModelFactory(
         }
         throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
+}
+
+enum class ClearDataOption(val title: String) {
+    METADATA("Clear doujin metadata"),
+    TAGS("Clear tags"),
+    SEARCH_HISTORY("Clear search history")
 }

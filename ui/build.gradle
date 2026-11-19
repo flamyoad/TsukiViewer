@@ -1,30 +1,24 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
+apply plugin: 'org.jetbrains.kotlin.plugin.serialization'
 apply plugin: 'kotlin-kapt'
 
 android {
     namespace 'com.flamyoad.tsukiviewer.ui'
-    compileSdkVersion 34
+    compileSdkVersion 36
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     buildFeatures {
         compose true
     }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.8"
-    }
-
     defaultConfig {
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 34
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -39,6 +33,12 @@ android {
     }
 }
 
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+    }
+}
+
 dependencies {
     // Core module dependency
     implementation project(':core')
@@ -47,7 +47,7 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.12.0'
 
     // Jetpack Compose BOM
-    def composeBom = platform('androidx.compose:compose-bom:2024.02.00')
+    def composeBom = platform('androidx.compose:compose-bom:2025.11.01')
     implementation composeBom
     androidTestImplementation composeBom
 
@@ -62,20 +62,23 @@ dependencies {
     implementation 'androidx.compose.material3:material3'
 
     // Material Icons Extended
-    implementation 'androidx.compose.material:material-icons-extended'
+    implementation 'androidx.compose.material:material-icons-extended:1.7.8'
 
     // Activity Compose (for ComponentActivity integration from app module)
-    api 'androidx.activity:activity-compose:1.8.2'
+    api 'androidx.activity:activity-compose:1.12.4'
 
     // ViewModel Compose
     implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0'
     implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.7.0'
 
-    // Navigation Compose
-    implementation 'androidx.navigation:navigation-compose:2.7.7'
+    implementation 'androidx.navigation3:navigation3-runtime:1.0.0'
+    implementation 'androidx.navigation3:navigation3-ui:1.0.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-navigation3:2.10.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-core:1.9.0'
 
     // Coil for image loading in Compose
     implementation 'io.coil-kt:coil-compose:2.5.0'
+    implementation 'io.coil-kt:coil-gif:2.5.0'
 
     // Paging Compose
     implementation 'androidx.paging:paging-compose:3.2.1'
@@ -86,8 +89,8 @@ dependencies {
     implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist_version"
 
     // Dagger 2 (for DI)
-    implementation "com.google.dagger:dagger:2.48"
-    kapt "com.google.dagger:dagger-compiler:2.48"
+    implementation "com.google.dagger:dagger:2.59.2"
+    kapt "com.google.dagger:dagger-compiler:2.59.2"
 
     // Coroutines
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3"

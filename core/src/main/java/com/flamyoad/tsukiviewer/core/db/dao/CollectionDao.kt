@@ -6,6 +6,7 @@ import com.flamyoad.tsukiviewer.core.db.typeconverter.FolderConverter
 import com.flamyoad.tsukiviewer.core.model.Collection
 import com.flamyoad.tsukiviewer.core.model.CollectionWithCriterias
 import java.io.File
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 @TypeConverters(FolderConverter::class)
@@ -34,6 +35,14 @@ interface CollectionDao {
         WHERE name LIKE '%' || :keyword || '%'
     """)
     fun getAllWithCriterias(keyword: String): LiveData<List<CollectionWithCriterias>>
+
+    @Transaction
+    @Query("SELECT * FROM collection")
+    fun observeAllWithCriteria(): Flow<List<CollectionWithCriterias>>
+
+    @Transaction
+    @Query("SELECT * FROM collection WHERE id = :collectionId")
+    suspend fun getWithCriteria(collectionId: Long): CollectionWithCriterias?
 
     @Query("SELECT * FROM collection WHERE id = :collectionId")
     fun get(collectionId: Long): LiveData<Collection>

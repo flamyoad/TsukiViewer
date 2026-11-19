@@ -68,5 +68,14 @@ enum class GridViewStyle {
     Grid,
     Scaled,
     Row,
-    List
+    List;
+
+    companion object {
+        fun fromPreference(value: String?): GridViewStyle = when (value) {
+            "0" -> Scaled
+            "1" -> Grid
+            "2" -> List
+            else -> entries.firstOrNull { it.name == value } ?: Scaled
+        }
+    }
 }

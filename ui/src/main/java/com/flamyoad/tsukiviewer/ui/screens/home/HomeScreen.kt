@@ -1,9 +1,14 @@
 package com.flamyoad.tsukiviewer.ui.screens.home
 
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,11 +24,14 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Tab
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ViewModule
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,6 +48,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,6 +59,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.flamyoad.tsukiviewer.ui.screens.home.components.DoujinGridItem
+import com.flamyoad.tsukiviewer.ui.screens.home.components.BookmarkSelectionDialog
 import com.flamyoad.tsukiviewer.ui.screens.home.components.SortDoujinDialog
 import com.flamyoad.tsukiviewer.ui.screens.home.components.ViewModeMenu
 import com.flamyoad.tsukiviewer.ui.theme.TsukiViewerTheme
@@ -60,14 +70,31 @@ fun HomeScreen(
     onDoujinClick: (String) -> Unit,
     onSearchClick: () -> Unit,
     onNavigateToSettings: () -> Unit = {},
+    onRecentTabs: () -> Unit = {},
+    onEditMetadata: (List<String>) -> Unit = {},
+    onFetchMetadata: (List<String>) -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel(
         factory = HomeViewModelFactory(LocalContext.current.applicationContext as android.app.Application)
     )
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    BackHandler(enabled = uiState.isActionModeActive, onBack = viewModel::cancelActionMode)
     val snackbarHostState = remember { SnackbarHostState() }
     
+    var showBookmarks by rememberSaveable { mutableStateOf(false) }
+    if (showBookmarks && uiState.isActionModeActive) {
+        BookmarkSelectionDialog(
+            items = viewModel.getSelectedDoujins(),
+            onDismiss = { showBookmarks = false },
+            onSaved = { message ->
+                showBookmarks = false
+                viewModel.cancelActionMode()
+                viewModel.showSnackbar(message)
+            }
+        )
+    }
+
     var showSortDialog by remember { mutableStateOf(false) }
     var showViewModeMenu by remember { mutableStateOf(false) }
     
@@ -120,14 +147,16 @@ fun HomeScreen(
                 ActionModeTopBar(
                     selectedCount = uiState.selectedCount,
                     onClose = { viewModel.cancelActionMode() },
-                    onBookmark = { viewModel.bookmarkSelectedDoujins() },
-                    onEdit = { viewModel.editSelectedDoujins() }
+                    onBookmark = { showBookmarks = true },
+                    onEdit = { onEditMetadata(viewModel.getSelectedDoujins().map { it.path }) },
+                    onFetch = { onFetchMetadata(viewModel.getSelectedDoujins().map { it.path }) }
                 )
             } else {
                 // Normal top bar
                 HomeTopBar(
                     isLoading = uiState.isLoading,
                     onSearchClick = onSearchClick,
+                    onRecentTabs = onRecentTabs,
                     onSyncClick = { viewModel.reloadDoujins() },
                     onSortClick = { showSortDialog = true },
                     onViewModeClick = { showViewModeMenu = true },
@@ -168,6 +197,7 @@ fun HomeScreen(
                         doujinList = uiState.doujinList,
                         viewMode = uiState.viewMode,
                         spanCount = spanCount,
+                        selectionActive = uiState.isActionModeActive,
                         isSorting = uiState.isSorting,
                         gridState = gridState,
                         onDoujinClick = { doujin -> viewModel.onDoujinClick(doujin) },
@@ -194,6 +224,7 @@ fun HomeScreen(
 private fun HomeTopBar(
     isLoading: Boolean,
     onSearchClick: () -> Unit,
+    onRecentTabs: () -> Unit,
     onSyncClick: () -> Unit,
     onSortClick: () -> Unit,
     onViewModeClick: () -> Unit,
@@ -202,8 +233,11 @@ private fun HomeTopBar(
     onViewModeSelected: (ViewMode) -> Unit,
     onDismissViewModeMenu: () -> Unit
 ) {
+    var overflowOpen by remember { mutableStateOf(false) }
     TopAppBar(
-        title = { Text("Local Storage") },
+        expandedHeight = 56.dp,
+        title = { Text("Local Storage", fontSize = 20.sp, fontWeight = FontWeight.Medium) },
+        navigationIcon = { Spacer(Modifier.width(56.dp)) },
         windowInsets = WindowInsets(
             top = 0.dp,
             bottom = 0.dp,
@@ -218,39 +252,30 @@ private fun HomeTopBar(
                 )
             }
             
-            // Search
-            IconButton(onClick = onSearchClick) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Search"
-                )
-            }
-            
-            // Sync/Refresh
-            IconButton(onClick = onSyncClick) {
-                Icon(
-                    imageVector = Icons.Default.Refresh,
-                    contentDescription = "Sync"
-                )
-            }
-            
-            // Sort
             IconButton(onClick = onSortClick) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Sort,
-                    contentDescription = "Sort"
-                )
+                Icon(Icons.AutoMirrored.Filled.Sort, "Sort")
             }
-            
-            // View mode
+            IconButton(onClick = onSearchClick) {
+                Icon(Icons.Default.Search, "Search")
+            }
             Box {
-                IconButton(onClick = onViewModeClick) {
-                    Icon(
-                        imageVector = Icons.Default.ViewModule,
-                        contentDescription = "View Mode"
-                    )
+                IconButton(onClick = { overflowOpen = true }) {
+                    Icon(Icons.Default.MoreVert, "More options")
                 }
-                
+                DropdownMenu(expanded = overflowOpen, onDismissRequest = { overflowOpen = false }) {
+                    DropdownMenuItem(text = { Text("Sync") }, onClick = {
+                        overflowOpen = false
+                        onSyncClick()
+                    })
+                    DropdownMenuItem(text = { Text("View mode") }, onClick = {
+                        overflowOpen = false
+                        onViewModeClick()
+                    })
+                    DropdownMenuItem(text = { Text("Reader tabs") }, onClick = {
+                        overflowOpen = false
+                        onRecentTabs()
+                    })
+                }
                 ViewModeMenu(
                     expanded = showViewModeMenu,
                     currentViewMode = currentViewMode,
@@ -260,8 +285,10 @@ private fun HomeTopBar(
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            containerColor = MaterialTheme.colorScheme.primary,
+            navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+            actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
+            titleContentColor = MaterialTheme.colorScheme.onPrimary
         )
     )
 }
@@ -272,9 +299,12 @@ private fun ActionModeTopBar(
     selectedCount: Int,
     onClose: () -> Unit,
     onBookmark: () -> Unit,
-    onEdit: () -> Unit
+    onEdit: () -> Unit,
+    onFetch: () -> Unit
 ) {
+    var menuOpen by remember { mutableStateOf(false) }
     TopAppBar(
+        expandedHeight = 56.dp,
         title = { Text("$selectedCount selected") },
         navigationIcon = {
             IconButton(onClick = onClose) {
@@ -285,16 +315,31 @@ private fun ActionModeTopBar(
             }
         },
         actions = {
-            IconButton(onClick = onBookmark) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "More options"
-                )
+            Box {
+                IconButton(onClick = { menuOpen = true }) {
+                    Icon(Icons.Default.MoreVert, contentDescription = "More options")
+                }
+                DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                    DropdownMenuItem(text = { Text("Add to bookmarks") }, onClick = {
+                        menuOpen = false
+                        onBookmark()
+                    })
+                    DropdownMenuItem(text = { Text("Edit tags") }, onClick = {
+                        menuOpen = false
+                        onEdit()
+                    })
+                    DropdownMenuItem(text = { Text("Fetch metadata") }, onClick = {
+                        menuOpen = false
+                        onFetch()
+                    })
+                }
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
-            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+            actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
+            titleContentColor = MaterialTheme.colorScheme.onPrimary
         ),
         windowInsets = WindowInsets(
             top = 0.dp,
@@ -308,6 +353,7 @@ private fun DoujinGrid(
     doujinList: List<DoujinUiModel>,
     viewMode: ViewMode,
     spanCount: Int,
+    selectionActive: Boolean,
     isSorting: Boolean,
     gridState: androidx.compose.foundation.lazy.grid.LazyGridState,
     onDoujinClick: (DoujinUiModel) -> Unit,
@@ -316,9 +362,9 @@ private fun DoujinGrid(
     LazyVerticalGrid(
         columns = GridCells.Fixed(spanCount),
         state = gridState,
-        contentPadding = PaddingValues(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(3.dp),
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
+        verticalArrangement = Arrangement.spacedBy(3.dp),
         modifier = Modifier
             .fillMaxSize()
             .alpha(if (isSorting) 0.6f else 1f)
@@ -330,6 +376,7 @@ private fun DoujinGrid(
             DoujinGridItem(
                 doujin = doujin,
                 viewMode = viewMode,
+                selectionActive = selectionActive,
                 onClick = { onDoujinClick(doujin) },
                 onLongClick = { onDoujinLongClick(doujin) }
             )

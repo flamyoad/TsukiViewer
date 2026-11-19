@@ -1,9 +1,14 @@
 package com.flamyoad.tsukiviewer.ui.screens.doujin
 
 import android.net.Uri
+import android.os.Build
+import android.view.KeyEvent
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.DecelerateInterpolator
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
@@ -13,13 +18,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,6 +45,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Tab
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.ViewList
@@ -50,10 +56,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -61,9 +64,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -78,14 +84,33 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.flamyoad.tsukiviewer.core.db.AppDatabase
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
 import com.flamyoad.tsukiviewer.core.model.ReaderSpreadPreferences
 import com.flamyoad.tsukiviewer.core.model.ReaderSpreads
 import com.flamyoad.tsukiviewer.core.prefs.MyAppPreference
+import com.flamyoad.tsukiviewer.core.prefs.PreferenceKeys
+import com.flamyoad.tsukiviewer.ui.navigation.readerPageTransition
 import com.flamyoad.tsukiviewer.ui.theme.TsukiViewerTheme
-import kotlinx.coroutines.launch
+
+private data class VolumeScroll(val sequence: Int, val pixels: Float)
+
+private val ReaderChrome = Color(0xFF5A5757)
+
+private val LocalGifAutoplay = staticCompositionLocalOf { true }
+private val SlideInEasing = AccelerateInterpolator()
+private val SlideOutEasing = DecelerateInterpolator()
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -93,6 +118,9 @@ fun DoujinReaderScreen(
     doujinPath: String,
     initialPage: Int = 0,
     onNavigateBack: () -> Unit,
+    onRecentTabs: () -> Unit = {},
+    onCurrentPage: (Int) -> Unit = {},
+    setReaderVolumeHandler: (((KeyEvent) -> Boolean)?) -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: ReaderViewModel = viewModel(
         factory = ReaderViewModel.Factory(LocalContext.current.applicationContext as android.app.Application)
@@ -100,10 +128,21 @@ fun DoujinReaderScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
-    val sharedPreferences = remember(context) { MyAppPreference.getInstance(context).prefs }
-    var spreadPreferences by remember(sharedPreferences) {
-        mutableStateOf(ReaderSpreadPreferences.read(sharedPreferences))
-    }
+    val preferences = remember(context) { MyAppPreference.getInstance(context) }
+    val sharedPreferences = preferences.prefs
+    val spreadPreferences = remember(sharedPreferences) { ReaderSpreadPreferences.read(sharedPreferences) }
+    var sidebarOpen by rememberSaveable { mutableStateOf(false) }
+    var lastPage by rememberSaveable(doujinPath) { mutableStateOf(initialPage) }
+    val sidebarWidth by animateDpAsState(
+        targetValue = if (sidebarOpen) 76.dp else 0.dp,
+        animationSpec = tween(
+            durationMillis = 300,
+            easing = if (sidebarOpen) SlideInEasing::getInterpolation else SlideOutEasing::getInterpolation
+        ),
+        label = "Page sidebar"
+    )
+    val tabsFlow = remember(context) { AppDatabase.getInstance(context).recentTabDao().observeAll() }
+    val recentTabs by tabsFlow.collectAsStateWithLifecycle(initialValue = emptyList())
     val window = LocalConfiguration.current
     val twoPageMode = uiState.readerMode == ReaderMode.TWO_PAGE
     val spreadLayout = ReaderSpreads(
@@ -120,15 +159,57 @@ fun DoujinReaderScreen(
     val pageLabel = if (visiblePages.first == visiblePages.last) "${visiblePages.first + 1}"
         else "${visiblePages.first + 1}–${visiblePages.last + 1}"
 
+    var scrollSequence by remember { mutableIntStateOf(0) }
+    var volumeScroll by remember { mutableStateOf<VolumeScroll?>(null) }
+    val onVolumeKey by rememberUpdatedState<(KeyEvent) -> Boolean> { event ->
+        if (!preferences.shouldScrollWithVolumeButton()) false
+        else {
+            if (event.action == KeyEvent.ACTION_DOWN && uiState.totalPages > 0) {
+                val action = if (event.keyCode == KeyEvent.KEYCODE_VOLUME_UP) preferences.getVolumeUpAction()
+                    else preferences.getVolumeDownAction()
+                val delta = when (action) {
+                    "GoToNextPage" -> 1
+                    "GoToPrevPage" -> -1
+                    else -> 0
+                }
+                if (delta != 0) {
+                    if (uiState.readerMode == ReaderMode.VERTICAL_STRIP &&
+                        preferences.getVolumeButtonScrollMode() == "FixedDistance"
+                    ) {
+                        val distance = preferences.getVolumeButtonScrollDistance().takeIf { it > 0 } ?: 250
+                        volumeScroll = VolumeScroll(++scrollSequence, delta * distance.toFloat())
+                    } else {
+                        val page = if (delta > 0) visiblePages.last + 1 else visiblePages.first - 1
+                        viewModel.jumpToPage(page.coerceIn(0, uiState.totalPages - 1))
+                    }
+                }
+            }
+            true
+        }
+    }
+    LifecycleResumeEffect(Unit) {
+        setReaderVolumeHandler { event -> onVolumeKey(event) }
+        onPauseOrDispose { setReaderVolumeHandler(null) }
+    }
+
     // Load images when the screen is first composed
     LaunchedEffect(doujinPath) {
-        viewModel.loadImages(doujinPath, initialPage)
+        viewModel.loadImages(doujinPath, lastPage)
     }
+    LaunchedEffect(uiState.currentPage, uiState.isLoading) {
+        if (!uiState.isLoading && !uiState.directoryNotFound) onCurrentPage(uiState.currentPage)
+    }
+    BackHandler(enabled = sidebarOpen || uiState.showModeSelector || uiState.showThumbnailBar) {
+        if (sidebarOpen) sidebarOpen = false else viewModel.hideOverlays()
+    }
+
+    val showToolbar = (if (twoPageMode) uiState.showModeSelector else uiState.showControls) &&
+        !uiState.isLoading && !uiState.directoryNotFound
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(Color(0xFF242424))
     ) {
         if (uiState.isLoading) {
             // Loading state
@@ -164,90 +245,112 @@ fun DoujinReaderScreen(
                 }
             }
         } else {
-            // Reader content
-            ReaderContent(
-                uiState = uiState,
-                spreadLayout = spreadLayout,
-                onPageChange = {
-                    viewModel.setCurrentPage(it)
-                    if (twoPageMode) viewModel.hideOverlays()
-                },
-                onTap = viewModel::toggleControls
+            CompositionLocalProvider(
+                LocalGifAutoplay provides sharedPreferences.getBoolean(PreferenceKeys.READER_GIF_AUTOPLAY, true)
+            ) {
+                Box(
+                    Modifier.fillMaxSize().padding(
+                        start = sidebarWidth,
+                        top = if (showToolbar && uiState.readerMode == ReaderMode.VERTICAL_STRIP) 56.dp else 0.dp
+                    )
+                ) {
+                    ReaderContent(
+                        uiState = uiState,
+                        spreadLayout = spreadLayout,
+                        volumeScroll = volumeScroll,
+                        onPageChange = {
+                            lastPage = it
+                            viewModel.setCurrentPage(it)
+                            if (twoPageMode) viewModel.hideOverlays()
+                        },
+                        onPageJumpHandled = {
+                            lastPage = it
+                            viewModel.completePageJump(it)
+                        },
+                        onTap = viewModel::toggleControls
+                    )
+                }
+            }
+        }
+
+        val layoutDirection = LocalLayoutDirection.current
+        val startSign = if (layoutDirection == LayoutDirection.Ltr) -1 else 1
+        AnimatedVisibility(
+            visible = sidebarOpen && uiState.imageList.isNotEmpty(),
+            enter = slideInHorizontally(tween(300, easing = SlideInEasing::getInterpolation)) { startSign * it },
+            exit = slideOutHorizontally(tween(300, easing = SlideOutEasing::getInterpolation)) { startSign * it },
+            modifier = Modifier.align(Alignment.CenterStart)
+        ) {
+            ReaderPageSidebar(
+                images = uiState.imageList,
+                currentPage = uiState.currentPage,
+                onPageSelected = viewModel::jumpToPage
             )
         }
 
-        // Top bar overlay
-        AnimatedVisibility(
-            visible = (if (twoPageMode) uiState.showModeSelector else uiState.showControls) &&
-                !uiState.isLoading && !uiState.directoryNotFound,
-            enter = slideInVertically { -it } + fadeIn(),
-            exit = slideOutVertically { -it } + fadeOut(),
-            modifier = Modifier.align(Alignment.TopCenter)
-        ) {
+        if (showToolbar) {
             ReaderTopBar(
                 title = uiState.directoryName,
-                currentPage = pageLabel,
-                totalPages = uiState.totalPages,
+                tabCount = recentTabs.size,
+                onRecentTabs = onRecentTabs,
                 onNavigateBack = onNavigateBack
             )
         }
 
-        // Bottom page indicator bar
-        AnimatedVisibility(
-            visible = uiState.showControls && !uiState.isLoading && !uiState.directoryNotFound,
-            enter = slideInVertically { it } + fadeIn(),
-            exit = slideOutVertically { it } + fadeOut(),
-            modifier = Modifier.align(Alignment.BottomCenter)
-        ) {
-            ReaderBottomBar(
-                currentPage = pageLabel,
-                totalPages = uiState.totalPages,
-                onPageIndicatorClick = { viewModel.toggleThumbnailBar() },
-                onModeClick = if (twoPageMode) null else viewModel::toggleModeSelector
+        if (!uiState.isLoading && !uiState.directoryNotFound) {
+            Box(
+                Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(50.dp)
+                    .semantics { contentDescription = "Reader mode" }
+                    .clickable(role = Role.Button) {
+                        sidebarOpen = false
+                        viewModel.toggleModeSelector()
+                    }
             )
-        }
-
-        if (twoPageMode && !uiState.isLoading && !uiState.directoryNotFound) {
-            IconButton(
-                onClick = viewModel::toggleModeSelector,
-                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp)
-            ) {
-                Icon(Icons.Default.ViewList, contentDescription = "Reader mode", tint = Color.White)
+            if (!uiState.showThumbnailBar) {
+                Text(
+                    text = "Page: $pageLabel / ${uiState.totalPages}",
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    lineHeight = 16.sp,
+                    modifier = Modifier.align(Alignment.BottomEnd)
+                        .clip(RoundedCornerShape(topStart = 4.dp))
+                        .background(ReaderChrome)
+                        .clickable {
+                            sidebarOpen = !sidebarOpen
+                            if (sidebarOpen) viewModel.hideOverlays()
+                        }
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                )
             }
         }
 
         // Mode selector (right side)
         AnimatedVisibility(
             visible = uiState.showModeSelector,
-            enter = slideInHorizontally { it } + fadeIn(),
-            exit = slideOutHorizontally { it } + fadeOut(),
+            enter = slideInHorizontally(tween(300, easing = SlideInEasing::getInterpolation)) { -startSign * it },
+            exit = slideOutHorizontally(tween(300, easing = SlideOutEasing::getInterpolation)) { -startSign * it },
             modifier = Modifier.align(Alignment.CenterEnd)
         ) {
             ReaderModeSelector(
                 currentMode = uiState.readerMode,
-                onModeSelect = viewModel::setReaderMode,
-                spreadPreferences = spreadPreferences,
-                onSpreadPreferencesChange = {
-                    spreadPreferences = it
-                    it.save(sharedPreferences)
-                }
+                onModeSelect = viewModel::setReaderMode
             )
         }
 
         // Thumbnail bar (bottom)
         AnimatedVisibility(
             visible = uiState.showThumbnailBar,
-            enter = slideInVertically { it } + fadeIn(),
-            exit = slideOutVertically { it } + fadeOut(),
+            enter = slideInVertically(tween(300, easing = SlideInEasing::getInterpolation)) { it },
+            exit = slideOutVertically(tween(300, easing = SlideOutEasing::getInterpolation)) { it },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 64.dp)
         ) {
             ThumbnailBar(
                 images = uiState.imageList,
                 currentPage = uiState.currentPage,
                 onThumbnailClick = { page ->
-                    viewModel.setCurrentPage(page)
+                    viewModel.jumpToPage(page)
+                    viewModel.hideModeSelector()
                 }
             )
         }
@@ -274,7 +377,9 @@ fun DoujinReaderScreen(
 private fun ReaderContent(
     uiState: ReaderUiState,
     spreadLayout: ReaderSpreads,
+    volumeScroll: VolumeScroll?,
     onPageChange: (Int) -> Unit,
+    onPageJumpHandled: (Int) -> Unit,
     onTap: () -> Unit
 ) {
     when (uiState.readerMode) {
@@ -283,6 +388,8 @@ private fun ReaderContent(
                 spreads = spreadLayout,
                 images = uiState.imageList,
                 currentPage = uiState.currentPage,
+                requestedPage = uiState.requestedPage,
+                onPageJumpHandled = onPageJumpHandled,
                 onPageChange = onPageChange,
                 onTap = onTap
             )
@@ -292,12 +399,14 @@ private fun ReaderContent(
                 initialPage = uiState.currentPage,
                 pageCount = { uiState.imageList.size }
             )
+            val reportPage by rememberUpdatedState(onPageChange)
             LaunchedEffect(pagerState) {
-                snapshotFlow { pagerState.currentPage }.collect(onPageChange)
+                snapshotFlow { pagerState.settledPage }.collect { reportPage(it) }
             }
-            LaunchedEffect(uiState.currentPage) {
-                if (pagerState.currentPage != uiState.currentPage) {
-                    pagerState.animateScrollToPage(uiState.currentPage)
+            LaunchedEffect(uiState.requestedPage) {
+                uiState.requestedPage?.let { page ->
+                    pagerState.requestScrollToPage(page)
+                    onPageJumpHandled(page)
                 }
             }
             VerticalSwipeReader(pagerState, uiState.imageList, onTap)
@@ -305,6 +414,9 @@ private fun ReaderContent(
         ReaderMode.VERTICAL_STRIP -> VerticalStripReader(
             images = uiState.imageList,
             initialPage = uiState.currentPage,
+            volumeScroll = volumeScroll,
+            requestedPage = uiState.requestedPage,
+            onPageJumpHandled = onPageJumpHandled,
             onPageChange = onPageChange,
             onTap = onTap
         )
@@ -317,16 +429,25 @@ private fun HorizontalSwipeReader(
     spreads: ReaderSpreads,
     images: List<Uri>,
     currentPage: Int,
+    requestedPage: Int?,
+    onPageJumpHandled: (Int) -> Unit,
     onPageChange: (Int) -> Unit,
     onTap: () -> Unit
 ) {
     val desiredItem = spreads.itemForPage(currentPage)
     val pagerState = rememberPagerState(initialPage = desiredItem, pageCount = { spreads.itemCount })
-    LaunchedEffect(pagerState, currentPage) {
-        if (pagerState.currentPage != desiredItem) pagerState.scrollToPage(desiredItem)
+    val activePage by rememberUpdatedState(currentPage)
+    val reportPage by rememberUpdatedState(onPageChange)
+    LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.settledPage }.collect { item ->
             val pages = spreads.pagesForItem(item)
-            if (currentPage !in pages) onPageChange(pages.first)
+            if (activePage !in pages) reportPage(pages.first)
+        }
+    }
+    LaunchedEffect(requestedPage) {
+        requestedPage?.let { page ->
+            pagerState.requestScrollToPage(spreads.itemForPage(page))
+            onPageJumpHandled(page)
         }
     }
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
@@ -344,7 +465,7 @@ private fun HorizontalSwipeReader(
                 for (page in visualOrder) {
                     ReaderImage(
                         uri = images[page],
-                        contentDescription = "Page ${page + 1}",
+                        page = page,
                         modifier = Modifier.weight(1f).fillMaxHeight()
                     )
                 }
@@ -370,7 +491,7 @@ private fun VerticalSwipeReader(
     ) { page ->
         ReaderImage(
             uri = images[page],
-            contentDescription = "Page ${page + 1}",
+            page = page,
             modifier = Modifier.fillMaxSize()
         )
     }
@@ -380,17 +501,26 @@ private fun VerticalSwipeReader(
 private fun VerticalStripReader(
     images: List<Uri>,
     initialPage: Int,
+    volumeScroll: VolumeScroll?,
+    requestedPage: Int?,
+    onPageJumpHandled: (Int) -> Unit,
     onPageChange: (Int) -> Unit,
     onTap: () -> Unit
 ) {
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = initialPage)
+    LaunchedEffect(volumeScroll) {
+        volumeScroll?.let { listState.scrollBy(it.pixels) }
+    }
 
-    // Track visible item for page indicator
+    val reportPage by rememberUpdatedState(onPageChange)
     LaunchedEffect(listState) {
-        snapshotFlow { listState.firstVisibleItemIndex }
-            .collect { index ->
-                onPageChange(index)
-            }
+        snapshotFlow { listState.firstVisibleItemIndex }.collect { reportPage(it) }
+    }
+    LaunchedEffect(requestedPage) {
+        requestedPage?.let { page ->
+            listState.requestScrollToItem(page)
+            onPageJumpHandled(page)
+        }
     }
 
     LazyColumn(
@@ -400,12 +530,13 @@ private fun VerticalStripReader(
             .pointerInput(Unit) {
                 detectTapGestures(onTap = { onTap() })
             },
+        verticalArrangement = Arrangement.spacedBy(6.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         itemsIndexed(images) { index, uri ->
             ReaderImage(
                 uri = uri,
-                contentDescription = "Page ${index + 1}",
+                page = index,
                 modifier = Modifier.fillMaxWidth(),
                 contentScale = ContentScale.FillWidth
             )
@@ -416,97 +547,66 @@ private fun VerticalStripReader(
 @Composable
 private fun ReaderImage(
     uri: Uri,
-    contentDescription: String,
+    page: Int,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Fit
 ) {
+    val context = LocalContext.current
+    val isGif = uri.lastPathSegment?.endsWith(".gif", ignoreCase = true) == true
+    val autoplay = LocalGifAutoplay.current
+    var playGif by rememberSaveable(uri) { mutableStateOf(autoplay) }
+    val image = remember(context, uri, playGif) {
+        ImageRequest.Builder(context).data(uri).apply {
+            if (isGif) memoryCacheKey("$uri|animated=$playGif")
+            if (isGif && playGif) {
+                decoderFactory(if (Build.VERSION.SDK_INT >= 28) ImageDecoderDecoder.Factory() else GifDecoder.Factory())
+            }
+        }.build()
+    }
+    val imageModifier = modifier.readerPageTransition(page, thumbnail = false)
     AsyncImage(
-        model = ImageRequest.Builder(LocalContext.current)
-            .data(uri)
-            .crossfade(true)
-            .build(),
-        contentDescription = contentDescription,
+        model = image,
+        contentDescription = "Page ${page + 1}",
         contentScale = contentScale,
-        modifier = modifier
+        modifier = if (isGif) imageModifier.clickable(
+            onClickLabel = if (playGif) "Pause GIF" else "Play GIF",
+            onClick = { playGif = !playGif }
+        ) else imageModifier
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ReaderTopBar(
     title: String,
-    currentPage: String,
-    totalPages: Int,
+    tabCount: Int,
+    onRecentTabs: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
-    TopAppBar(
-        title = {
-            Column {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1
-                )
-                Text(
-                    text = "Page $currentPage / $totalPages",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
-            }
-        },
-        navigationIcon = {
-            IconButton(onClick = onNavigateBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back"
-                )
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color.Black.copy(alpha = 0.8f),
-            titleContentColor = Color.White,
-            navigationIconContentColor = Color.White
-        ),
-        windowInsets = WindowInsets(0, 0, 0, 0)
-    )
-}
-
-@Composable
-private fun ReaderBottomBar(
-    currentPage: String,
-    totalPages: Int,
-    onPageIndicatorClick: () -> Unit,
-    onModeClick: (() -> Unit)?
-) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.Black.copy(alpha = 0.8f))
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        Modifier.fillMaxWidth().height(56.dp).background(ReaderChrome.copy(alpha = 0.76f)),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Page indicator (clickable to show thumbnails)
+        IconButton(onClick = onNavigateBack) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = Color.White)
+        }
         Text(
-            text = "Page: $currentPage / $totalPages",
-            style = MaterialTheme.typography.bodyMedium,
+            title,
+            Modifier.weight(1f).padding(horizontal = 8.dp),
             color = Color.White,
-            modifier = Modifier
-                .clip(RoundedCornerShape(4.dp))
-                .clickable { onPageIndicatorClick() }
-                .padding(8.dp)
+            fontSize = 14.sp,
+            lineHeight = 16.sp,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
-
-        if (onModeClick != null) {
-            IconButton(onClick = onModeClick) {
-                Icon(
-                    imageVector = Icons.Default.ViewList,
-                    contentDescription = "Reader mode",
-                    tint = Color.White
-                )
-            }
-        } else {
-            Spacer(Modifier.size(48.dp))
+        Box(
+            Modifier.padding(end = 8.dp).size(40.dp, 38.dp)
+                .clip(RoundedCornerShape(6.dp))
+                .border(1.dp, Color.White, RoundedCornerShape(6.dp))
+                .semantics { contentDescription = "Reader tabs" }
+                .clickable(role = Role.Button, onClick = onRecentTabs),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(tabCount.toString(), color = Color.White, fontSize = 14.sp)
         }
     }
 }
@@ -514,32 +614,26 @@ private fun ReaderBottomBar(
 @Composable
 private fun ReaderModeSelector(
     currentMode: ReaderMode,
-    onModeSelect: (ReaderMode) -> Unit,
-    spreadPreferences: ReaderSpreadPreferences,
-    onSpreadPreferencesChange: (ReaderSpreadPreferences) -> Unit
+    onModeSelect: (ReaderMode) -> Unit
 ) {
     Column(
-        modifier = Modifier
-            .background(Color.Black.copy(alpha = 0.9f))
-            .verticalScroll(rememberScrollState())
-            .padding(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = Modifier.width(112.dp).verticalScroll(rememberScrollState())
     ) {
         ReaderModeButton(
             icon = Icons.Default.SwapHoriz,
-            label = "Horizontal",
+            label = "Swipe\nhorizontally",
             isSelected = currentMode == ReaderMode.HORIZONTAL_SWIPE,
             onClick = { onModeSelect(ReaderMode.HORIZONTAL_SWIPE) }
         )
         ReaderModeButton(
             icon = Icons.Default.SwapVert,
-            label = "Vertical",
+            label = "Swipe\nvertically",
             isSelected = currentMode == ReaderMode.VERTICAL_SWIPE,
             onClick = { onModeSelect(ReaderMode.VERTICAL_SWIPE) }
         )
         ReaderModeButton(
             icon = Icons.Default.ViewList,
-            label = "Webtoon",
+            label = "Scroll\nvertically",
             isSelected = currentMode == ReaderMode.VERTICAL_STRIP,
             onClick = { onModeSelect(ReaderMode.VERTICAL_STRIP) }
         )
@@ -549,27 +643,6 @@ private fun ReaderModeSelector(
             isSelected = currentMode == ReaderMode.TWO_PAGE,
             onClick = { onModeSelect(ReaderMode.TWO_PAGE) }
         )
-        if (currentMode == ReaderMode.HORIZONTAL_SWIPE || currentMode == ReaderMode.TWO_PAGE) {
-            if (currentMode == ReaderMode.HORIZONTAL_SWIPE) {
-                ReaderOption("Automatic two-page spreads", spreadPreferences.enabled) {
-                    onSpreadPreferencesChange(spreadPreferences.copy(enabled = it))
-                }
-            }
-            ReaderOption("Separate cover", spreadPreferences.separateCover) {
-                onSpreadPreferencesChange(spreadPreferences.copy(separateCover = it))
-            }
-            ReaderOption("Read right to left", spreadPreferences.rightToLeft) {
-                onSpreadPreferencesChange(spreadPreferences.copy(rightToLeft = it))
-            }
-        }
-    }
-}
-
-@Composable
-private fun ReaderOption(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(label, color = Color.White, modifier = Modifier.padding(end = 12.dp))
-        Switch(checked = checked, onCheckedChange = onChange)
     }
 }
 
@@ -580,37 +653,50 @@ private fun ReaderModeButton(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val backgroundColor = if (isSelected) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        Color.Transparent
-    }
-    val contentColor = if (isSelected) {
-        MaterialTheme.colorScheme.onPrimary
-    } else {
-        Color.White
-    }
-
     Column(
-        modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(backgroundColor)
-            .clickable { onClick() }
-            .padding(12.dp),
+        modifier = Modifier.fillMaxWidth()
+            .background(if (isSelected) Color(0xC3B33E5C) else Color(0xC35A5757))
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(top = 16.dp, bottom = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = label,
-            tint = contentColor,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.height(4.dp))
+        Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
+        Spacer(Modifier.height(4.dp))
         Text(
             text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = contentColor
+            color = Color.White,
+            fontSize = 14.sp,
+            lineHeight = 17.sp,
+            minLines = 2,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
+    }
+}
+
+@Composable
+private fun ReaderPageSidebar(
+    images: List<Uri>,
+    currentPage: Int,
+    onPageSelected: (Int) -> Unit
+) {
+    val listState = rememberLazyListState(initialFirstVisibleItemIndex = currentPage)
+    LaunchedEffect(currentPage) {
+        if (currentPage in images.indices &&
+            listState.layoutInfo.visibleItemsInfo.none { it.index == currentPage }
+        ) {
+            listState.requestScrollToItem(currentPage)
+        }
+    }
+    LazyColumn(
+        modifier = Modifier.width(76.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surface),
+        state = listState,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        contentPadding = PaddingValues(top = 56.dp, bottom = 8.dp)
+    ) {
+        itemsIndexed(images) { page, uri ->
+            ThumbnailItem(uri, page == currentPage, page + 1) { onPageSelected(page) }
+        }
     }
 }
 
@@ -621,13 +707,8 @@ private fun ThumbnailBar(
     onThumbnailClick: (Int) -> Unit
 ) {
     val listState = rememberLazyListState()
-    val scope = rememberCoroutineScope()
-
-    // Scroll to current page when it changes
-    LaunchedEffect(currentPage) {
-        scope.launch {
-            listState.animateScrollToItem(currentPage)
-        }
+    LaunchedEffect(currentPage, images.size) {
+        if (currentPage in images.indices) listState.requestScrollToItem(currentPage)
     }
 
     LazyRow(

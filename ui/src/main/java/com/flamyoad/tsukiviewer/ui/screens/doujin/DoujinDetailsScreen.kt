@@ -1,50 +1,60 @@
 package com.flamyoad.tsukiviewer.ui.screens.doujin
 
 import android.app.Application
+import android.content.res.Configuration
+import android.content.Intent
+import android.widget.Toast
+import androidx.core.content.FileProvider
 import android.net.Uri
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.animation.EnterExitState
+import androidx.navigation3.ui.LocalNavAnimatedContentScope
+import com.flamyoad.tsukiviewer.ui.navigation.LocalReaderReturnAnchor
+import com.flamyoad.tsukiviewer.ui.navigation.readerPageTransition
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed as lazyItemsIndexed
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.ViewList
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -66,17 +76,17 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.sp
+import com.flamyoad.tsukiviewer.ui.R
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -84,23 +94,28 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.preference.PreferenceManager
+import com.flamyoad.tsukiviewer.core.prefs.PreferenceKeys
 import coil.compose.AsyncImage
 import com.flamyoad.tsukiviewer.core.R as CoreR
 import com.flamyoad.tsukiviewer.core.db.AppDatabase
 import com.flamyoad.tsukiviewer.core.repository.BookmarkRepository
-import com.flamyoad.tsukiviewer.core.repository.MetadataRepository
 import com.flamyoad.tsukiviewer.core.repository.RelatedManga
 import com.flamyoad.tsukiviewer.core.repository.RelatedMangaRepository
 import com.flamyoad.tsukiviewer.core.utils.openMangaFolder
 import com.flamyoad.tsukiviewer.ui.screens.doujin.components.BookmarkDialog
 import com.flamyoad.tsukiviewer.ui.screens.doujin.components.TagGroup
-import com.flamyoad.tsukiviewer.ui.theme.ColorPrimaryLight
 import com.flamyoad.tsukiviewer.ui.theme.SubLightTextColor
 import com.flamyoad.tsukiviewer.ui.theme.TextWhite
 import com.flamyoad.tsukiviewer.ui.theme.TsukiViewerTheme
 import com.flamyoad.tsukiviewer.ui.theme.WineRed
 import kotlinx.coroutines.launch
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import androidx.compose.runtime.produceState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 private enum class DoujinTab(val title: String) {
     Details("Details"),
@@ -116,25 +131,18 @@ fun DoujinDetailsScreen(
     onImageClick: (Int) -> Unit = {},
     onTagClick: (TagUiModel) -> Unit = {},
     modifier: Modifier = Modifier,
+    onEditMetadata: () -> Unit = {},
+    onFetchMetadata: () -> Unit = {},
     onRelatedMangaClick: (String) -> Unit
 ) {
     val context = LocalContext.current
     val application = context.applicationContext as Application
+    var showGridStyles by remember { mutableStateOf(false) }
     var showMoreActions by remember { mutableStateOf(false) }
     
     // Create repositories and ViewModel
     val db = remember { AppDatabase.getInstance(context) }
-    val metadataRepo = remember {
-        MetadataRepository(
-            context = context,
-            db = db,
-            pathDao = db.includedFolderDao(),
-            doujinDetailsDao = db.doujinDetailsDao(),
-            tagDao = db.tagsDao(),
-            doujinTagDao = db.doujinTagDao(),
-            folderDao = db.folderDao()
-        )
-    }
+    val metadataRepo = remember(db) { metadataRepository(application, db) }
     val bookmarkRepo = remember {
         BookmarkRepository(
             db = db,
@@ -152,22 +160,48 @@ fun DoujinDetailsScreen(
     val scope = rememberCoroutineScope()
     
     val tabs = DoujinTab.entries
-    val pagerState = rememberPagerState(pageCount = { tabs.size })
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val relatedRepository = remember(db) { RelatedMangaRepository(db) }
     val preferences = remember(application) { PreferenceManager.getDefaultSharedPreferences(application) }
+    val pagerState = rememberPagerState(
+        initialPage = if (preferences.getString(PreferenceKeys.DOUJIN_DETAILS_LANDING_SCR, null) == "ImageGrid") 1 else 0,
+        pageCount = { tabs.size }
+    )
     var relatedManga by remember(doujinPath) { mutableStateOf(emptyList<RelatedManga>()) }
     LaunchedEffect(lifecycle, doujinPath) {
         lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewModel.refreshMetadata(doujinPath)
             relatedRepository.observe(File(doujinPath), preferences).collect { relatedManga = it }
         }
     }
     
     // Load doujin details when path changes
     LaunchedEffect(doujinPath) {
+        viewModel.setGridViewStyle(GridViewStyle.fromPreference(
+            preferences.getString(PreferenceKeys.DEFAULT_GRID_VIEW_STYLE, null)
+        ))
         viewModel.loadDoujinDetails(doujinPath)
     }
     
+    fun openPage(index: Int, fromGrid: Boolean) {
+        if (!preferences.getBoolean(PreferenceKeys.USE_EXTERNAL_GALLERY, false)) {
+            if (fromGrid) onImageClick(index) else onReadClick()
+            return
+        }
+        val path = uiState.imageList.getOrNull(index)?.path ?: return
+        val target = preferences.getString(PreferenceKeys.EXTERNAL_GALLERY_PKG_NAME, null)
+        try {
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", File(path))
+            context.startActivity(Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "image/*")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                target?.takeIf { it.isNotBlank() }?.let { setPackage(it) }
+            })
+        } catch (_: Exception) {
+            Toast.makeText(context, "Can't open the external application", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     // Show snackbar messages
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { message ->
@@ -197,9 +231,12 @@ fun DoujinDetailsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
+                expandedHeight = 56.dp,
                 title = {
                     Text(
-                        text = uiState.shortTitleEnglish.ifEmpty { uiState.fullTitleEnglish.ifEmpty { "Doujin Details" } },
+                        text = "Doujin Details",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -214,11 +251,23 @@ fun DoujinDetailsScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.loadBookmarkGroups() }) {
-                        Icon(
-                            imageVector = Icons.Default.Bookmark,
-                            contentDescription = "Add to Collection"
-                        )
+                    if (pagerState.currentPage == DoujinTab.Images.ordinal) {
+                        Box {
+                            IconButton(onClick = { showGridStyles = true }) {
+                                Icon(Icons.Default.ViewList, "Change view style")
+                            }
+                            DropdownMenu(expanded = showGridStyles, onDismissRequest = { showGridStyles = false }) {
+                                GridViewStyle.entries.forEach { style ->
+                                    DropdownMenuItem(text = { Text(style.name) }, onClick = {
+                                        viewModel.setGridViewStyle(style)
+                                        showGridStyles = false
+                                    })
+                                }
+                            }
+                        }
+                    } else {
+                        IconButton(onClick = onFetchMetadata) { Icon(Icons.Default.Sync, "Fetch metadata") }
+                        IconButton(onClick = onEditMetadata) { Icon(Icons.Default.Edit, "Edit tags") }
                     }
                     Box {
                         IconButton(onClick = { showMoreActions = true }) {
@@ -228,6 +277,13 @@ fun DoujinDetailsScreen(
                             expanded = showMoreActions,
                             onDismissRequest = { showMoreActions = false }
                         ) {
+                            DropdownMenuItem(
+                                text = { Text("Read") },
+                                onClick = {
+                                    showMoreActions = false
+                                    openPage(0, fromGrid = false)
+                                }
+                            )
                             DropdownMenuItem(
                                 text = { Text(stringResource(CoreR.string.open_manga_folder)) },
                                 onClick = {
@@ -239,25 +295,15 @@ fun DoujinDetailsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 windowInsets = WindowInsets(
                     top = 0.dp,
                     bottom = 0.dp,
                 )
-            )
-        },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = onReadClick,
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.PlayArrow,
-                        contentDescription = null
-                    )
-                },
-                text = { Text("Read") }
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -281,11 +327,20 @@ fun DoujinDetailsScreen(
                 // Tab Row
                 TabRow(
                     selectedTabIndex = pagerState.currentPage,
-                    containerColor = ColorPrimaryLight,
-                    contentColor = TextWhite
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = TextWhite,
+                    divider = {},
+                    indicator = { positions ->
+                        TabRowDefaults.SecondaryIndicator(
+                            Modifier.tabIndicatorOffset(positions[pagerState.currentPage]),
+                            height = 2.dp,
+                            color = Color.White
+                        )
+                    }
                 ) {
                     tabs.forEachIndexed { index, tab ->
                         Tab(
+                            modifier = Modifier.height(56.dp),
                             selected = pagerState.currentPage == index,
                             onClick = {
                                 scope.launch {
@@ -314,13 +369,15 @@ fun DoujinDetailsScreen(
                             uiState = uiState,
                             onTagClick = onTagClick,
                             relatedManga = relatedManga,
+                            showRelatedManga = preferences.getBoolean(PreferenceKeys.SHOW_RELATED_MANGA, true),
+                            onBookmark = viewModel::loadBookmarkGroups,
+                            onRead = { openPage(0, fromGrid = false) },
                             onRelatedMangaClick = onRelatedMangaClick,
                             modifier = Modifier.fillMaxSize()
                         )
                         DoujinTab.Images -> DoujinImagesContent(
                             uiState = uiState,
-                            onImageClick = onImageClick,
-                            onGridStyleChange = { viewModel.setGridViewStyle(it) },
+                            onImageClick = { openPage(it, fromGrid = true) },
                             modifier = Modifier.fillMaxSize()
                         )
                     }
@@ -336,333 +393,129 @@ private fun DoujinDetailsContent(
     onTagClick: (TagUiModel) -> Unit,
     modifier: Modifier = Modifier,
     relatedManga: List<RelatedManga> = emptyList(),
+    showRelatedManga: Boolean = true,
+    onBookmark: () -> Unit = {},
+    onRead: () -> Unit = {},
     onRelatedMangaClick: (String) -> Unit = {}
 ) {
-    val scrollState = rememberScrollState()
-    
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState)
-    ) {
-        // Cover image with background blur
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(300.dp)
-        ) {
-            // Blurred background
-            uiState.coverImage?.let { uri ->
-                AsyncImage(
-                    model = uri,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .blur(20.dp)
-                )
-            }
-            
-            // Gradient overlay
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
-                            )
-                        )
-                    )
+    Column(modifier.verticalScroll(rememberScrollState()).padding(bottom = 32.dp)) {
+        Box(Modifier.fillMaxWidth().height(210.dp).zIndex(1f)) {
+            AsyncImage(
+                model = uiState.coverImage,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                alpha = 0.3f,
+                modifier = Modifier.fillMaxSize()
             )
-            
-            // Cover image
-            uiState.coverImage?.let { uri ->
+            Row(Modifier.fillMaxWidth().padding(top = 8.dp, end = 8.dp)) {
                 AsyncImage(
-                    model = uri,
-                    contentDescription = "Cover",
+                    model = uiState.coverImage,
+                    contentDescription = "Read",
                     contentScale = ContentScale.Fit,
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(16.dp)
-                        .aspectRatio(0.7f)
-                        .clip(RoundedCornerShape(8.dp))
+                    modifier = Modifier.width(150.dp).height(192.dp).clickable(onClick = onRead)
                 )
+                Column(Modifier.weight(1f)) {
+                    Text(uiState.fullTitleEnglish, fontSize = 14.sp, color = Color.Black)
+                    if (uiState.fullTitleJapanese.isNotEmpty()) {
+                        Text(uiState.fullTitleJapanese, Modifier.padding(top = 8.dp), fontSize = 14.sp)
+                    }
+                }
+            }
+            FloatingActionButton(
+                onClick = onBookmark,
+                shape = CircleShape,
+                containerColor = Color(0xFFED2553),
+                contentColor = Color.White,
+                modifier = Modifier.align(Alignment.BottomEnd).padding(end = 16.dp).offset(y = 16.dp)
+            ) {
+                Icon(Icons.Default.Favorite, "Add to bookmarks")
             }
         }
-        
-        // Title section
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .padding(top = 16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            )
-        ) {
+        DetailsSectionHeader("Tags")
+        if (uiState.tags.isEmpty()) {
             Column(
-                modifier = Modifier.padding(16.dp)
+                Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // English title
-                Text(
-                    text = uiState.fullTitleEnglish,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
+                Image(
+                    painterResource(R.drawable.gallery_tags_empty),
+                    contentDescription = null,
+                    modifier = Modifier.width(145.dp).height(85.dp)
                 )
-                
-                // Japanese title
-                if (uiState.fullTitleJapanese.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = uiState.fullTitleJapanese,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                Text("No tags found :(", Modifier.padding(top = 8.dp), color = Color(0xFFA0A8C0), fontSize = 14.sp)
+            }
+        } else {
+            Column(Modifier.padding(horizontal = 8.dp, vertical = 16.dp)) {
+                TagGroup("Parodies", uiState.tags.parodies, onTagClick)
+                TagGroup("Characters", uiState.tags.characters, onTagClick)
+                TagGroup("Tags", uiState.tags.tags, onTagClick)
+                TagGroup("Artists", uiState.tags.artists, onTagClick)
+                TagGroup("Groups", uiState.tags.groups, onTagClick)
+                TagGroup("Languages", uiState.tags.languages, onTagClick)
+                TagGroup("Categories", uiState.tags.categories, onTagClick)
             }
         }
-        
-        // Info section
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .padding(top = 8.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            )
+        if (showRelatedManga) {
+            DetailsSectionHeader("Related manga")
+            if (relatedManga.isEmpty()) {
+                Text("No related manga found in your library.", Modifier.padding(8.dp), fontSize = 14.sp)
+            } else {
+                RelatedMangaRow(relatedManga, onRelatedMangaClick)
+            }
+            Spacer(Modifier.height(16.dp))
+        }
+        DetailsSectionHeader("Folder details")
+        Row(
+            Modifier.fillMaxWidth().padding(start = 16.dp, top = 16.dp, end = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                InfoRow(
-                    icon = Icons.Default.Image,
-                    label = "Pages",
-                    value = uiState.imageCount.toString()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                InfoRow(
-                    icon = Icons.Default.CalendarToday,
-                    label = "Modified",
-                    value = uiState.dateModified
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                InfoRow(
-                    icon = Icons.Default.Folder,
-                    label = "Path",
-                    value = uiState.directoryPath
-                )
+            Icon(Icons.Default.Folder, contentDescription = null, tint = Color(0xFFF9C650))
+            Text(uiState.directoryPath, fontSize = 14.sp, lineHeight = 16.sp)
+        }
+        Row(Modifier.fillMaxWidth().padding(top = 24.dp)) {
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(uiState.dateModified, color = WineRed, fontSize = 14.sp)
+                Text("Date Modified", Modifier.padding(top = 8.dp), color = Color.Gray, fontSize = 12.sp)
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(uiState.imageCount.toString(), color = WineRed, fontSize = 14.sp)
+                Text("Pages", Modifier.padding(top = 8.dp), color = Color.Gray, fontSize = 12.sp)
             }
         }
-        
-        // Tags section
-        if (uiState.hasMetadata && !uiState.tags.isEmpty()) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .padding(top = 8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Text(
-                        text = "Tags",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                    
-                    TagGroup(
-                        label = "Parodies",
-                        tags = uiState.tags.parodies,
-                        onTagClick = onTagClick
-                    )
-                    TagGroup(
-                        label = "Characters",
-                        tags = uiState.tags.characters,
-                        onTagClick = onTagClick
-                    )
-                    TagGroup(
-                        label = "Tags",
-                        tags = uiState.tags.tags,
-                        onTagClick = onTagClick
-                    )
-                    TagGroup(
-                        label = "Artists",
-                        tags = uiState.tags.artists,
-                        onTagClick = onTagClick
-                    )
-                    TagGroup(
-                        label = "Groups",
-                        tags = uiState.tags.groups,
-                        onTagClick = onTagClick
-                    )
-                    TagGroup(
-                        label = "Languages",
-                        tags = uiState.tags.languages,
-                        onTagClick = onTagClick
-                    )
-                    TagGroup(
-                        label = "Categories",
-                        tags = uiState.tags.categories,
-                        onTagClick = onTagClick
-                    )
-                }
-            }
-        } else if (!uiState.hasMetadata) {
-            // No metadata indicator
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .padding(top = 8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "No metadata found",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Sync to fetch title and tags",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-        
-        if (relatedManga.isNotEmpty()) {
-            RelatedMangaRow(relatedManga, onRelatedMangaClick)
-        }
-
-        // Bottom spacing for FAB
-        Spacer(modifier = Modifier.height(80.dp))
     }
+}
+
+@Composable
+private fun DetailsSectionHeader(title: String) {
+    Text(
+        title.uppercase(),
+        modifier = Modifier.fillMaxWidth().background(Color(0xFF5D2A42)).padding(8.dp),
+        color = Color.White,
+        fontSize = 14.sp,
+        letterSpacing = 1.sp
+    )
 }
 
 @Composable
 private fun DoujinImagesContent(
     uiState: DoujinDetailsUiState,
     onImageClick: (Int) -> Unit,
-    onGridStyleChange: (GridViewStyle) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var showViewStyleMenu by remember { mutableStateOf(false) }
-    
-    Column(modifier = modifier) {
-        // View style selector
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "${uiState.imageList.size} images",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            
-            Box {
-                IconButton(onClick = { showViewStyleMenu = true }) {
-                    Icon(
-                        imageVector = when (uiState.gridViewStyle) {
-                            GridViewStyle.Grid, GridViewStyle.Scaled -> Icons.Default.GridView
-                            GridViewStyle.Row, GridViewStyle.List -> Icons.Default.ViewList
-                        },
-                        contentDescription = "Change view style"
-                    )
-                }
-                
-                DropdownMenu(
-                    expanded = showViewStyleMenu,
-                    onDismissRequest = { showViewStyleMenu = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Grid") },
-                        onClick = {
-                            onGridStyleChange(GridViewStyle.Grid)
-                            showViewStyleMenu = false
-                        },
-                        leadingIcon = {
-                            Icon(Icons.Default.GridView, contentDescription = null)
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Scaled") },
-                        onClick = {
-                            onGridStyleChange(GridViewStyle.Scaled)
-                            showViewStyleMenu = false
-                        },
-                        leadingIcon = {
-                            Icon(Icons.Default.GridView, contentDescription = null)
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Row") },
-                        onClick = {
-                            onGridStyleChange(GridViewStyle.Row)
-                            showViewStyleMenu = false
-                        },
-                        leadingIcon = {
-                            Icon(Icons.Default.ViewList, contentDescription = null)
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("List") },
-                        onClick = {
-                            onGridStyleChange(GridViewStyle.List)
-                            showViewStyleMenu = false
-                        },
-                        leadingIcon = {
-                            Icon(Icons.Default.ViewList, contentDescription = null)
-                        }
-                    )
-                }
-            }
-        }
-        
-        // Image grid/list based on style
-        when (uiState.gridViewStyle) {
-            GridViewStyle.Grid -> ImageGrid(
-                images = uiState.imageList,
-                columns = 3,
-                aspectRatio = 0.7f,
-                onImageClick = onImageClick
-            )
-            GridViewStyle.Scaled -> ImageGrid(
-                images = uiState.imageList,
-                columns = 2,
-                aspectRatio = 0.7f,
-                onImageClick = onImageClick
-            )
-            GridViewStyle.Row -> ImageRow(
-                images = uiState.imageList,
-                onImageClick = onImageClick
-            )
-            GridViewStyle.List -> ImageList(
-                images = uiState.imageList,
-                onImageClick = onImageClick
-            )
-        }
+    val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    when (uiState.gridViewStyle) {
+        GridViewStyle.Grid -> ImageGrid(uiState.imageList, if (landscape) 5 else 3, 1f, onImageClick, modifier)
+        GridViewStyle.Scaled -> ImageGrid(uiState.imageList, if (landscape) 3 else 2, 1f / 1.6f, onImageClick, modifier)
+        GridViewStyle.Row -> ImageList(uiState.imageList, onImageClick, modifier, showFileInfo = false)
+        GridViewStyle.List -> ImageList(uiState.imageList, onImageClick, modifier, showFileInfo = true)
     }
+}
+
+@Composable
+private fun returningThumbnailPage(): Int? {
+    val anchor = LocalReaderReturnAnchor.current ?: return null
+    val transition = LocalNavAnimatedContentScope.current.transition
+    return anchor.page.takeIf { transition.targetState == EnterExitState.Visible }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -674,164 +527,90 @@ private fun ImageGrid(
     onImageClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val state = rememberLazyGridState()
+    val targetPage = returningThumbnailPage()
+    LaunchedEffect(targetPage, images.size) {
+        if (targetPage != null && targetPage in images.indices &&
+            state.layoutInfo.visibleItemsInfo.none { it.index == targetPage }
+        ) state.requestScrollToItem(targetPage)
+    }
     LazyVerticalGrid(
+        state = state,
         columns = GridCells.Fixed(columns),
-        contentPadding = PaddingValues(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = modifier.fillMaxSize()
     ) {
         itemsIndexed(images) { index, uri ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(aspectRatio)
-                    .combinedClickable(
-                        onClick = { onImageClick(index) }
-                    ),
-                shape = RoundedCornerShape(4.dp)
-            ) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    AsyncImage(
-                        model = uri,
-                        contentDescription = "Page ${index + 1}",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    
-                    // Page number overlay
-                    Text(
-                        text = "${index + 1}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.White,
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .background(
-                                Color.Black.copy(alpha = 0.6f),
-                                RoundedCornerShape(topStart = 4.dp)
-                            )
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                    )
-                }
-            }
+            AsyncImage(
+                model = uri,
+                contentDescription = "Page ${index + 1}",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxWidth().aspectRatio(aspectRatio)
+                    .clickable { onImageClick(index) }
+                    .readerPageTransition(index, thumbnail = true)
+            )
         }
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ImageRow(
+private fun ImageList(
     images: List<Uri>,
     onImageClick: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showFileInfo: Boolean
 ) {
-    LazyColumn(
-        contentPadding = PaddingValues(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = modifier.fillMaxSize()
-    ) {
+    val state = rememberLazyListState()
+    val targetPage = returningThumbnailPage()
+    LaunchedEffect(targetPage, images.size) {
+        if (targetPage != null && targetPage in images.indices &&
+            state.layoutInfo.visibleItemsInfo.none { it.index == targetPage }
+        ) state.requestScrollToItem(targetPage)
+    }
+    LazyColumn(state = state, modifier = modifier.fillMaxSize()) {
         lazyItemsIndexed(images) { index, uri ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .combinedClickable(
-                        onClick = { onImageClick(index) }
-                    ),
-                shape = RoundedCornerShape(4.dp)
-            ) {
+            if (showFileInfo) {
+                val modified by produceState("", uri) {
+                    value = withContext(Dispatchers.IO) {
+                        uri.path?.let { path ->
+                            val time = File(path).lastModified()
+                            if (time > 0L) SimpleDateFormat("d MMM, yyyy h:mm:ss a", Locale.getDefault())
+                                .format(Date(time)) else ""
+                        }.orEmpty()
+                    }
+                }
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
+                    Modifier.fillMaxWidth().height(125.dp)
+                        .background(Color(0xFF282A36))
+                        .clickable { onImageClick(index) }
                 ) {
                     AsyncImage(
                         model = uri,
                         contentDescription = "Page ${index + 1}",
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(80.dp)
+                        modifier = Modifier.width(100.dp).height(125.dp)
+                            .readerPageTransition(index, thumbnail = true)
                     )
-                    
-                    Text(
-                        text = "Page ${index + 1}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(16.dp)
-                    )
+                    Column(Modifier.padding(8.dp)) {
+                        Text(
+                            uri.lastPathSegment.orEmpty(),
+                            color = Color(0xFFEDECEC),
+                            fontSize = 14.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(modified, Modifier.padding(top = 4.dp), color = Color(0xFF959595), fontSize = 14.sp)
+                    }
                 }
+            } else {
+                AsyncImage(
+                    model = uri,
+                    contentDescription = "Page ${index + 1}",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxWidth().aspectRatio(1.4f)
+                        .clickable { onImageClick(index) }
+                        .readerPageTransition(index, thumbnail = true)
+                )
             }
-        }
-    }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun ImageList(
-    images: List<Uri>,
-    onImageClick: (Int) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    LazyColumn(
-        contentPadding = PaddingValues(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = modifier.fillMaxSize()
-    ) {
-        lazyItemsIndexed(images) { index, uri ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .combinedClickable(
-                        onClick = { onImageClick(index) }
-                    ),
-                shape = RoundedCornerShape(4.dp)
-            ) {
-                Column {
-                    AsyncImage(
-                        model = uri,
-                        contentDescription = "Page ${index + 1}",
-                        contentScale = ContentScale.FillWidth,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    
-                    Text(
-                        text = "Page ${index + 1}",
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp)
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun InfoRow(
-    icon: ImageVector,
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.Top
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(end = 8.dp)
-        )
-        Column {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodyMedium
-            )
         }
     }
 }

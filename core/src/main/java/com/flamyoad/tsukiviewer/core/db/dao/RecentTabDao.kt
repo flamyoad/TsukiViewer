@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.flamyoad.tsukiviewer.core.db.typeconverter.FolderConverter
 import com.flamyoad.tsukiviewer.core.model.RecentTab
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 @TypeConverters(FolderConverter::class)
@@ -11,6 +12,9 @@ interface RecentTabDao {
 
     @Query("SELECT * FROM recent_tabs ORDER BY id")
     fun getAll(): LiveData<List<RecentTab>>
+
+    @Query("SELECT * FROM recent_tabs ORDER BY id")
+    fun observeAll(): Flow<List<RecentTab>>
 
     @Query("SELECT * FROM recent_tabs WHERE id = :id")
     suspend fun get(id: Long): RecentTab

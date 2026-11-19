@@ -147,7 +147,7 @@ class CollectionViewModel @Inject constructor(
                 selection,
                 params,
                 null,
-                null
+                null as android.os.CancellationSignal?
             )
 
             while (cursor?.moveToNext() == true) {

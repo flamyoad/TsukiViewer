@@ -1,5 +1,13 @@
 package com.flamyoad.tsukiviewer.ui.screens.tags
 
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +26,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -38,6 +48,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -67,7 +78,20 @@ fun TagsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     
-    var showSortDialog by remember { mutableStateOf(false) }
+    var showSortDialog by rememberSaveable { mutableStateOf(false) }
+    var tagToDelete by rememberSaveable { mutableStateOf<Long?>(null) }
+    uiState.allTags.firstOrNull { it.id == tagToDelete }?.let { tag ->
+        AlertDialog(
+            onDismissRequest = { tagToDelete = null },
+            title = { Text("Delete tag?") },
+            text = { Text(tag.name) },
+            confirmButton = { TextButton(onClick = {
+                tagToDelete = null
+                viewModel.deleteTag(tag.id)
+            }) { Text("Delete") } },
+            dismissButton = { TextButton(onClick = { tagToDelete = null }) { Text("Cancel") } }
+        )
+    }
     
     val pagerState = rememberPagerState(
         initialPage = uiState.selectedTabIndex,
@@ -127,7 +151,9 @@ fun TagsScreen(
                 ) { }
             } else {
                 TopAppBar(
-                    title = { Text("Tags") },
+                    expandedHeight = 56.dp,
+                    title = { Text("Tags", fontSize = 20.sp, fontWeight = FontWeight.Medium) },
+                    navigationIcon = { Spacer(Modifier.width(56.dp)) },
                     actions = {
                         IconButton(onClick = { viewModel.setSearchActive(true) }) {
                             Icon(
@@ -143,8 +169,10 @@ fun TagsScreen(
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                        actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary
                     ),
                     windowInsets = WindowInsets(
                         top = 0.dp,
@@ -153,6 +181,7 @@ fun TagsScreen(
                 )
             }
         },
+        containerColor = Color(0xFFECECEC),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         modifier = modifier
     ) { paddingValues ->
@@ -164,12 +193,22 @@ fun TagsScreen(
             // Tab Row
             ScrollableTabRow(
                 selectedTabIndex = pagerState.currentPage,
-                containerColor = ColorPrimaryLight,
+                containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = TextWhite,
+                edgePadding = 0.dp,
+                divider = {},
+                indicator = { positions ->
+                    TabRowDefaults.SecondaryIndicator(
+                        Modifier.tabIndicatorOffset(positions[pagerState.currentPage]),
+                        height = 2.dp,
+                        color = Color.White
+                    )
+                },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 uiState.tabTypes.forEachIndexed { index, tagType ->
                     Tab(
+                        modifier = Modifier.height(56.dp),
                         selected = pagerState.currentPage == index,
                         onClick = {
                             scope.launch {
@@ -196,7 +235,8 @@ fun TagsScreen(
                 TagsPageContent(
                     tags = uiState.filteredTags,
                     isLoading = uiState.isLoading,
-                    onTagClick = onTagClick
+                    onTagClick = onTagClick,
+                    onDeleteClick = { tagToDelete = it }
                 )
             }
         }
@@ -208,7 +248,8 @@ private fun TagsPageContent(
     tags: List<TagUiModel>,
     isLoading: Boolean,
     onTagClick: (Long) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onDeleteClick: (Long) -> Unit = {}
 ) {
     when {
         isLoading -> {
@@ -220,28 +261,8 @@ private fun TagsPageContent(
             }
         }
         
-        tags.isEmpty() -> {
-            Box(
-                modifier = modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "No Tags Found",
-                        style = MaterialTheme.typography.headlineMedium
-                    )
-                    Text(
-                        text = "Tags from your doujins will appear here",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-        
+        tags.isEmpty() -> Unit
+
         else -> {
             LazyColumn(
                 contentPadding = PaddingValues(8.dp),
@@ -254,7 +275,8 @@ private fun TagsPageContent(
                 ) { tag ->
                     TagListItem(
                         tag = tag,
-                        onClick = { onTagClick(tag.id) }
+                        onClick = { onTagClick(tag.id) },
+                        onLongClick = { onDeleteClick(tag.id) }
                     )
                 }
             }

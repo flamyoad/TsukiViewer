@@ -5,11 +5,18 @@ import android.net.Uri
 /**
  * Reader mode options for the doujin reader.
  */
-enum class ReaderMode(val displayName: String) {
-    HORIZONTAL_SWIPE("Horizontal Swipe"),
-    VERTICAL_SWIPE("Vertical Swipe"),
-    VERTICAL_STRIP("Vertical Strip (Webtoon)"),
-    TWO_PAGE("Two-page")
+enum class ReaderMode(val displayName: String, val preferenceValue: String) {
+    HORIZONTAL_SWIPE("Horizontal Swipe", "HorizontalSwipe"),
+    VERTICAL_SWIPE("Vertical Swipe", "VerticalSwipe"),
+    VERTICAL_STRIP("Vertical Strip", "VerticalStrip"),
+    TWO_PAGE("Two-page", "TwoPage");
+
+    companion object {
+        fun fromPreference(value: String?): ReaderMode =
+            entries.firstOrNull { it.preferenceValue == value }
+                ?: value?.toIntOrNull()?.let { entries.getOrNull(it) }
+                ?: VERTICAL_STRIP
+    }
 }
 
 /**
@@ -30,6 +37,7 @@ data class ReaderUiState(
     val directoryName: String = "",
     val imageList: List<Uri> = emptyList(),
     val currentPage: Int = 0,
+    val requestedPage: Int? = null,
     val totalPages: Int = 0,
     val readerMode: ReaderMode = ReaderMode.HORIZONTAL_SWIPE,
     val showControls: Boolean = true,

@@ -183,8 +183,8 @@ class ReaderActivity : LockableActivity(), ViewPagerListener, ReaderTabListener,
 
        https://stackoverflow.com/questions/24121644/dispatchkeyevent-invoking-twice
      */
-    override fun dispatchKeyEvent(event: KeyEvent?): Boolean {
-        val keyCode = event?.keyCode
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val keyCode = event.keyCode
         if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
             if (event.action != KeyEvent.ACTION_DOWN) return true
 

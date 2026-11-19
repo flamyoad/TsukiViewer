@@ -4,6 +4,10 @@ import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.room.withTransaction
+import com.flamyoad.tsukiviewer.core.repository.RelatedMangaRepository
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.catch
 import com.flamyoad.tsukiviewer.core.db.AppDatabase
 import com.flamyoad.tsukiviewer.core.db.dao.TagDao
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,42 +28,47 @@ class TagsViewModel(
     val uiState: StateFlow<TagsUiState> = _uiState.asStateFlow()
     
     init {
-        loadTags()
-    }
-    
-    fun loadTags() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            
+            tagDao.observeAll()
+                .catch { _uiState.update { it.copy(isLoading = false, snackbarMessage = "Failed to load tags") } }
+                .collect { tags ->
+                    val items = tags.map { tag ->
+                        TagUiModel(
+                            id = requireNotNull(tag.tagId),
+                            name = tag.name,
+                            type = TagType.fromString(tag.type),
+                            count = tag.count
+                        )
+                    }
+                    _uiState.update {
+                        it.copy(
+                            allTags = items,
+                            filteredTags = filterAndSortTags(items, it.currentTagType, it.searchQuery, it.sortingMode),
+                            isLoading = false
+                        )
+                    }
+                }
+        }
+    }
+
+    fun deleteTag(id: Long) {
+        viewModelScope.launch {
             try {
-                val tags = tagDao.getAllBlocking()
-                val tagUiModels = tags.map { tag ->
-                    TagUiModel(
-                        id = tag.tagId ?: 0L,
-                        name = tag.name,
-                        type = TagType.fromString(tag.type),
-                        count = tag.count
-                    )
+                val db = AppDatabase.getInstance(application)
+                db.withTransaction {
+                    db.doujinTagDao().deleteTagAssociations(id)
+                    tagDao.delete(id)
                 }
-                
-                _uiState.update { 
-                    it.copy(
-                        allTags = tagUiModels,
-                        filteredTags = filterAndSortTags(tagUiModels, it.currentTagType, it.searchQuery, it.sortingMode),
-                        isLoading = false
-                    )
-                }
-            } catch (e: Exception) {
-                _uiState.update { 
-                    it.copy(
-                        isLoading = false,
-                        snackbarMessage = "Failed to load tags"
-                    )
-                }
+                RelatedMangaRepository.invalidateLibrary(db)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                _uiState.update { it.copy(snackbarMessage = "Could not delete tag") }
             }
         }
     }
-    
+
     fun setTabIndex(index: Int) {
         _uiState.update { state ->
             val newTagType = state.tabTypes.getOrElse(index) { TagType.ALL }
