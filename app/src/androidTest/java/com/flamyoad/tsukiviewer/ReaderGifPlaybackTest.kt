@@ -7,7 +7,8 @@ import android.graphics.Color
 import android.graphics.PointF
 import android.graphics.Rect
 import android.os.SystemClock
-import android.util.Base64
+import android.view.InputDevice
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
@@ -17,6 +18,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter
 import com.flamyoad.tsukiviewer.core.db.AppDatabase
+import com.flamyoad.tsukiviewer.core.prefs.PreferenceKeys
 import com.flamyoad.tsukiviewer.ui.reader.ReaderActivity
 import com.flamyoad.tsukiviewer.ui.reader.ReaderMode
 import com.flamyoad.tsukiviewer.ui.reader.ReaderPageImageView
@@ -35,10 +37,89 @@ class ReaderGifPlaybackTest {
     @Test fun playsInVerticalSwipe() = verifyReader(ReaderMode.VerticalSwipe)
     @Test fun playsInVerticalStrip() = verifyReader(ReaderMode.VerticalStrip)
 
+    @Test
+    fun tapPausesAndResumesAnAutoplayingGif() = verifyTapControls(autoplay = true)
+
+    @Test
+    fun autoplayOffWaitsForATapBeforePlaying() = verifyTapControls(autoplay = false)
+
+    @Test
+    fun tapReplaysAGifThatHasFinished() = verifyTapControls(autoplay = false, replay = true)
+
+    private fun verifyTapControls(autoplay: Boolean, replay: Boolean = false) {
+        val context = instrumentation.targetContext
+        val preferences = MyAppPreference.getInstance(context)
+        val previousMode = preferences.getDefaultReaderMode()
+        val key = PreferenceKeys.READER_GIF_AUTOPLAY
+        val previousAutoplay = preferences.prefs.getBoolean(key, true)
+        val directory = File(context.cacheDir, "reader-gif-tap-${System.nanoTime()}").apply { mkdirs() }
+        val gif = File(directory, "01.gif")
+        try {
+            gif.writeBytes(gifFixture(if (replay) "reader-gif-replay.gif" else "reader-gif-controls.gif"))
+            preferences.setDefaultReaderMode(ReaderMode.HorizontalSwipe)
+            preferences.prefs.edit().putBoolean(key, autoplay).apply()
+            val intent = Intent(context, ReaderActivity::class.java)
+                .putExtra(DoujinImagesAdapter.DIRECTORY_PATH, directory.absolutePath)
+            ActivityScenario.launch<ReaderActivity>(intent).use { scenario ->
+                if (autoplay) {
+                    assertAnimated(scenario, gif)
+                    tapGif(scenario, gif)
+                }
+                assertStill(scenario, gif)
+                tapGif(scenario, gif, waitForConfirmation = !replay)
+                assertAnimated(scenario, gif)
+                if (replay) {
+                    SystemClock.sleep(900)
+                    assertStill(scenario, gif)
+                    tapGif(scenario, gif, waitForConfirmation = false)
+                    assertAnimated(scenario, gif)
+                } else {
+                    tapGif(scenario, gif)
+                    assertStill(scenario, gif)
+                }
+            }
+        } finally {
+            preferences.setDefaultReaderMode(previousMode)
+            preferences.prefs.edit().putBoolean(key, previousAutoplay).apply()
+            val dao = AppDatabase.getInstance(context).recentTabDao()
+            runBlocking { dao.getByPath(directory.absolutePath)?.let(dao::delete) }
+            directory.deleteRecursively()
+        }
+    }
+
+    private fun tapGif(
+        scenario: ActivityScenario<ReaderActivity>,
+        file: File,
+        waitForConfirmation: Boolean = true
+    ) {
+        val bounds = Rect()
+        scenario.onActivity {
+            val page = requireNotNull(findPage(it.window.decorView, file))
+            assertTrue(page.getGlobalVisibleRect(bounds))
+        }
+        val downTime = SystemClock.uptimeMillis()
+        for (action in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)) {
+            val event = MotionEvent.obtain(
+                downTime, SystemClock.uptimeMillis(), action,
+                bounds.exactCenterX(), bounds.exactCenterY(), 0
+            )
+            try {
+                event.source = InputDevice.SOURCE_TOUCHSCREEN
+                instrumentation.sendPointerSync(event)
+            } finally {
+                event.recycle()
+            }
+        }
+        // The zoomable view confirms a single tap after its double-tap interval.
+        if (waitForConfirmation) SystemClock.sleep(400)
+    }
+
     private fun verifyReader(mode: ReaderMode) {
         val context = instrumentation.targetContext
         val preferences = MyAppPreference.getInstance(context)
         val previousMode = preferences.getDefaultReaderMode()
+        val key = PreferenceKeys.READER_GIF_AUTOPLAY
+        val previousAutoplay = preferences.prefs.getBoolean(key, true)
         val directory = File(context.cacheDir, "reader-gif-${System.nanoTime()}").apply { mkdirs() }
         val fixtures = InstrumentationRegistry.getArguments().getString("gifFixtures")?.let(::File)
         val first = File(directory, "01.gif")
@@ -50,7 +131,7 @@ class ReaderGifPlaybackTest {
 
         try {
             if (fixtures == null) {
-                val bytes = Base64.decode(TEST_GIF, Base64.DEFAULT)
+                val bytes = gifFixture()
                 first.writeBytes(bytes)
                 second.writeBytes(bytes)
             } else {
@@ -69,6 +150,7 @@ class ReaderGifPlaybackTest {
             }
 
             preferences.setDefaultReaderMode(mode)
+            preferences.prefs.edit().putBoolean(key, true).apply()
             val intent = Intent(context, ReaderActivity::class.java)
                 .putExtra(DoujinImagesAdapter.DIRECTORY_PATH, directory.absolutePath)
             ActivityScenario.launch<ReaderActivity>(intent).use { scenario ->
@@ -128,6 +210,7 @@ class ReaderGifPlaybackTest {
             }
         } finally {
             preferences.setDefaultReaderMode(previousMode)
+            preferences.prefs.edit().putBoolean(key, previousAutoplay).apply()
             val dao = AppDatabase.getInstance(context).recentTabDao()
             runBlocking { dao.getByPath(directory.absolutePath)?.let(dao::delete) }
             directory.deleteRecursively()
@@ -242,8 +325,6 @@ class ReaderGifPlaybackTest {
         return null
     }
 
-    private companion object {
-        // Three 12×16 solid-color frames, 200 ms per frame.
-        const val TEST_GIF = "R0lGODlhDAAQAIEAAP8AAAAAAAAAAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQAFAAAACwAAAAADAAQAAAIGQABCBxIsKDBgwgTKlzIsKHDhxAjSpwoMCAAIfkEARQAAQAsAAAAAAwAEACBAIAAAAAAAAAAAAAACBkAAQgcSLCgwYMIEypcyLChw4cQI0qcKDAgACH5BAEUAAEALAAAAAAMABAAgQAA/wAAAAAAAAAAAAgZAAEIHEiwoMGDCBMqXMiwocOHECNKnCgwIAA7"
-    }
+    private fun gifFixture(name: String = "reader-gif-controls.gif"): ByteArray =
+        instrumentation.context.assets.open(name).use { it.readBytes() }
 }
