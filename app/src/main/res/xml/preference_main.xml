@@ -110,6 +110,12 @@
             app:defaultValue="false" />
 
         <androidx.preference.SwitchPreference
+            app:key="pref_reader_gif_autoplay"
+            app:title="@string/reader_gif_autoplay"
+            app:summary="@string/reader_gif_autoplay_summary"
+            app:defaultValue="true" />
+
+        <androidx.preference.SwitchPreference
             app:key="pref_scroll_by_volume_button"
             app:title="Scroll using volume buttons"
             app:defaultValue="true" />
