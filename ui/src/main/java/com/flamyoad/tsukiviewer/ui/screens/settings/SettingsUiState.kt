@@ -10,6 +10,7 @@ data class SettingsUiState(
     val externalGalleryPackage: String = "",
     val scrollByVolumeButtons: Boolean = false,
     val confirmBeforeQuit: Boolean = true,
+    val readerRightToLeft: Boolean = false,
     val defaultReaderMode: ReaderMode = ReaderMode.HORIZONTAL_SWIPE,
     val defaultGridViewStyle: GridViewStyle = GridViewStyle.SCALED,
     val useWindowsExplorerSort: Boolean = false,

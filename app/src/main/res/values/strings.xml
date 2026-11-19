@@ -23,4 +23,10 @@
     <string name="reader_page_thumbnail">Page %1$d</string>
     <string name="reader_page_sidebar_toggle">%1$s. Show pages</string>
     <string name="reader_page_sidebar_hide">%1$s. Hide pages</string>
+    <string name="reader_mode_two_page">Two-page</string>
+    <string name="reader_two_page">Automatic two-page spreads</string>
+    <string name="reader_two_page_summary">Show spreads in horizontal mode on wide landscape windows</string>
+    <string name="reader_separate_cover">Show cover on its own</string>
+    <string name="reader_right_to_left">Right-to-left reading</string>
+    <string name="reader_right_to_left_summary">Put the first page on the right and reverse horizontal swipes</string>
 </resources>

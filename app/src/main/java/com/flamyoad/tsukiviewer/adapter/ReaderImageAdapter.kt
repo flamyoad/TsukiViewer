@@ -1,16 +1,16 @@
 package com.flamyoad.tsukiviewer.adapter
 
-import android.net.Uri
+import android.graphics.Rect
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
-import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.ui.reader.ReaderActivity
+import com.flamyoad.tsukiviewer.ui.reader.ReaderPageImageView
 import java.io.File
 
 class ReaderImageAdapter(
@@ -18,6 +18,21 @@ class ReaderImageAdapter(
     private val onPageError: (SubsamplingScaleImageView) -> Unit
 ) :
     RecyclerView.Adapter<ReaderImageAdapter.ImageViewHolder>() {
+
+    private val visibleBounds = Rect()
+
+    fun updatePlayback(recyclerView: RecyclerView, resumed: Boolean) {
+        for (index in 0 until recyclerView.childCount) {
+            val child = recyclerView.getChildAt(index)
+            val holder = recyclerView.getChildViewHolder(child) as ImageViewHolder
+            holder.updatePlayback(resumed, visibleBounds)
+        }
+    }
+
+    override fun onViewDetachedFromWindow(holder: ImageViewHolder) {
+        holder.stopAnimation()
+        super.onViewDetachedFromWindow(holder)
+    }
 
     private var imageList: List<File> = emptyList()
 
@@ -49,10 +64,15 @@ class ReaderImageAdapter(
     }
 
     inner class ImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val photoView: SubsamplingScaleImageView = itemView.findViewById(R.id.photoView)
+        private val photoView: ReaderPageImageView = itemView.findViewById(R.id.photoView)
         private val progressBarContainer: FrameLayout = itemView.findViewById(R.id.progressBarContainer)
 
+        private var isGif = false
+        private var playbackVisible = false
+
         fun bind(file: File) {
+            playbackVisible = false
+            isGif = file.extension.equals("gif", ignoreCase = true)
             photoView.transitionName = ReaderActivity.pageTransitionName(file)
             progressBarContainer.isVisible = true
             photoView.setOnImageEventListener(object :
@@ -68,10 +88,29 @@ class ReaderImageAdapter(
                     onPageError(photoView)
                 }
             })
-            photoView.setImage(ImageSource.uri(Uri.fromFile(file)))
+            photoView.setPage(file)
+        }
+
+        fun updatePlayback(resumed: Boolean, visibleBounds: Rect) {
+            val visible = resumed && isGif && photoView.isShown &&
+                photoView.getGlobalVisibleRect(visibleBounds)
+            if (visible == playbackVisible) return
+            if (visible) {
+                playbackVisible = true
+                photoView.startAnimation()
+            } else {
+                stopAnimation()
+            }
+        }
+
+        fun stopAnimation() {
+            if (!playbackVisible) return
+            playbackVisible = false
+            photoView.stopAnimation()
         }
 
         fun recycle() {
+            stopAnimation()
             photoView.transitionName = null
             photoView.setOnImageEventListener(null)
             photoView.recycle()

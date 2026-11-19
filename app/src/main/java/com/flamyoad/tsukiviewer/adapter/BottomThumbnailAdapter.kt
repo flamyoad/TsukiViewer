@@ -74,9 +74,12 @@ class BottomThumbnailAdapter(
         private val txtPageNumber: TextView = itemView.findViewById(R.id.txtPageNumber)
 
         fun bind(file: File, adapterPosition: Int) {
-            Glide.with(itemView)
-                .load(file.toUri())
-                .into(imageView)
+            val glide = Glide.with(itemView)
+            if (file.extension.equals("gif", ignoreCase = true)) {
+                glide.asBitmap().load(file.toUri()).into(imageView)
+            } else {
+                glide.load(file.toUri()).into(imageView)
+            }
 
             val page = adapterPosition + 1
             txtPageNumber.text = page.toString()

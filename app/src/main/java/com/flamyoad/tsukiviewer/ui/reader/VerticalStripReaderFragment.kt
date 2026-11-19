@@ -49,6 +49,11 @@ class VerticalStripReaderFragment : Fragment() {
 
     private lateinit var layoutManager: WebtoonLayoutManager
     private var jumpTarget: Int? = null
+    // Check after layout so partial pages, resized pages and clipped children use actual bounds.
+    private val updateVisibleGifs = ViewTreeObserver.OnPreDrawListener {
+        updateGifPlayback(resumed = true)
+        true
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -61,6 +66,7 @@ class VerticalStripReaderFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        binding.listImages.viewTreeObserver.addOnPreDrawListener(updateVisibleGifs)
         // Setting up broadcast manager for volume key clicks
         if (!viewModel.shouldScrollWithVolumeButton) {
             return
@@ -72,12 +78,15 @@ class VerticalStripReaderFragment : Fragment() {
     }
 
     override fun onPause() {
+        binding.listImages.viewTreeObserver.removeOnPreDrawListener(updateVisibleGifs)
+        updateGifPlayback(resumed = false)
         super.onPause()
         LocalBroadcastManager.getInstance(requireContext())
             .unregisterReceiver(broadcastReceiver)
     }
 
     override fun onDestroyView() {
+        binding.listImages.adapter = null
         super.onDestroyView()
         _binding = null
     }
@@ -201,6 +210,11 @@ class VerticalStripReaderFragment : Fragment() {
         jumpTarget = position
         layoutManager.scrollToPositionWithOffset(position, 0)
         readerListener?.onPageChange(position)
+    }
+
+    private fun updateGifPlayback(resumed: Boolean) {
+        val list = binding.listImages
+        (list.adapter as? ReaderImageAdapter)?.updatePlayback(list, resumed)
     }
 
     private fun handleVolumeKey(scrollDirection: VolumeButtonScrollDirection) {

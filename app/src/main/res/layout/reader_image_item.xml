@@ -1,9 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/photoView"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:src="@drawable/himekawa">
+    android:orientation="horizontal">
 
-</com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView>
+    <com.flamyoad.tsukiviewer.ui.reader.ReaderPageImageView
+        android:id="@+id/photoView"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1" />
+
+    <com.flamyoad.tsukiviewer.ui.reader.ReaderPageImageView
+        android:id="@+id/secondPhotoView"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:visibility="gone" />
+</LinearLayout>

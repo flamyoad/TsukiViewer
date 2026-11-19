@@ -29,32 +29,40 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.ViewList
+import androidx.compose.material.icons.filled.ViewColumn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -64,12 +72,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.flamyoad.tsukiviewer.core.model.ReaderSpreadPreferences
+import com.flamyoad.tsukiviewer.core.model.ReaderSpreads
+import com.flamyoad.tsukiviewer.core.prefs.MyAppPreference
 import com.flamyoad.tsukiviewer.ui.theme.TsukiViewerTheme
 import kotlinx.coroutines.launch
 
@@ -85,7 +99,26 @@ fun DoujinReaderScreen(
     )
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val sharedPreferences = remember(context) { MyAppPreference.getInstance(context).prefs }
+    var spreadPreferences by remember(sharedPreferences) {
+        mutableStateOf(ReaderSpreadPreferences.read(sharedPreferences))
+    }
+    val window = LocalConfiguration.current
+    val twoPageMode = uiState.readerMode == ReaderMode.TWO_PAGE
+    val spreadLayout = ReaderSpreads(
+        uiState.totalPages,
+        spreadPreferences.useSpreads(window.screenWidthDp, window.screenHeightDp, twoPageMode),
+        spreadPreferences.separateCover,
+        spreadPreferences.rightToLeft
+    )
+    val visiblePages = if (
+        (twoPageMode || uiState.readerMode == ReaderMode.HORIZONTAL_SWIPE) &&
+            uiState.currentPage in 0 until uiState.totalPages
+    ) spreadLayout.pagesForItem(spreadLayout.itemForPage(uiState.currentPage))
+    else uiState.currentPage..uiState.currentPage
+    val pageLabel = if (visiblePages.first == visiblePages.last) "${visiblePages.first + 1}"
+        else "${visiblePages.first + 1}–${visiblePages.last + 1}"
 
     // Load images when the screen is first composed
     LaunchedEffect(doujinPath) {
@@ -134,26 +167,26 @@ fun DoujinReaderScreen(
             // Reader content
             ReaderContent(
                 uiState = uiState,
-                onPageChange = { page -> viewModel.setCurrentPage(page) },
-                onTap = { viewModel.toggleControls() },
-                onThumbnailClick = { page ->
-                    viewModel.setCurrentPage(page)
-                    viewModel.hideOverlays()
+                spreadLayout = spreadLayout,
+                onPageChange = {
+                    viewModel.setCurrentPage(it)
+                    if (twoPageMode) viewModel.hideOverlays()
                 },
-                onModeSelect = { mode -> viewModel.setReaderMode(mode) }
+                onTap = viewModel::toggleControls
             )
         }
 
         // Top bar overlay
         AnimatedVisibility(
-            visible = uiState.showControls && !uiState.isLoading && !uiState.directoryNotFound,
+            visible = (if (twoPageMode) uiState.showModeSelector else uiState.showControls) &&
+                !uiState.isLoading && !uiState.directoryNotFound,
             enter = slideInVertically { -it } + fadeIn(),
             exit = slideOutVertically { -it } + fadeOut(),
             modifier = Modifier.align(Alignment.TopCenter)
         ) {
             ReaderTopBar(
                 title = uiState.directoryName,
-                currentPage = uiState.currentPage + 1,
+                currentPage = pageLabel,
                 totalPages = uiState.totalPages,
                 onNavigateBack = onNavigateBack
             )
@@ -167,11 +200,20 @@ fun DoujinReaderScreen(
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {
             ReaderBottomBar(
-                currentPage = uiState.currentPage + 1,
+                currentPage = pageLabel,
                 totalPages = uiState.totalPages,
                 onPageIndicatorClick = { viewModel.toggleThumbnailBar() },
-                onModeClick = { viewModel.toggleModeSelector() }
+                onModeClick = if (twoPageMode) null else viewModel::toggleModeSelector
             )
+        }
+
+        if (twoPageMode && !uiState.isLoading && !uiState.directoryNotFound) {
+            IconButton(
+                onClick = viewModel::toggleModeSelector,
+                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp)
+            ) {
+                Icon(Icons.Default.ViewList, contentDescription = "Reader mode", tint = Color.White)
+            }
         }
 
         // Mode selector (right side)
@@ -183,7 +225,12 @@ fun DoujinReaderScreen(
         ) {
             ReaderModeSelector(
                 currentMode = uiState.readerMode,
-                onModeSelect = { mode -> viewModel.setReaderMode(mode) }
+                onModeSelect = viewModel::setReaderMode,
+                spreadPreferences = spreadPreferences,
+                onSpreadPreferencesChange = {
+                    spreadPreferences = it
+                    it.save(sharedPreferences)
+                }
             )
         }
 
@@ -226,78 +273,83 @@ fun DoujinReaderScreen(
 @Composable
 private fun ReaderContent(
     uiState: ReaderUiState,
+    spreadLayout: ReaderSpreads,
     onPageChange: (Int) -> Unit,
-    onTap: () -> Unit,
-    onThumbnailClick: (Int) -> Unit,
-    onModeSelect: (ReaderMode) -> Unit
+    onTap: () -> Unit
 ) {
-    val pagerState = rememberPagerState(
-        initialPage = uiState.currentPage,
-        pageCount = { uiState.imageList.size }
-    )
-    val scope = rememberCoroutineScope()
-
-    // Sync pager state with UI state
-    LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.currentPage }
-            .collect { page ->
-                onPageChange(page)
-            }
-    }
-
-    // Handle external page changes (e.g., from thumbnail click)
-    LaunchedEffect(uiState.currentPage) {
-        if (pagerState.currentPage != uiState.currentPage) {
-            pagerState.animateScrollToPage(uiState.currentPage)
-        }
-    }
-
     when (uiState.readerMode) {
-        ReaderMode.HORIZONTAL_SWIPE -> {
+        ReaderMode.HORIZONTAL_SWIPE, ReaderMode.TWO_PAGE -> key(spreadLayout) {
             HorizontalSwipeReader(
-                pagerState = pagerState,
+                spreads = spreadLayout,
                 images = uiState.imageList,
-                onTap = onTap
-            )
-        }
-        ReaderMode.VERTICAL_SWIPE -> {
-            VerticalSwipeReader(
-                pagerState = pagerState,
-                images = uiState.imageList,
-                onTap = onTap
-            )
-        }
-        ReaderMode.VERTICAL_STRIP -> {
-            VerticalStripReader(
-                images = uiState.imageList,
-                initialPage = uiState.currentPage,
+                currentPage = uiState.currentPage,
                 onPageChange = onPageChange,
                 onTap = onTap
             )
         }
+        ReaderMode.VERTICAL_SWIPE -> {
+            val pagerState = rememberPagerState(
+                initialPage = uiState.currentPage,
+                pageCount = { uiState.imageList.size }
+            )
+            LaunchedEffect(pagerState) {
+                snapshotFlow { pagerState.currentPage }.collect(onPageChange)
+            }
+            LaunchedEffect(uiState.currentPage) {
+                if (pagerState.currentPage != uiState.currentPage) {
+                    pagerState.animateScrollToPage(uiState.currentPage)
+                }
+            }
+            VerticalSwipeReader(pagerState, uiState.imageList, onTap)
+        }
+        ReaderMode.VERTICAL_STRIP -> VerticalStripReader(
+            images = uiState.imageList,
+            initialPage = uiState.currentPage,
+            onPageChange = onPageChange,
+            onTap = onTap
+        )
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun HorizontalSwipeReader(
-    pagerState: PagerState,
+    spreads: ReaderSpreads,
     images: List<Uri>,
+    currentPage: Int,
+    onPageChange: (Int) -> Unit,
     onTap: () -> Unit
 ) {
-    HorizontalPager(
-        state = pagerState,
-        modifier = Modifier
-            .fillMaxSize()
-            .pointerInput(Unit) {
-                detectTapGestures(onTap = { onTap() })
+    val desiredItem = spreads.itemForPage(currentPage)
+    val pagerState = rememberPagerState(initialPage = desiredItem, pageCount = { spreads.itemCount })
+    LaunchedEffect(pagerState, currentPage) {
+        if (pagerState.currentPage != desiredItem) pagerState.scrollToPage(desiredItem)
+        snapshotFlow { pagerState.settledPage }.collect { item ->
+            val pages = spreads.pagesForItem(item)
+            if (currentPage !in pages) onPageChange(pages.first)
+        }
+    }
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = { onTap() })
+                }
+        ) { item ->
+            val pages = spreads.pagesForItem(item)
+            val visualOrder = if (spreads.rightToLeft) pages.reversed() else pages
+            Row(Modifier.fillMaxSize()) {
+                for (page in visualOrder) {
+                    ReaderImage(
+                        uri = images[page],
+                        contentDescription = "Page ${page + 1}",
+                        modifier = Modifier.weight(1f).fillMaxHeight()
+                    )
+                }
             }
-    ) { page ->
-        ReaderImage(
-            uri = images[page],
-            contentDescription = "Page ${page + 1}",
-            modifier = Modifier.fillMaxSize()
-        )
+        }
     }
 }
 
@@ -383,7 +435,7 @@ private fun ReaderImage(
 @Composable
 private fun ReaderTopBar(
     title: String,
-    currentPage: Int,
+    currentPage: String,
     totalPages: Int,
     onNavigateBack: () -> Unit
 ) {
@@ -421,10 +473,10 @@ private fun ReaderTopBar(
 
 @Composable
 private fun ReaderBottomBar(
-    currentPage: Int,
+    currentPage: String,
     totalPages: Int,
     onPageIndicatorClick: () -> Unit,
-    onModeClick: () -> Unit
+    onModeClick: (() -> Unit)?
 ) {
     Row(
         modifier = Modifier
@@ -445,13 +497,16 @@ private fun ReaderBottomBar(
                 .padding(8.dp)
         )
 
-        // Mode selector button
-        IconButton(onClick = onModeClick) {
-            Icon(
-                imageVector = Icons.Default.ViewList,
-                contentDescription = "Reader mode",
-                tint = Color.White
-            )
+        if (onModeClick != null) {
+            IconButton(onClick = onModeClick) {
+                Icon(
+                    imageVector = Icons.Default.ViewList,
+                    contentDescription = "Reader mode",
+                    tint = Color.White
+                )
+            }
+        } else {
+            Spacer(Modifier.size(48.dp))
         }
     }
 }
@@ -459,11 +514,14 @@ private fun ReaderBottomBar(
 @Composable
 private fun ReaderModeSelector(
     currentMode: ReaderMode,
-    onModeSelect: (ReaderMode) -> Unit
+    onModeSelect: (ReaderMode) -> Unit,
+    spreadPreferences: ReaderSpreadPreferences,
+    onSpreadPreferencesChange: (ReaderSpreadPreferences) -> Unit
 ) {
     Column(
         modifier = Modifier
             .background(Color.Black.copy(alpha = 0.9f))
+            .verticalScroll(rememberScrollState())
             .padding(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -485,6 +543,33 @@ private fun ReaderModeSelector(
             isSelected = currentMode == ReaderMode.VERTICAL_STRIP,
             onClick = { onModeSelect(ReaderMode.VERTICAL_STRIP) }
         )
+        ReaderModeButton(
+            icon = Icons.Default.ViewColumn,
+            label = "Two-page",
+            isSelected = currentMode == ReaderMode.TWO_PAGE,
+            onClick = { onModeSelect(ReaderMode.TWO_PAGE) }
+        )
+        if (currentMode == ReaderMode.HORIZONTAL_SWIPE || currentMode == ReaderMode.TWO_PAGE) {
+            if (currentMode == ReaderMode.HORIZONTAL_SWIPE) {
+                ReaderOption("Automatic two-page spreads", spreadPreferences.enabled) {
+                    onSpreadPreferencesChange(spreadPreferences.copy(enabled = it))
+                }
+            }
+            ReaderOption("Separate cover", spreadPreferences.separateCover) {
+                onSpreadPreferencesChange(spreadPreferences.copy(separateCover = it))
+            }
+            ReaderOption("Read right to left", spreadPreferences.rightToLeft) {
+                onSpreadPreferencesChange(spreadPreferences.copy(rightToLeft = it))
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReaderOption(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(label, color = Color.White, modifier = Modifier.padding(end = 12.dp))
+        Switch(checked = checked, onCheckedChange = onChange)
     }
 }
 

@@ -1,27 +1,24 @@
 package com.flamyoad.tsukiviewer.ui.reader
 
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentStatePagerAdapter
+import com.flamyoad.tsukiviewer.core.model.ReaderSpreads
 import java.io.File
 
-// For ViewPager1
-class ImageFragmentStateAdapter(fm: FragmentManager)
-    : FragmentStatePagerAdapter(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
+internal class ImageFragmentStateAdapter(
+    fm: FragmentManager,
+    private val images: List<File>,
+    private val spreads: ReaderSpreads
+) : FragmentStatePagerAdapter(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
 
-    private var imageList: List<File> = emptyList()
-
-    fun setList(imageList: List<File>) {
-        this.imageList = imageList
-        notifyDataSetChanged()
+    override fun getItem(position: Int): ImageFragment {
+        val pages = spreads.pagesForItem(position)
+        return ImageFragment.newInstance(
+            images[pages.first],
+            images[pages.last].takeIf { pages.first != pages.last },
+            spreads.rightToLeft
+        )
     }
 
-    override fun getItem(position: Int): Fragment {
-        val image = imageList[position]
-        return ImageFragment.newInstance(image)
-    }
-
-    override fun getCount(): Int {
-        return imageList.size
-    }
+    override fun getCount() = spreads.itemCount
 }

@@ -21,12 +21,14 @@
         <item>Horizontal Swipe</item>
         <item>Vertical Swipe</item>
         <item>Vertical Strip</item>
+        <item>@string/reader_mode_two_page</item>
     </string-array>
 
     <string-array name="pref_reader_mode_value">
         <item>HorizontalSwipe</item>
         <item>VerticalSwipe</item>
         <item>VerticalStrip</item>
+        <item>TwoPage</item>
     </string-array>
 
     <string-array name="pref_volume_button_name">
