@@ -8,7 +8,8 @@ import android.net.Uri
 enum class ReaderMode(val displayName: String) {
     HORIZONTAL_SWIPE("Horizontal Swipe"),
     VERTICAL_SWIPE("Vertical Swipe"),
-    VERTICAL_STRIP("Vertical Strip (Webtoon)")
+    VERTICAL_STRIP("Vertical Strip (Webtoon)"),
+    TWO_PAGE("Two-page")
 }
 
 /**

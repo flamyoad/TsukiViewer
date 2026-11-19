@@ -28,7 +28,7 @@
 
     </FrameLayout>
 
-    <com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
+    <com.flamyoad.tsukiviewer.ui.reader.ReaderPageImageView
         android:id="@+id/photoView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

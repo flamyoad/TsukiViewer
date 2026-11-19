@@ -281,6 +281,15 @@ fun SettingsScreen(
                     HorizontalDivider()
                     
                     SwitchPreference(
+                        title = "Right-to-left reading",
+                        summary = "Put the first page on the right and reverse horizontal swipes",
+                        checked = uiState.readerRightToLeft,
+                        onCheckedChange = viewModel::setReaderRightToLeft
+                    )
+
+                    HorizontalDivider()
+
+                    SwitchPreference(
                         title = "Scroll by volume buttons",
                         summary = "Use volume buttons to navigate pages",
                         checked = uiState.scrollByVolumeButtons,

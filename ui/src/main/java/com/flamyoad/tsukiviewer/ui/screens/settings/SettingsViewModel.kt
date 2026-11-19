@@ -52,6 +52,7 @@ class SettingsViewModel(
                     externalGalleryPackage = externalGalleryPackage,
                     scrollByVolumeButtons = scrollByVolumeButtons,
                     confirmBeforeQuit = confirmBeforeQuit,
+                    readerRightToLeft = prefs.getBoolean(PreferenceKeys.READER_RIGHT_TO_LEFT, false),
                     defaultReaderMode = ReaderMode.entries.getOrElse(readerModeOrdinal) { ReaderMode.HORIZONTAL_SWIPE },
                     defaultGridViewStyle = GridViewStyle.entries.getOrElse(gridStyleOrdinal) { GridViewStyle.SCALED },
                     useWindowsExplorerSort = windowsSort,
@@ -66,6 +67,11 @@ class SettingsViewModel(
         }
     }
     
+    fun setReaderRightToLeft(value: Boolean) {
+        prefs.edit { putBoolean(PreferenceKeys.READER_RIGHT_TO_LEFT, value) }
+        _uiState.update { it.copy(readerRightToLeft = value) }
+    }
+
     fun setShowRelatedManga(value: Boolean) {
         prefs.edit { putBoolean(PreferenceKeys.SHOW_RELATED_MANGA, value) }
         _uiState.update { it.copy(showRelatedManga = value) }

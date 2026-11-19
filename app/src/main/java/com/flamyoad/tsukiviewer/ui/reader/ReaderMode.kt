@@ -4,4 +4,5 @@ enum class ReaderMode {
     HorizontalSwipe,
     VerticalSwipe,
     VerticalStrip,
+    TwoPage,
 }

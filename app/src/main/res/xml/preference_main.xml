@@ -93,6 +93,23 @@
             app:title="Default reader mode" />
 
         <androidx.preference.SwitchPreference
+            app:key="pref_reader_two_page"
+            app:title="@string/reader_two_page"
+            app:summary="@string/reader_two_page_summary"
+            app:defaultValue="true" />
+
+        <androidx.preference.SwitchPreference
+            app:key="pref_reader_separate_cover"
+            app:title="@string/reader_separate_cover"
+            app:defaultValue="true" />
+
+        <androidx.preference.SwitchPreference
+            app:key="pref_reader_right_to_left"
+            app:title="@string/reader_right_to_left"
+            app:summary="@string/reader_right_to_left_summary"
+            app:defaultValue="false" />
+
+        <androidx.preference.SwitchPreference
             app:key="pref_scroll_by_volume_button"
             app:title="Scroll using volume buttons"
             app:defaultValue="true" />

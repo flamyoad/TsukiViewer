@@ -1,10 +1,13 @@
 package com.flamyoad.tsukiviewer.ui.reader.tabs
 
 import android.content.Context
+import android.graphics.Rect
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
@@ -25,6 +28,7 @@ import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.core.model.RecentTab
 import com.flamyoad.tsukiviewer.ui.reader.*
 import com.flamyoad.tsukiviewer.utils.extensions.toast
+import com.google.android.material.appbar.AppBarLayout
 import java.io.File
 import javax.inject.Inject
 
@@ -48,6 +52,21 @@ class ReaderTabFragment : Fragment(),
     private var lastReadPageNumberListener: LastReadPageNumberListener? = null
     private var shouldReturnLastReadPosition: Boolean = false
     private var cutoutTop = 0
+    private var toolbarHeight = 0
+    private val sidebarAdapter = BottomThumbnailAdapter(this, sidebar = true)
+    private var pendingSidebarPage = RecyclerView.NO_POSITION
+    private val followSidebarPage = Runnable {
+        val sidebar = _binding?.pageSidebar ?: return@Runnable
+        if (!sidebar.isVisible || sidebar.scrollState != RecyclerView.SCROLL_STATE_IDLE) return@Runnable
+
+        val page = pendingSidebarPage
+        pendingSidebarPage = RecyclerView.NO_POSITION
+        if (page !in 0 until sidebarAdapter.itemCount) return@Runnable
+        val layout = sidebar.layoutManager as LinearLayoutManager
+        if (page !in layout.findFirstCompletelyVisibleItemPosition()..layout.findLastCompletelyVisibleItemPosition()) {
+            sidebar.smoothScrollToPosition(page)
+        }
+    }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -94,6 +113,7 @@ class ReaderTabFragment : Fragment(),
         })
 
         initBottomThumbnails()
+        initPageSidebar()
         initPageIndicator()
         initToolbar()
         keepToolbarBelowCutout()
@@ -112,6 +132,10 @@ class ReaderTabFragment : Fragment(),
 
         binding.btnHorizontalSwipe.setOnClickListener {
             parentViewModel.setReaderMode(ReaderMode.HorizontalSwipe)
+        }
+
+        binding.btnTwoPage.setOnClickListener {
+            parentViewModel.setReaderMode(ReaderMode.TwoPage)
         }
 
         binding.btnVerticalSwipe.setOnClickListener {
@@ -145,6 +169,8 @@ class ReaderTabFragment : Fragment(),
     private fun updateToolbarCutoutMargin(page: Int) {
         val toolbar = binding.toolbar
         val topMargin = if (page == 0) cutoutTop else 0
+        val sidebarTop = topMargin + if (binding.appBarLayout.isVisible) toolbarHeight else 0
+        binding.pageSidebar.setPadding(0, sidebarTop, 0, binding.pageSidebar.paddingBottom)
         if ((toolbar.layoutParams as ViewGroup.MarginLayoutParams).topMargin != topMargin) {
             toolbar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 this.topMargin = topMargin
@@ -154,10 +180,16 @@ class ReaderTabFragment : Fragment(),
 
     override fun onDestroyView() {
         super.onDestroyView()
+        binding.pageSidebar.removeCallbacks(followSidebarPage)
+        pendingSidebarPage = RecyclerView.NO_POSITION
+        binding.pageSidebar.adapter = null
         _binding = null
     }
 
+    private var activeReaderMode: ReaderMode? = null
+
     private fun setupReader(mode: ReaderMode) {
+        activeReaderMode = mode
         val currentDir = arguments?.getString(DIR_PATH) ?: ""
         val positionInGrid = viewModel.currentScrolledPosition.takeIf { it >= 0 }
             ?: arguments?.getInt(STARTING_IMAGE_POSITION, -1)?.takeIf { it >= 0 }
@@ -166,9 +198,10 @@ class ReaderTabFragment : Fragment(),
         viewModel.scanForImages(currentDir)
 
         val fragment = when (mode) {
-            ReaderMode.HorizontalSwipe -> HorizontalSwipeReaderFragment.newInstance(
+            ReaderMode.HorizontalSwipe, ReaderMode.TwoPage -> HorizontalSwipeReaderFragment.newInstance(
                 currentDir,
-                positionInGrid
+                positionInGrid,
+                twoPage = mode == ReaderMode.TwoPage
             )
             ReaderMode.VerticalSwipe -> VerticalSwipeReaderFragment.newInstance(
                 currentDir,
@@ -180,7 +213,19 @@ class ReaderTabFragment : Fragment(),
             )
         }
 
-        if (mode == ReaderMode.HorizontalSwipe || mode == ReaderMode.VerticalSwipe) {
+        val twoPage = mode == ReaderMode.TwoPage
+        val imageLayout = binding.imageContainer.layoutParams as CoordinatorLayout.LayoutParams
+        if (twoPage && imageLayout.behavior != null || !twoPage && imageLayout.behavior == null) {
+            binding.imageContainer.updateLayoutParams<CoordinatorLayout.LayoutParams> {
+                behavior = if (twoPage) null else AppBarLayout.ScrollingViewBehavior()
+            }
+        }
+        // In Two-page mode the toolbar floats above the spread instead of resizing it.
+        binding.appBarLayout.translationZ = if (twoPage) 1f else 0f
+        setReaderToolbarVisible(!twoPage)
+        if (twoPage) {
+            toggleBottomSheet(View.GONE)
+        } else if (mode != ReaderMode.VerticalStrip) {
             binding.appBarLayout.setExpanded(true)
         }
 
@@ -200,22 +245,16 @@ class ReaderTabFragment : Fragment(),
             R.color.read_mode_button_inactive
         )
 
-        when (mode) {
-            ReaderMode.HorizontalSwipe -> {
-                binding.btnHorizontalSwipe.background.setTint(activeBtnColor)
-                binding.btnVerticalSwipe.background.setTint(inactiveBtnColor)
-                binding.btnVerticalStrip.background.setTint(inactiveBtnColor)
-            }
-            ReaderMode.VerticalSwipe -> {
-                binding.btnHorizontalSwipe.background.setTint(inactiveBtnColor)
-                binding.btnVerticalSwipe.background.setTint(activeBtnColor)
-                binding.btnVerticalStrip.background.setTint(inactiveBtnColor)
-            }
-            ReaderMode.VerticalStrip -> {
-                binding.btnVerticalStrip.background.setTint(activeBtnColor)
-                binding.btnVerticalSwipe.background.setTint(inactiveBtnColor)
-                binding.btnHorizontalSwipe.background.setTint(inactiveBtnColor)
-            }
+        val buttons = listOf(
+            ReaderMode.HorizontalSwipe to binding.btnHorizontalSwipe,
+            ReaderMode.VerticalSwipe to binding.btnVerticalSwipe,
+            ReaderMode.VerticalStrip to binding.btnVerticalStrip,
+            ReaderMode.TwoPage to binding.btnTwoPage
+        )
+        for ((buttonMode, button) in buttons) {
+            val active = mode == buttonMode
+            button.isSelected = active
+            button.background.setTint(if (active) activeBtnColor else inactiveBtnColor)
         }
     }
 
@@ -257,7 +296,101 @@ class ReaderTabFragment : Fragment(),
         })
     }
 
+    private fun initPageSidebar() {
+        val sidebar = binding.pageSidebar
+        toolbarHeight = binding.toolbar.layoutParams.height.coerceAtLeast(0)
+        sidebar.layoutManager = LinearLayoutManager(requireContext())
+        sidebar.adapter = sidebarAdapter
+        sidebar.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                when (newState) {
+                    RecyclerView.SCROLL_STATE_DRAGGING -> pendingSidebarPage = RecyclerView.NO_POSITION
+                    RecyclerView.SCROLL_STATE_IDLE -> scheduleSidebarFollow()
+                }
+            }
+        })
+        viewModel.imageList().observe(viewLifecycleOwner) { pages ->
+            sidebarAdapter.setList(pages)
+            syncPageSidebar(viewModel.currentScrolledPosition)
+        }
+    }
+
+    private fun syncPageSidebar(page: Int) {
+        sidebarAdapter.selectPage(page)
+        if (!binding.pageSidebar.isVisible || page !in 0 until sidebarAdapter.itemCount) return
+        pendingSidebarPage = page
+        scheduleSidebarFollow()
+    }
+
+    private fun scheduleSidebarFollow() {
+        val sidebar = binding.pageSidebar
+        if (pendingSidebarPage != RecyclerView.NO_POSITION &&
+            sidebar.scrollState == RecyclerView.SCROLL_STATE_IDLE
+        ) {
+            sidebar.removeCallbacks(followSidebarPage)
+            sidebar.postOnAnimation(followSidebarPage)
+        }
+    }
+
+    internal val isPageSidebarOpen: Boolean
+        get() = _binding?.pageSidebar?.isVisible == true
+
+    internal fun sidebarSwipeDirection(rawX: Float, rawY: Float): Int {
+        val views = _binding ?: return 0
+        if (sidebarAdapter.itemCount == 0) return 0
+        val sidebar = views.pageSidebar
+        val rtl = views.root.layoutDirection == View.LAYOUT_DIRECTION_RTL
+        val bounds = Rect()
+        val x = rawX.toInt()
+        val y = rawY.toInt()
+        val onImage = views.imageContainer.getGlobalVisibleRect(bounds) && bounds.contains(x, y)
+        val onSidebar = sidebar.isVisible && sidebar.getGlobalVisibleRect(bounds) && bounds.contains(x, y)
+        if (!onImage && !onSidebar) return 0
+        if (!sidebar.isVisible && activeReaderMode == ReaderMode.TwoPage) {
+            if (!views.root.getGlobalVisibleRect(bounds)) return 0
+            val edgeWidth = bounds.width() / 3
+            val startsAtEdge = if (rtl) x >= bounds.right - edgeWidth else x < bounds.left + edgeWidth
+            if (!startsAtEdge) return 0
+        }
+        return if (sidebar.isVisible == rtl) 1 else -1
+    }
+
+    internal fun togglePageSidebar() {
+        val sidebar = _binding?.pageSidebar ?: return
+        setPageSidebarVisible(!sidebar.isVisible)
+    }
+
+    internal fun dismissPageSidebar(): Boolean {
+        if (!isPageSidebarOpen) return false
+        setPageSidebarVisible(false)
+        return true
+    }
+
+    private fun setPageSidebarVisible(visible: Boolean) {
+        if (visible && sidebarAdapter.itemCount == 0) return
+        val sidebar = binding.pageSidebar
+        if (visible) toggleBottomSheet(View.GONE)
+        TransitionManager.beginDelayedTransition(binding.root, Slide(Gravity.START).apply {
+            addTarget(sidebar)
+        })
+        sidebar.isVisible = visible
+        binding.imageContainer.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            marginStart = if (visible) sidebar.layoutParams.width else 0
+        }
+        if (visible) {
+            val page = viewModel.currentScrolledPosition
+            sidebarAdapter.selectPage(page)
+            if (page in 0 until sidebarAdapter.itemCount) sidebar.scrollToPosition(page)
+        } else {
+            pendingSidebarPage = RecyclerView.NO_POSITION
+            sidebar.removeCallbacks(followSidebarPage)
+            sidebar.stopScroll()
+        }
+        updatePageIndicatorDescription()
+    }
+
     private fun initPageIndicator() {
+        binding.txtCurrentPageNumber.setOnClickListener { togglePageSidebar() }
         binding.bottomSheetOpener.setOnClickListener {
             toggleBottomSheet(View.VISIBLE)
         }
@@ -269,7 +402,15 @@ class ReaderTabFragment : Fragment(),
         binding.toolbarTitle.text = dir.name
     }
 
+    private fun setReaderToolbarVisible(visible: Boolean) {
+        if (binding.appBarLayout.isVisible == visible) return
+        binding.appBarLayout.isVisible = visible
+        if (visible) binding.appBarLayout.setExpanded(true, false)
+        updateToolbarCutoutMargin(viewModel.currentScrolledPosition.coerceAtLeast(0))
+    }
+
     override fun toggleBottomSheet(visibility: Int) {
+        if (visibility == View.VISIBLE) dismissPageSidebar()
         val btmSlide = Slide(Gravity.BOTTOM).apply {
             addTarget(R.id.bottomSheetDialog)
         }
@@ -281,14 +422,23 @@ class ReaderTabFragment : Fragment(),
         TransitionManager.beginDelayedTransition(binding.bottomSheetDialog, btmSlide)
         TransitionManager.beginDelayedTransition(binding.readerModeDialog, rightSlide)
 
+        if (activeReaderMode == ReaderMode.TwoPage) {
+            setReaderToolbarVisible(visibility == View.VISIBLE)
+        }
         binding.bottomSheetDialog.visibility = visibility
         binding.readerModeDialog.visibility = visibility
     }
 
-    override fun onPageChange(pageNum: Int) {
+    override fun onPageChange(pageNum: Int) = onPageSpreadChange(pageNum, pageNum..pageNum)
+
+    override fun onPageSpreadChange(anchor: Int, pages: IntRange) {
+        val pageNum = anchor
         viewModel.currentScrolledPosition = pageNum
         if (pageNum >= 0) updateToolbarCutoutMargin(pageNum)
-        setPageIndicatorNumber(pageNum + 1)
+        val label = if (pages.first == pages.last) "${pageNum + 1}"
+            else "${pages.first + 1}–${pages.last + 1}"
+        setPageIndicatorNumber(label)
+        syncPageSidebar(pageNum)
 
         val bottomLayoutManager = binding.bottomListThumbnails.layoutManager as LinearLayoutManager?
         bottomLayoutManager?.scrollToPosition(pageNum)
@@ -313,11 +463,20 @@ class ReaderTabFragment : Fragment(),
         }
         TransitionManager.beginDelayedTransition(binding.readerModeDialog, rightSlide)
         binding.readerModeDialog.visibility = View.GONE
+        if (activeReaderMode == ReaderMode.TwoPage) setReaderToolbarVisible(false)
     }
 
-    private fun setPageIndicatorNumber(pageNum: Int) {
+    private fun setPageIndicatorNumber(pageNum: String) {
         val pageNumber = "Page: ${pageNum} / ${viewModel.getTotalImagesCount()}"
         binding.txtCurrentPageNumber.text = pageNumber
+        updatePageIndicatorDescription()
+    }
+
+    private fun updatePageIndicatorDescription() {
+        val label = if (binding.pageSidebar.isVisible) R.string.reader_page_sidebar_hide
+            else R.string.reader_page_sidebar_toggle
+        val indicator = binding.txtCurrentPageNumber
+        indicator.contentDescription = getString(label, indicator.text)
     }
 
     companion object {
