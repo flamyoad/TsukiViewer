@@ -13,6 +13,7 @@ import com.flamyoad.tsukiviewer.MyApplication
 import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinPagerAdapter
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
+import com.flamyoad.tsukiviewer.core.utils.openMangaFolder
 import com.flamyoad.tsukiviewer.databinding.ActivityDoujinDetailsBinding
 import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.ui.editor.EditorActivity
@@ -70,6 +71,11 @@ class DoujinDetailsActivity : LockableActivity() {
         when (item.itemId) {
             android.R.id.home -> {
                 handleBackPress()
+            }
+
+            R.id.action_open_manga_folder -> {
+                openMangaFolder(this, intent.getStringExtra(LocalDoujinsAdapter.DOUJIN_FILE_PATH))
+                return true
             }
 
             R.id.action_open_in_browser -> {

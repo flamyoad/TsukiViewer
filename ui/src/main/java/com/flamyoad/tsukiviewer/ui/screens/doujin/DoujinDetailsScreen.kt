@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.Card
@@ -73,6 +74,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -83,11 +85,13 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.preference.PreferenceManager
 import coil.compose.AsyncImage
+import com.flamyoad.tsukiviewer.core.R as CoreR
 import com.flamyoad.tsukiviewer.core.db.AppDatabase
 import com.flamyoad.tsukiviewer.core.repository.BookmarkRepository
 import com.flamyoad.tsukiviewer.core.repository.MetadataRepository
 import com.flamyoad.tsukiviewer.core.repository.RelatedManga
 import com.flamyoad.tsukiviewer.core.repository.RelatedMangaRepository
+import com.flamyoad.tsukiviewer.core.utils.openMangaFolder
 import com.flamyoad.tsukiviewer.ui.screens.doujin.components.BookmarkDialog
 import com.flamyoad.tsukiviewer.ui.screens.doujin.components.TagGroup
 import com.flamyoad.tsukiviewer.ui.theme.ColorPrimaryLight
@@ -116,6 +120,7 @@ fun DoujinDetailsScreen(
 ) {
     val context = LocalContext.current
     val application = context.applicationContext as Application
+    var showMoreActions by remember { mutableStateOf(false) }
     
     // Create repositories and ViewModel
     val db = remember { AppDatabase.getInstance(context) }
@@ -214,6 +219,23 @@ fun DoujinDetailsScreen(
                             imageVector = Icons.Default.Bookmark,
                             contentDescription = "Add to Collection"
                         )
+                    }
+                    Box {
+                        IconButton(onClick = { showMoreActions = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "More actions")
+                        }
+                        DropdownMenu(
+                            expanded = showMoreActions,
+                            onDismissRequest = { showMoreActions = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(CoreR.string.open_manga_folder)) },
+                                onClick = {
+                                    showMoreActions = false
+                                    openMangaFolder(context, doujinPath)
+                                }
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

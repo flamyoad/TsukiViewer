@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="open_manga_folder">Open folder</string>
+    <string name="manga_folder_missing">This manga folder is no longer available</string>
+    <string name="manga_folder_unavailable">No file browser could open this folder</string>
+</resources>
