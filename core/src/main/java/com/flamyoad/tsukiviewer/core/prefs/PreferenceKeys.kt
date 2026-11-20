@@ -9,6 +9,7 @@ object PreferenceKeys {
     const val USE_EXTERNAL_GALLERY = "pref_external_gallery_switch"
     const val EXTERNAL_IMAGE_VIEWER = "pref_external_img_viewer"
     const val EXTERNAL_GALLERY_PKG_NAME = "external_gallery_package_name"
+    const val WIDE_IMAGE_PREVIEWS = "pref_wide_image_previews"
     const val DEFAULT_GRID_VIEW_STYLE = "pref_grid_view_style"
     const val CONFIRM_BEFORE_QUIT = "pref_confirm_before_quit"
     const val DEFAULT_READER_MODE = "pref_reader_mode"

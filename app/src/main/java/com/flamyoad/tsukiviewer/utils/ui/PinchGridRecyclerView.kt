@@ -185,6 +185,7 @@ internal class GridPinchGesture(private val recycler: RecyclerView) {
         val anchor = manager.findViewByPosition(anchorPosition)
         val offset = anchor?.let { manager.getDecoratedTop(it) - recycler.paddingTop }
         manager.spanCount = span
+        manager.spanSizeLookup.invalidateSpanGroupIndexCache()
         if (offset != null) manager.scrollToPositionWithOffset(anchorPosition, offset)
         updateSpacing?.invoke(span)
     }

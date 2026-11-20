@@ -32,8 +32,8 @@ class RoomMigrationTest {
     )
 
     @Test
-    fun migratesVersionFiveToNineWithoutLosingLibraryData() = runBlocking {
-        val name = "migration-5-to-9"
+    fun migratesVersionFiveToTenWithoutLosingLibraryData() = runBlocking {
+        val name = "migration-5-to-10"
         currentSchemas.createDatabase(name, 5).use { db ->
             db.execSQL("INSERT INTO included_path VALUES ('/library')")
             db.execSQL("INSERT INTO doujin_details VALUES (7, 123, 'A Manga', '', 'A Manga', '/library/A Manga', 'A Manga')")
@@ -44,7 +44,7 @@ class RoomMigrationTest {
             db.execSQL("INSERT INTO recent_tabs VALUES (10, 'A Manga', '/library/A Manga', 'cover.png')")
         }
 
-        currentSchemas.runMigrationsAndValidate(name, 9, true, AppDatabase.MIGRATION_5_6, AppDatabase.MIGRATION_6_7, AppDatabase.MIGRATION_7_8, AppDatabase.MIGRATION_8_9).use { db ->
+        currentSchemas.runMigrationsAndValidate(name, 10, true, AppDatabase.MIGRATION_5_6, AppDatabase.MIGRATION_6_7, AppDatabase.MIGRATION_7_8, AppDatabase.MIGRATION_8_9, AppDatabase.MIGRATION_9_10).use { db ->
             for ((table, expected) in mapOf(
                 "included_path" to 1, "doujin_details" to 1, "tags" to 1, "doujin_tags" to 1,
                 "bookmark_group" to 1, "bookmark_item" to 1, "recent_tabs" to 1, "cover_fingerprints" to 0,
@@ -58,7 +58,7 @@ class RoomMigrationTest {
         }
 
         fun open() = Room.databaseBuilder(instrumentation.targetContext, AppDatabase::class.java, name)
-            .addMigrations(AppDatabase.MIGRATION_5_6, AppDatabase.MIGRATION_6_7, AppDatabase.MIGRATION_7_8, AppDatabase.MIGRATION_8_9)
+            .addMigrations(AppDatabase.MIGRATION_5_6, AppDatabase.MIGRATION_6_7, AppDatabase.MIGRATION_7_8, AppDatabase.MIGRATION_8_9, AppDatabase.MIGRATION_9_10)
             .build()
 
         val entry = CoverFingerprintEntry("/library/Untagged", "/library/Untagged/1.png", 1, 50, 1, 12, -31)
@@ -86,7 +86,7 @@ class RoomMigrationTest {
         }
         currentSchemas.runMigrationsAndValidate(name, 8, true, AppDatabase.MIGRATION_6_7, AppDatabase.MIGRATION_7_8).close()
         Room.databaseBuilder(instrumentation.targetContext, AppDatabase::class.java, name)
-            .addMigrations(AppDatabase.MIGRATION_6_7, AppDatabase.MIGRATION_7_8, AppDatabase.MIGRATION_8_9).build().useDatabase { db ->
+            .addMigrations(AppDatabase.MIGRATION_6_7, AppDatabase.MIGRATION_7_8, AppDatabase.MIGRATION_8_9, AppDatabase.MIGRATION_9_10).build().useDatabase { db ->
                 val fingerprint = db.coverFingerprintDao().getAll().single()
                 assertEquals(12L, fingerprint.horizontalHash)
                 assertEquals(null, fingerprint.paletteHash)
@@ -116,7 +116,7 @@ class RoomMigrationTest {
         }
         currentSchemas.runMigrationsAndValidate(name, 9, true, AppDatabase.MIGRATION_8_9).close()
         Room.databaseBuilder(instrumentation.targetContext, AppDatabase::class.java, name)
-            .addMigrations(AppDatabase.MIGRATION_8_9)
+            .addMigrations(AppDatabase.MIGRATION_8_9, AppDatabase.MIGRATION_9_10)
             .build()
             .useDatabase { db ->
                 val dao = db.recentTabDao()

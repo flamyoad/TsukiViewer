@@ -2,6 +2,7 @@ package com.flamyoad.tsukiviewer.utils.ui
 
 import android.graphics.Rect
 import android.view.View
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ItemDecoration
 
@@ -17,27 +18,27 @@ class GridItemDecoration(
         parent: RecyclerView,
         state: RecyclerView.State) {
 
-        val position = parent.getChildAdapterPosition(view) // item position
-        val column = position % spanCount // item column
+        outRect.set(0, 0, 0, 0)
+        val position = parent.getChildAdapterPosition(view)
+        if (position == RecyclerView.NO_POSITION) return
+
+        val params = view.layoutParams as? GridLayoutManager.LayoutParams
+        val manager = parent.layoutManager as? GridLayoutManager
+        val column = params?.spanIndex ?: (position % spanCount)
+        val endColumn = column + (params?.spanSize ?: 1)
+        val firstRow = position < spanCount && (manager?.spanSizeLookup?.getSpanGroupIndex(position, spanCount)
+            ?: (position / spanCount)) == 0
+        val startOffset = column * spacing / spanCount
+        val endOffset = endColumn * spacing / spanCount
         if (includeEdge) {
-            outRect.left =
-                spacing - column * spacing / spanCount // spacing - column * ((1f / spanCount) * spacing)
-            outRect.right =
-                (column + 1) * spacing / spanCount // (column + 1) * ((1f / spanCount) * spacing)
-            if (position < spanCount) { // top edge
-                outRect.top = spacing
-            }
-            outRect.bottom = spacing // item bottom
+            outRect.left = spacing - startOffset
+            outRect.right = endOffset
+            if (firstRow) outRect.top = spacing
+            outRect.bottom = spacing
         } else {
-            outRect.left = column * spacing / spanCount // column * ((1f / spanCount) * spacing)
-            outRect.right = (spacing
-                    - (column + 1)
-                    * spacing
-                    / spanCount) // spacing - (column + 1) * ((1f /    spanCount) * spacing)
-            if (position >= spanCount) {
-                outRect.top = spacing // item top
-            }
+            outRect.left = startOffset
+            outRect.right = spacing - endOffset
+            if (!firstRow) outRect.top = spacing
         }
     }
-
 }

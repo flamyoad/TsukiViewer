@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -48,6 +49,7 @@ import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.ViewList
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -74,6 +76,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.zIndex
@@ -100,14 +103,19 @@ import com.flamyoad.tsukiviewer.core.R as CoreR
 import com.flamyoad.tsukiviewer.core.db.AppDatabase
 import com.flamyoad.tsukiviewer.core.repository.BookmarkRepository
 import com.flamyoad.tsukiviewer.core.repository.RelatedManga
+import com.flamyoad.tsukiviewer.core.repository.RELATED_MANGA_PAGE_SIZE
 import com.flamyoad.tsukiviewer.core.repository.RelatedMangaRepository
+import com.flamyoad.tsukiviewer.core.utils.findWideImagePaths
 import com.flamyoad.tsukiviewer.core.utils.openMangaFolder
+import com.flamyoad.tsukiviewer.core.utils.widePreviewSpan
 import com.flamyoad.tsukiviewer.ui.screens.doujin.components.BookmarkDialog
 import com.flamyoad.tsukiviewer.ui.screens.doujin.components.TagGroup
 import com.flamyoad.tsukiviewer.ui.theme.SubLightTextColor
 import com.flamyoad.tsukiviewer.ui.theme.TextWhite
 import com.flamyoad.tsukiviewer.ui.theme.TsukiViewerTheme
 import com.flamyoad.tsukiviewer.ui.theme.WineRed
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
@@ -161,8 +169,11 @@ fun DoujinDetailsScreen(
     
     val tabs = DoujinTab.entries
     val lifecycle = LocalLifecycleOwner.current.lifecycle
-    val relatedRepository = remember(db) { RelatedMangaRepository(db) }
+    val relatedRepository = remember(db) { RelatedMangaRepository(db, application) }
     val preferences = remember(application) { PreferenceManager.getDefaultSharedPreferences(application) }
+    var widePreviews by remember(preferences) {
+        mutableStateOf(preferences.getBoolean(PreferenceKeys.WIDE_IMAGE_PREVIEWS, false))
+    }
     val pagerState = rememberPagerState(
         initialPage = if (preferences.getString(PreferenceKeys.DOUJIN_DETAILS_LANDING_SCR, null) == "ImageGrid") 1 else 0,
         pageCount = { tabs.size }
@@ -171,7 +182,14 @@ fun DoujinDetailsScreen(
     LaunchedEffect(lifecycle, doujinPath) {
         lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
             viewModel.refreshMetadata(doujinPath)
-            relatedRepository.observe(File(doujinPath), preferences).collect { relatedManga = it }
+            val requestedCount = MutableStateFlow(RELATED_MANGA_PAGE_SIZE)
+            snapshotFlow { pagerState.currentPage }.collectLatest { page ->
+                if (page == DoujinTab.Details.ordinal) {
+                    relatedRepository.observePages(File(doujinPath), preferences, requestedCount).collect {
+                        relatedManga = it?.matches.orEmpty().take(RELATED_MANGA_PAGE_SIZE)
+                    }
+                }
+            }
         }
     }
     
@@ -262,6 +280,21 @@ fun DoujinDetailsScreen(
                                         viewModel.setGridViewStyle(style)
                                         showGridStyles = false
                                     })
+                                }
+                                if (uiState.gridViewStyle == GridViewStyle.Grid ||
+                                    uiState.gridViewStyle == GridViewStyle.Scaled
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(CoreR.string.wide_image_previews)) },
+                                        leadingIcon = { Checkbox(checked = widePreviews, onCheckedChange = null) },
+                                        onClick = {
+                                            widePreviews = !widePreviews
+                                            preferences.edit()
+                                                .putBoolean(PreferenceKeys.WIDE_IMAGE_PREVIEWS, widePreviews)
+                                                .apply()
+                                            showGridStyles = false
+                                        }
+                                    )
                                 }
                             }
                         }
@@ -377,6 +410,7 @@ fun DoujinDetailsScreen(
                         )
                         DoujinTab.Images -> DoujinImagesContent(
                             uiState = uiState,
+                            widePreviews = widePreviews,
                             onImageClick = { openPage(it, fromGrid = true) },
                             modifier = Modifier.fillMaxSize()
                         )
@@ -499,13 +533,14 @@ private fun DetailsSectionHeader(title: String) {
 @Composable
 private fun DoujinImagesContent(
     uiState: DoujinDetailsUiState,
+    widePreviews: Boolean,
     onImageClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     when (uiState.gridViewStyle) {
-        GridViewStyle.Grid -> ImageGrid(uiState.imageList, if (landscape) 5 else 3, 1f, onImageClick, modifier)
-        GridViewStyle.Scaled -> ImageGrid(uiState.imageList, if (landscape) 3 else 2, 1f / 1.6f, onImageClick, modifier)
+        GridViewStyle.Grid -> ImageGrid(uiState.imageList, if (landscape) 5 else 3, 1f, widePreviews, onImageClick, modifier)
+        GridViewStyle.Scaled -> ImageGrid(uiState.imageList, if (landscape) 3 else 2, 1f / 1.6f, widePreviews, onImageClick, modifier)
         GridViewStyle.Row -> ImageList(uiState.imageList, onImageClick, modifier, showFileInfo = false)
         GridViewStyle.List -> ImageList(uiState.imageList, onImageClick, modifier, showFileInfo = true)
     }
@@ -524,10 +559,14 @@ private fun ImageGrid(
     images: List<Uri>,
     columns: Int,
     aspectRatio: Float,
+    widePreviews: Boolean,
     onImageClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val state = rememberLazyGridState()
+    val widePaths by produceState(emptySet<String>(), images, widePreviews) {
+        value = if (widePreviews) findWideImagePaths(images.mapNotNull(Uri::getPath)) else emptySet()
+    }
     val targetPage = returningThumbnailPage()
     LaunchedEffect(targetPage, images.size) {
         if (targetPage != null && targetPage in images.indices &&
@@ -539,12 +578,16 @@ private fun ImageGrid(
         columns = GridCells.Fixed(columns),
         modifier = modifier.fillMaxSize()
     ) {
-        itemsIndexed(images) { index, uri ->
+        itemsIndexed(
+            images,
+            span = { _, uri -> GridItemSpan(widePreviewSpan(columns, widePreviews && uri.path in widePaths)) }
+        ) { index, uri ->
+            val wide = widePreviews && uri.path in widePaths
             AsyncImage(
                 model = uri,
                 contentDescription = "Page ${index + 1}",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxWidth().aspectRatio(aspectRatio)
+                contentScale = if (wide) ContentScale.Fit else ContentScale.Crop,
+                modifier = Modifier.fillMaxWidth().aspectRatio(aspectRatio * widePreviewSpan(columns, wide))
                     .clickable { onImageClick(index) }
                     .readerPageTransition(index, thumbnail = true)
             )

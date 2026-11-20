@@ -78,12 +78,12 @@ class DoujinViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val relatedMangaPages = relatedMangaPath.filterNotNull()
         .flatMapLatest { directory ->
-            val repository = RelatedMangaRepository(AppDatabase.getInstance(application))
+            val repository = RelatedMangaRepository(AppDatabase.getInstance(application), application)
             val preferences = PreferenceManager.getDefaultSharedPreferences(application)
             repository.observePages(directory, preferences, relatedMangaCount)
         }
         .combine(relatedMangaCount) { results, count -> results to count }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null to RELATED_MANGA_PAGE_SIZE)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null to RELATED_MANGA_PAGE_SIZE)
 
     fun showMoreRelatedManga() {
         relatedMangaCount.value += RELATED_MANGA_PAGE_SIZE

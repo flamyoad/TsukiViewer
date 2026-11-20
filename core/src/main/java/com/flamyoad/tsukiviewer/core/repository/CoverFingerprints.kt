@@ -1,7 +1,9 @@
 package com.flamyoad.tsukiviewer.core.repository
 
+import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.os.Build
 import com.flamyoad.tsukiviewer.core.db.dao.CoverFingerprintDao
 import com.flamyoad.tsukiviewer.core.model.CoverFingerprintEntry
 import kotlinx.coroutines.currentCoroutineContext
@@ -13,7 +15,7 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 private const val GRID_SIZE = 9
-private const val MAX_DECODE_SIZE = 128
+private const val MAX_DECODE_SIZE = CHARACTER_INPUT_SIZE
 private const val MAX_MATCH_DISTANCE = 12
 
 internal data class CoverFingerprint(val horizontal: Long, val vertical: Long, val palette: Long? = null) {
@@ -80,17 +82,48 @@ internal fun coverPalette(pixels: IntArray): Long {
     return signature
 }
 
-internal class CoverFingerprints(private val dao: CoverFingerprintDao) {
-    suspend fun findDistances(
+internal data class CoverMatch(val reason: RelatedMangaReason, val distance: Double)
+
+internal fun matchCover(
+    artworkDistance: Int?,
+    sourceCharacter: ByteArray?,
+    candidateCharacter: ByteArray?
+): CoverMatch? {
+    if (artworkDistance != null && artworkDistance <= MAX_MATCH_DISTANCE) {
+        return CoverMatch(RelatedMangaReason.SIMILAR_COVER, artworkDistance.toDouble())
+    }
+    val visualDistance = if (sourceCharacter != null && candidateCharacter != null) {
+        characterDistance(sourceCharacter, candidateCharacter)
+    } else null
+    if (visualDistance != null) {
+        return if (visualDistance <= MAX_CHARACTER_DISTANCE) {
+            CoverMatch(RelatedMangaReason.SIMILAR_CHARACTER_ART, visualDistance)
+        } else null
+    }
+    return artworkDistance?.let { CoverMatch(RelatedMangaReason.SIMILAR_COVER, it.toDouble()) }
+}
+
+private data class CoverSignature(val artwork: CoverFingerprint?, val character: ByteArray?) {
+    fun match(other: CoverSignature): CoverMatch? =
+        matchCover(artwork?.let { other.artwork?.distanceTo(it) }, character, other.character)
+}
+
+internal class CoverFingerprints(
+    private val dao: CoverFingerprintDao,
+    private val assets: AssetManager
+) {
+    suspend fun findMatches(
         source: File,
         sourceCover: File,
-        candidates: List<RelatedMangaCandidate>
-    ): Map<File, Int> = refreshLock.withLock {
+        candidates: List<RelatedMangaCandidate>,
+        onProgress: suspend (Map<File, CoverMatch>) -> Unit
+    ): Map<File, CoverMatch> = refreshLock.withLock {
         val saved = dao.getAll().associateBy { it.directoryPath }
         val updates = mutableListOf<CoverFingerprintEntry>()
         val context = currentCoroutineContext()
+        val model = lazy { CharacterCoverModel.open(assets) }
 
-        fun fingerprint(directory: File, cover: File): CoverFingerprint? {
+        fun fingerprint(directory: File, cover: File): CoverSignature? {
             context.ensureActive()
             val modified = cover.lastModified()
             val length = cover.length()
@@ -100,41 +133,61 @@ internal class CoverFingerprints(private val dao: CoverFingerprintDao) {
                 entry.lastModified == modified && entry.byteCount == length &&
                 entry.algorithmVersion == ALGORITHM_VERSION
             ) {
-                return if (entry.horizontalHash != null && entry.verticalHash != null) {
+                val artwork = if (entry.horizontalHash != null && entry.verticalHash != null) {
                     CoverFingerprint(entry.horizontalHash, entry.verticalHash, entry.paletteHash)
                 } else null
+                return CoverSignature(artwork, entry.characterFingerprint)
             }
 
-            val result = decode(cover)
+            val result = decode(cover) { model.value?.fingerprint(it) }
             if (cover.lastModified() != modified || cover.length() != length) return null
             updates.add(
                 CoverFingerprintEntry(
                     directory.path, cover.path, modified, length, ALGORITHM_VERSION,
-                    result?.horizontal, result?.vertical, result?.palette
+                    result?.artwork?.horizontal, result?.artwork?.vertical, result?.artwork?.palette,
+                    result?.character
                 )
             )
             return result
         }
 
-        val sourceFingerprint = fingerprint(source, sourceCover)
-        val distances = if (sourceFingerprint == null) emptyMap() else buildMap {
-            for (candidate in candidates) {
-                val fingerprint = fingerprint(candidate.directory, candidate.cover) ?: continue
-                val distance = sourceFingerprint.distanceTo(fingerprint) ?: continue
-                put(candidate.cover, distance)
+        try {
+            val matches = mutableMapOf<File, CoverMatch>()
+            val sourceFingerprint = fingerprint(source, sourceCover)
+            if (sourceFingerprint != null && (sourceFingerprint.artwork != null || sourceFingerprint.character != null)) {
+                var publishedCount = 0
+                val (indexed, remaining) = candidates.partition {
+                    saved[it.directory.path]?.algorithmVersion == ALGORITHM_VERSION
+                }
+                for (candidate in indexed + remaining) {
+                    fingerprint(candidate.directory, candidate.cover)?.let { fingerprint ->
+                        sourceFingerprint.match(fingerprint)?.let { matches[candidate.cover] = it }
+                    }
+                    if (updates.size >= BATCH_SIZE) {
+                        dao.upsert(updates)
+                        updates.clear()
+                        if (matches.size > publishedCount) {
+                            onProgress(matches)
+                            publishedCount = matches.size
+                        }
+                    }
+                }
             }
+            context.ensureActive()
+            if (updates.isNotEmpty()) dao.upsert(updates)
+            matches
+        } finally {
+            if (model.isInitialized()) model.value?.close()
         }
-        context.ensureActive()
-        if (updates.isNotEmpty()) dao.upsert(updates)
-        distances
     }
 
     private companion object {
-        const val ALGORITHM_VERSION = 2
+        const val ALGORITHM_VERSION = 3
+        const val BATCH_SIZE = 8
         val refreshLock = Mutex()
     }
 
-    private fun decode(cover: File): CoverFingerprint? {
+    private fun decode(cover: File, embedCharacter: (Bitmap) -> ByteArray?): CoverSignature? {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeFile(cover.path, bounds)
         if (bounds.outWidth < GRID_SIZE || bounds.outHeight < GRID_SIZE) return null
@@ -156,7 +209,13 @@ internal class CoverFingerprints(private val dao: CoverFingerprintDao) {
                 val blue = pixel and 0xff
                 (299 * red + 587 * green + 114 * blue) / 1000
             }
-            fingerprintCover(luminance)?.copy(palette = coverPalette(pixels))
+            val artwork = fingerprintCover(luminance)?.copy(palette = coverPalette(pixels))
+            // Flat placeholders and simple geometric covers are outside the embedding model's domain.
+            val tonalBuckets = luminance.fold(0) { seen, tone -> seen or (1 shl (tone / 16)) }
+            val character = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && Integer.bitCount(tonalBuckets) >= 5) {
+                embedCharacter(bitmap)
+            } else null
+            CoverSignature(artwork, character)
         } finally {
             if (thumbnail !== bitmap) thumbnail.recycle()
             bitmap.recycle()

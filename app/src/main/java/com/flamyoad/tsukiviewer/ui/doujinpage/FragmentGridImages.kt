@@ -13,6 +13,7 @@ import androidx.core.view.OneShotPreDrawListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.flamyoad.tsukiviewer.MyAppPreference
 import com.flamyoad.tsukiviewer.MyAppPreference.XmlGrid
@@ -21,10 +22,16 @@ import com.flamyoad.tsukiviewer.R
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter
 import com.flamyoad.tsukiviewer.adapter.DoujinImagesAdapter.ItemType
 import com.flamyoad.tsukiviewer.adapter.LocalDoujinsAdapter
+import com.flamyoad.tsukiviewer.core.prefs.PreferenceKeys
+import com.flamyoad.tsukiviewer.core.utils.findWideImagePaths
+import com.flamyoad.tsukiviewer.core.utils.widePreviewSpan
 import com.flamyoad.tsukiviewer.databinding.FragmentGridImagesBinding
 import com.flamyoad.tsukiviewer.di.ViewModelFactory
 import com.flamyoad.tsukiviewer.ui.reader.ReaderActivity
 import com.flamyoad.tsukiviewer.utils.ui.GridPinchGesture
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 
 const val GRID_ITEM_SPAN_PORTRAIT = 3
@@ -49,6 +56,14 @@ class FragmentGridImages : Fragment() {
     private val viewModel: DoujinViewModel by activityViewModels { viewModelFactory }
 
     private var adapter: DoujinImagesAdapter? = null
+    private var wideImageScan: Job? = null
+    private var isGridStyle = false
+
+    private var widePreviewsEnabled: Boolean
+        get() = MyAppPreference.getInstance(requireContext()).prefs
+            .getBoolean(PreferenceKeys.WIDE_IMAGE_PREVIEWS, false)
+        set(enabled) = MyAppPreference.getInstance(requireContext())
+            .put(PreferenceKeys.WIDE_IMAGE_PREVIEWS, enabled)
 
     private lateinit var gridLayoutManager: GridLayoutManager
 
@@ -74,6 +89,7 @@ class FragmentGridImages : Fragment() {
         super.onDestroyView()
         _binding = null
         adapter = null
+        isGridStyle = false
     }
 
     override fun onResume() {
@@ -103,12 +119,26 @@ class FragmentGridImages : Fragment() {
         inflater.inflate(R.menu.menu_doujin_detail_imagegrid, menu)
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        super.onPrepareOptionsMenu(menu)
+        menu.findItem(R.id.action_wide_image_previews)?.apply {
+            isVisible = isGridStyle
+            isChecked = widePreviewsEnabled
+        }
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.action_wide_image_previews -> {
+                widePreviewsEnabled = !widePreviewsEnabled
+                item.isChecked = widePreviewsEnabled
+                refreshWidePreviews(viewModel.imageList().value.orEmpty())
+            }
             R.id.action_view_normal_grid -> {
                 val fragment = DialogViewStyle.newInstance()
                 fragment.show(childFragmentManager, DIALOG_VIEW_STYLE)
             }
+            else -> return super.onOptionsItemSelected(item)
         }
         return true
     }
@@ -116,7 +146,10 @@ class FragmentGridImages : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         setHasOptionsMenu(true)
-        viewModel.imageList().observe(viewLifecycleOwner, Observer { adapter?.setList(it) })
+        viewModel.imageList().observe(viewLifecycleOwner, Observer { images ->
+            adapter?.setList(images)
+            refreshWidePreviews(images)
+        })
 
         viewModel.directoryNoLongerExists().observe(viewLifecycleOwner, Observer { notExists ->
             if (notExists) {
@@ -176,6 +209,7 @@ class FragmentGridImages : Fragment() {
         val landscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         val maxSpan = GridPinchGesture.maxSpanCount(landscape)
         val canResize = type == ItemType.Grid || type == ItemType.Scaled
+        isGridStyle = canResize
         val preference = MyAppPreference.getInstance(requireContext())
         val span = if (canResize) {
             preference.getXmlGridSpan(XmlGrid.IMAGES, type, landscape, defaultSpan)
@@ -184,23 +218,49 @@ class FragmentGridImages : Fragment() {
             defaultSpan
         }
 
-        adapter = DoujinImagesAdapter(type, dirPath) { intent ->
+        val imageAdapter = DoujinImagesAdapter(type, dirPath) { intent ->
             ReaderActivity.setTransitionSource(returnTarget)
             val noAnimation = R.anim.reader_no_window_animation
             val options = ActivityOptions.makeCustomAnimation(requireContext(), noAnimation, noAnimation)
             startActivityForResult(intent, IMAGE_POSITION_REQUEST_CODE, options.toBundle())
         }
 
-        adapter?.setHasStableIds(true)
-        viewModel.imageList().value?.let { adapter?.setList(it) }
+        adapter = imageAdapter
+        imageAdapter.setHasStableIds(true)
+        val images = viewModel.imageList().value.orEmpty()
+        imageAdapter.setList(images)
 
         gridLayoutManager = GridLayoutManager(context, span)
-        recycler.adapter = adapter
+        if (canResize) {
+            gridLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+                override fun getSpanSize(position: Int): Int =
+                    widePreviewSpan(gridLayoutManager.spanCount, imageAdapter.isWide(position))
+            }.apply {
+                setSpanIndexCacheEnabled(true)
+                setSpanGroupIndexCacheEnabled(true)
+            }
+        }
+        recycler.adapter = imageAdapter
         recycler.layoutManager = gridLayoutManager
         recycler.gridPinch.configure(maxSpan, spacing = 4, includeEdge = false, enabled = canResize) {
             preference.setXmlGridSpan(XmlGrid.IMAGES, type, landscape, it)
         }
         if (currentPosition >= 0) gridLayoutManager.scrollToPosition(currentPosition)
+        requireActivity().invalidateOptionsMenu()
+        refreshWidePreviews(images)
+    }
+
+    private fun refreshWidePreviews(images: List<File>) {
+        wideImageScan?.cancel()
+        val imageAdapter = adapter ?: return
+        if (!isGridStyle || !widePreviewsEnabled || images.isEmpty()) {
+            imageAdapter.setWideImagePaths(emptySet())
+            return
+        }
+        wideImageScan = viewLifecycleOwner.lifecycleScope.launch {
+            val paths = findWideImagePaths(images.map { it.path })
+            imageAdapter.setWideImagePaths(paths)
+        }
     }
 
     private fun prepareReturnThumbnail(position: Int, onReady: (ImageView?) -> Unit) {

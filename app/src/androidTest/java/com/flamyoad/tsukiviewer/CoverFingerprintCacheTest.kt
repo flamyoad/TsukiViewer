@@ -50,7 +50,7 @@ class CoverFingerprintCacheTest {
         try {
             val original = open().useDatabase { db ->
                 db.includedFolderDao().insert(IncludedPath(library))
-                val recommendations = RelatedMangaRepository(db).observe(source, prefs)
+                val recommendations = RelatedMangaRepository(db, context).observe(source, prefs)
                 check(prefs.edit().putBoolean(PreferenceKeys.SHOW_RELATED_MANGA, false).commit())
                 assertTrue(recommendations.first().isEmpty())
                 assertTrue(db.coverFingerprintDao().getAll().isEmpty())
@@ -59,12 +59,12 @@ class CoverFingerprintCacheTest {
                 assertEquals(RelatedMangaReason.SIMILAR_COVER, recommendations.first().single().reason)
                 db.coverFingerprintDao().getAll().single { it.directoryPath == target.path }.also {
                     assertTrue(it.paletteHash != null)
-                    assertEquals(2, it.algorithmVersion)
+                    assertEquals(3, it.algorithmVersion)
                 }
             }
 
             open().useDatabase { db ->
-                val recommendations = RelatedMangaRepository(db).observe(source, prefs)
+                val recommendations = RelatedMangaRepository(db, context).observe(source, prefs)
                 assertEquals(target, recommendations.first().single().directory)
                 assertEquals(original, db.coverFingerprintDao().getAll().single { it.directoryPath == target.path })
 
@@ -116,7 +116,7 @@ class CoverFingerprintCacheTest {
                     .build().useDatabase { db ->
                     db.includedFolderDao().insert(IncludedPath(library))
                     val requested = MutableStateFlow(RELATED_MANGA_PAGE_SIZE)
-                    val results = RelatedMangaRepository(db).observePages(source, prefs, requested)
+                    val results = RelatedMangaRepository(db, context).observePages(source, prefs, requested)
 
                     check(prefs.edit().putBoolean(PreferenceKeys.SHOW_RELATED_MANGA, false).commit())
                     queries.clear()
@@ -191,21 +191,21 @@ class CoverFingerprintCacheTest {
             try {
                 open().useDatabase { db ->
                     db.includedFolderDao().insert(IncludedPath(library))
-                    val result = RelatedMangaRepository(db).observePages(source, prefs, requested)
+                    val result = RelatedMangaRepository(db, context).observePages(source, prefs, requested)
                         .first { it?.searching == false }
                     assertEquals(candidate, result?.matches?.single()?.directory)
                     val saved = requireNotNull(db.relatedMangaCacheDao().find(source.path))
                     db.relatedMangaCacheDao().upsert(saved.copy(directoryPath = "/expired", savedAt = 1))
                 }
                 open().useDatabase { db ->
-                    val first = RelatedMangaRepository(db).observePages(source, prefs, requested).first()
+                    val first = RelatedMangaRepository(db, context).observePages(source, prefs, requested).first()
                     assertTrue(first?.searching == false)
                     assertEquals(candidate, first?.matches?.single()?.directory)
                     assertNull(db.relatedMangaCacheDao().find("/expired"))
                 }
                 check(cover.delete())
                 open().useDatabase { db ->
-                    val states = RelatedMangaRepository(db).observePages(source, prefs, requested).take(2).toList()
+                    val states = RelatedMangaRepository(db, context).observePages(source, prefs, requested).take(2).toList()
                     assertTrue(states.first()?.searching == true)
                     assertTrue(states.last()?.matches.orEmpty().isEmpty())
                     val saved = requireNotNull(db.relatedMangaCacheDao().find(source.path))
