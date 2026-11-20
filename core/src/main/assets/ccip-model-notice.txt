@@ -1,0 +1,12 @@
+CCIP (Contrastive Anime Character Image Pre-Training)
+By Ziyi Dong and narugo1992, published by DeepGHS
+Model: ccip-caformer-24-randaug-pruned
+Publisher's license designation: OpenRAIL
+Source and terms: https://huggingface.co/deepghs/ccip_onnx
+Original revision: 4236450
+Original model_feat.onnx SHA-256:
+4ea118d16496274f4f6e08d3afc768cc592389e8f7f32f8732ce2215c228ac5f
+
+The bundled model has been adapted to a 160-pixel input and has quantized weights.
+Bundled ccip-caformer-160-int4.onnx SHA-256:
+dd4ca7cf5111201e2c8224be32bedd6762f81ad12c80d8277857ba9b78ff2d15

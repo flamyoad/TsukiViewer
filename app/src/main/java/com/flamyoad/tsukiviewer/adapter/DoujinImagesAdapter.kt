@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.flamyoad.tsukiviewer.R
+import com.flamyoad.tsukiviewer.ui.doujinpage.PageThumbnailTile
 import com.flamyoad.tsukiviewer.ui.reader.ReaderActivity
 import com.flamyoad.tsukiviewer.ui.settings.preferences.MainPreferences
 import com.flamyoad.tsukiviewer.utils.TimeUtils
@@ -37,6 +38,15 @@ class DoujinImagesAdapter(
     }
 
     private var imageList: List<File> = emptyList()
+    private var wideImagePaths: Set<String> = emptySet()
+
+    fun isWide(position: Int): Boolean = imageList.getOrNull(position)?.path in wideImagePaths
+
+    fun setWideImagePaths(paths: Set<String>) {
+        if (wideImagePaths == paths) return
+        wideImagePaths = paths
+        notifyDataSetChanged()
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
@@ -47,6 +57,8 @@ class DoujinImagesAdapter(
             ItemType.Row -> layoutInflater.inflate(R.layout.image_row_item, parent, false)
             ItemType.List -> layoutInflater.inflate(R.layout.image_list_item, parent, false)
         }
+
+        if (itemType == ItemType.Scaled) (layout as PageThumbnailTile).heightPerColumnWidth = 1.6f
 
         val holder = when (itemType) {
             ItemType.List -> DetailedImageViewHolder(layout)
@@ -83,7 +95,7 @@ class DoujinImagesAdapter(
         val image = imageList[position]
         when (itemType) {
             ItemType.List -> (holder as DetailedImageViewHolder).bind(image)
-            else -> (holder as ImageViewHolder).bind(image)
+            else -> (holder as ImageViewHolder).bind(image, isWide(position))
         }
     }
 
@@ -134,7 +146,10 @@ class DoujinImagesAdapter(
     inner class ImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val imageView: ImageView = itemView.findViewById(R.id.imageView)
 
-        fun bind(file: File) {
+        fun bind(file: File, wide: Boolean) {
+            if (itemView is PageThumbnailTile) {
+                imageView.scaleType = if (wide) ImageView.ScaleType.FIT_CENTER else ImageView.ScaleType.CENTER_CROP
+            }
             imageView.transitionName = ReaderActivity.pageTransitionName(file)
             Glide.with(itemView.context)
                 .load(file.toUri())

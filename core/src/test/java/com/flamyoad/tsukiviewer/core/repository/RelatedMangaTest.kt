@@ -36,7 +36,8 @@ class RelatedMangaTest {
 
         assertEquals(
             RelatedMangaReason.entries.filterNot {
-                it == RelatedMangaReason.SIMILAR_COVER || it == RelatedMangaReason.SHARED_FOLDER_TAG
+                it == RelatedMangaReason.SIMILAR_COVER || it == RelatedMangaReason.SIMILAR_CHARACTER_ART ||
+                    it == RelatedMangaReason.SHARED_FOLDER_TAG
             },
             rankRelatedManga(File("The Silent Library"), source, candidates).map { it.reason }
         )
@@ -104,7 +105,7 @@ class RelatedMangaTest {
         val unrelated = candidate("Unrelated Story")
         val matches = rankRelatedManga(
             File("Sample Manga 13"), null, listOf(unrelated, similarCover, similarTitle)
-        ) { mapOf(similarCover.cover to 4) }
+        ) { mapOf(similarCover.cover to CoverMatch(RelatedMangaReason.SIMILAR_COVER, 4.0)) }
 
         assertEquals(
             listOf(RelatedMangaReason.SIMILAR_TITLE, RelatedMangaReason.SIMILAR_COVER),
@@ -119,12 +120,15 @@ class RelatedMangaTest {
         val imageAndFolderMatch = candidate("[Moon Library] Hidden Station")
         val imageMatch = candidate("Marble Orchard")
         val matches = rankRelatedManga(source, null, listOf(folderMatch, imageAndFolderMatch, imageMatch)) {
-            mapOf(imageMatch.cover to 0, imageAndFolderMatch.cover to 3)
+            mapOf(
+                imageMatch.cover to CoverMatch(RelatedMangaReason.SIMILAR_COVER, 0.0),
+                imageAndFolderMatch.cover to CoverMatch(RelatedMangaReason.SIMILAR_CHARACTER_ART, 0.08)
+            )
         }
 
         assertEquals(listOf(imageMatch.directory, imageAndFolderMatch.directory, folderMatch.directory),
             matches.map { it.directory })
-        assertEquals(listOf(RelatedMangaReason.SIMILAR_COVER, RelatedMangaReason.SIMILAR_COVER,
+        assertEquals(listOf(RelatedMangaReason.SIMILAR_COVER, RelatedMangaReason.SIMILAR_CHARACTER_ART,
             RelatedMangaReason.SHARED_FOLDER_TAG), matches.map { it.reason })
     }
 
@@ -152,6 +156,22 @@ class RelatedMangaTest {
         assertTrue(requireNotNull(source.distanceTo(rearranged)) > requireNotNull(source.distanceTo(source)))
         assertEquals(null, source.distanceTo(rearranged.copy(palette = unrelated)))
         assertEquals(null, source.distanceTo(source.copy(palette = unrelated)))
+    }
+
+    @Test
+    fun characterFingerprintCanMatchDifferentArtAndVetoPaletteOnlyMatches() {
+        val source = requireNotNull(quantizeCharacterFingerprint(FloatArray(768) { if (it == 0) 1f else 0f }))
+        val similar = requireNotNull(quantizeCharacterFingerprint(FloatArray(768) {
+            when (it) {
+                0 -> 2f
+                1 -> 1f
+                else -> 0f
+            }
+        }))
+        val different = requireNotNull(quantizeCharacterFingerprint(FloatArray(768) { if (it == 1) 1f else 0f }))
+        assertEquals(RelatedMangaReason.SIMILAR_CHARACTER_ART, matchCover(null, source, similar)?.reason)
+        assertEquals(null, matchCover(24, source, different))
+        assertEquals(RelatedMangaReason.SIMILAR_COVER, matchCover(2, source, different)?.reason)
     }
 
     @Test

@@ -9,7 +9,7 @@ import java.io.File
 import java.security.MessageDigest
 
 internal const val SAVED_RELATED_MANGA_TTL_MS = 24 * 60 * 60 * 1000L
-private const val RANKING_VERSION = 3
+private const val RANKING_VERSION = 4
 
 internal fun relatedLibraryKey(roots: List<File>, metadata: Collection<DoujinDetailsWithTags>): String {
     val digest = MessageDigest.getInstance("SHA-256")

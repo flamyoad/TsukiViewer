@@ -1,5 +1,6 @@
 package com.flamyoad.tsukiviewer.core.repository
 
+import android.content.Context
 import android.content.SharedPreferences
 import android.os.SystemClock
 import android.util.LruCache
@@ -44,6 +45,7 @@ enum class RelatedMangaReason(@StringRes val label: Int) {
     SHARED_CHARACTER(R.string.related_shared_character),
     SIMILAR_TITLE(R.string.related_similar_title),
     SIMILAR_COVER(R.string.related_similar_cover),
+    SIMILAR_CHARACTER_ART(R.string.related_similar_character_art),
     SHARED_FOLDER_TAG(R.string.related_shared_folder_tag),
     SHARED_ARTIST(R.string.related_shared_artist),
     SHARED_TAGS(R.string.related_shared_tags)
@@ -57,7 +59,9 @@ data class RelatedMangaResults(
 
 const val RELATED_MANGA_PAGE_SIZE = 6
 
-class RelatedMangaRepository(private val database: AppDatabase) {
+class RelatedMangaRepository(private val database: AppDatabase, context: Context) {
+    private val coverFingerprints = CoverFingerprints(database.coverFingerprintDao(), context.applicationContext.assets)
+
     private fun observeEnabled(preferences: SharedPreferences) = callbackFlow {
         fun sendCurrentSetting() {
             trySend(
@@ -126,13 +130,23 @@ class RelatedMangaRepository(private val database: AppDatabase) {
                     emit(partial)
                     requestedCount.first { it > ranking.strongMatches.size }
                 }
-                if (entry.completed == null) emit(RelatedMangaResults(ranking.strongMatches, searching = true))
+                if (entry.completed == null) {
+                    val provisional = ranking.withCoverMatches(Int.MAX_VALUE, emptyMap())
+                    emit(RelatedMangaResults(provisional, searching = true))
+                }
             }
 
             val matches = entry.finish.withLock {
                 entry.completed ?: run {
                     val results = if (ranking.hasWeakerCandidates) {
-                        ranking.finish(Int.MAX_VALUE) { eligible -> coverDistances(source, entry.cover, eligible) }
+                        ranking.finish(Int.MAX_VALUE) { eligible ->
+                            coverMatches(source, entry.cover, eligible) { partialMatches ->
+                                emit(RelatedMangaResults(
+                                    ranking.withCoverMatches(Int.MAX_VALUE, partialMatches),
+                                    searching = true
+                                ))
+                            }
+                        }
                     } else {
                         ranking.strongMatches
                     }
@@ -159,7 +173,7 @@ class RelatedMangaRepository(private val database: AppDatabase) {
         val cancellation = currentCoroutineContext()
         return rankRelatedManga(
             source, library.metadata[source], library.candidates, cancellation::ensureActive
-        ) { eligible -> coverDistances(source, library.covers[source], eligible) }
+        ) { eligible -> coverMatches(source, library.covers[source], eligible) }
     }
 
     private suspend fun readSavedResults(
@@ -233,9 +247,13 @@ class RelatedMangaRepository(private val database: AppDatabase) {
         })
     }
 
-    private suspend fun coverDistances(source: File, cover: File?, eligible: List<RelatedMangaCandidate>) =
-        if (cover == null) emptyMap() else
-            CoverFingerprints(database.coverFingerprintDao()).findDistances(source, cover, eligible)
+    private suspend fun coverMatches(
+        source: File,
+        cover: File?,
+        eligible: List<RelatedMangaCandidate>,
+        onProgress: suspend (Map<File, CoverMatch>) -> Unit = {}
+    ): Map<File, CoverMatch> = if (cover == null) emptyMap() else
+        coverFingerprints.findMatches(source, cover, eligible, onProgress)
 }
 
 private data class RelatedLibraryInputs(
@@ -361,11 +379,11 @@ internal suspend fun rankRelatedManga(
     candidates: List<RelatedMangaCandidate>,
     checkCancellation: () -> Unit = {},
     limit: Int = RELATED_MANGA_PAGE_SIZE,
-    coverDistances: suspend (List<RelatedMangaCandidate>) -> Map<File, Int> = { emptyMap() }
+    coverMatches: suspend (List<RelatedMangaCandidate>) -> Map<File, CoverMatch> = { emptyMap() }
 ): List<RelatedManga> {
     val ranking = prepareRelatedManga(source, sourceMetadata, candidates, checkCancellation)
     if (ranking.strongMatches.size >= limit || !ranking.hasWeakerCandidates) return ranking.strongMatches.take(limit)
-    return ranking.finish(limit, coverDistances)
+    return ranking.finish(limit, coverMatches)
 }
 
 private fun prepareRelatedManga(
@@ -464,16 +482,16 @@ private class RelatedMangaRanking(
 
     suspend fun finish(
         limit: Int,
-        coverDistances: suspend (List<RelatedMangaCandidate>) -> Map<File, Int>
-    ): List<RelatedManga> {
-        val distances = coverDistances(weakerMatches.map { it.first })
+        coverMatches: suspend (List<RelatedMangaCandidate>) -> Map<File, CoverMatch>
+    ): List<RelatedManga> = withCoverMatches(limit, coverMatches(weakerMatches.map { it.first }))
+
+    suspend fun withCoverMatches(limit: Int, covers: Map<File, CoverMatch>): List<RelatedManga> {
         val cancellation = currentCoroutineContext()
         val additional = weakerMatches.mapNotNull { (candidate, fallback) ->
             cancellation.ensureActive()
-            val distance = distances[candidate.cover] ?: return@mapNotNull fallback
+            val coverMatch = covers[candidate.cover] ?: return@mapNotNull fallback
             val title = fallback?.first?.title ?: candidate.displayTitle()
-            RelatedManga(candidate.directory, candidate.cover, title, RelatedMangaReason.SIMILAR_COVER) to
-                -distance.toDouble()
+            RelatedManga(candidate.directory, candidate.cover, title, coverMatch.reason) to -coverMatch.distance
         }.sortedWith(relatedMatchOrder).take(limit - strongMatches.size).map { it.first }
         return strongMatches + additional
     }
